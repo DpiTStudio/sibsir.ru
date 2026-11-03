@@ -30,6 +30,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "sibsir.ru",
     "www.sibsir.ru",
+    "dpitstudio-sibsir-ru-15be.twc1.net",
 ]
 
 # Доверенные источники для защиты CSRF (с указанием протокола http/https и портов)
@@ -38,8 +39,8 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8880",
     "https://sibsir.ru",
     "https://www.sibsir.ru",
+    "https://dpitstudio-sibsir-ru-15be.twc1.net",
 ]
-
 
 
 # Определение приложения
@@ -228,7 +229,11 @@ TINYMCE_DEFAULT_CONFIG = {
 # ==========================================
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND",
-    "django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend"
+    (
+        "django.core.mail.backends.console.EmailBackend"
+        if DEBUG
+        else "django.core.mail.backends.smtp.EmailBackend"
+    ),
 )
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.yandex.ru")
 EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 465))
