@@ -18,9 +18,9 @@ old/
 
 # Django specific
 *.log
-db.sqlite3
-db.sqlite3-journal
-staticfiles/
+#db.sqlite3
+#db.sqlite3-journal
+#staticfiles/
 # media/
 *.pot
 *.pyc
