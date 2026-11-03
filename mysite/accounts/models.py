@@ -130,6 +130,8 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_or_save_user_profile(sender, instance, created, **kwargs):
     """Автоматически создает профиль при создании пользователя."""
+    if kwargs.get("raw", False):
+        return
     if created:
         UserProfile.objects.create(user=instance)
     else:

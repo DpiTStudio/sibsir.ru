@@ -40,6 +40,12 @@
                 <i class="bi bi-sliders"></i>
                 <span>Реквизиты и сайт</span>
             </a>
+            {% if user.is_superuser %}
+            <a href="{% url 'main:admin_backup_dashboard' %}" class="sib-btn-action" title="Резервное копирование и перенос данных">
+                <i class="bi bi-shield-lock-fill"></i>
+                <span>Бэкап и деплой</span>
+            </a>
+            {% endif %}
             <a href="/" target="_blank" class="sib-btn-action">
                 <i class="bi bi-arrow-up-right-square"></i>
                 <span>Витрина сайта</span>

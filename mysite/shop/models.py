@@ -1230,12 +1230,16 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=Review)
 def update_product_rating_on_review_save(sender, instance, **kwargs):
+    if kwargs.get("raw", False):
+        return
     if instance.product:
         instance.product.update_rating_stats()
 
 
 @receiver(post_delete, sender=Review)
 def update_product_rating_on_review_delete(sender, instance, **kwargs):
+    if kwargs.get("raw", False):
+        return
     if instance.product:
         instance.product.update_rating_stats()
 

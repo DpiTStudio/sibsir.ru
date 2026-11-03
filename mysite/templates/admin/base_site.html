@@ -377,6 +377,15 @@
                             <span class="admin-dd-desc">Контакты, логотип, SEO, капча</span>
                         </div>
                     </a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'main:admin_backup_dashboard' %}" class="admin-dropdown-item {% if '/admin-backups/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon emerald"><i class="bi bi-shield-lock-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Резервное копирование и деплой</span>
+                            <span class="admin-dd-desc">Бэкап каталога, фото, заказов и перенос</span>
+                        </div>
+                    </a>
+                    {% endif %}
                     <a href="/robots.txt" target="_blank" class="admin-dropdown-item" role="menuitem">
                         <div class="admin-dd-icon slate"><i class="bi bi-robot"></i></div>
                         <div class="admin-dd-info">
@@ -506,6 +515,9 @@
             </div>
             <div class="admin-drawer-links">
                 <a href="/admin/main/sitesettings/1/change/" class="{% if '/main/sitesettings/' in request.path %}active{% endif %}">Реквизиты и настройки сайта</a>
+                {% if user.is_superuser %}
+                <a href="{% url 'main:admin_backup_dashboard' %}" class="{% if '/admin-backups/' in request.path %}active{% endif %}">Резервное копирование и деплой</a>
+                {% endif %}
                 <a href="/" target="_blank">Витрина интернет-магазина</a>
             </div>
         </div>

@@ -45,3 +45,8 @@ Thumbs.db
 1.txt
 *.tmp
 
+
+# Backups and data archives
+backups/
+mysite/backups/
+*.zip
