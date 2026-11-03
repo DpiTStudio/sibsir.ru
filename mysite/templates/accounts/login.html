@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% load static captcha_tags %}
+
+{% block title %}Вход в личный кабинет — Сыроварня «Сибсыр»{% endblock %}
+{% block meta_description %}Вход в персональный личный кабинет покупателя и B2B кабинет для юридических лиц и оптовых партнеров сыроварни Сибсыр.{% endblock %}
+
+{% block content %}
+<div class="account-auth-section py-5" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); min-height: 80vh;">
+    <div class="container py-lg-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-5">
+                
+                <!-- Breadcrumbs -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb mb-0 small">
+                        <li class="breadcrumb-item"><a href="{% url 'main:index' %}" class="text-decoration-none text-muted">Главная</a></li>
+                        <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">Авторизация</li>
+                    </ol>
+                </nav>
+
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.06);">
+                    <!-- Card Header -->
+                    <div class="p-4 text-center text-white position-relative" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                        <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(255, 132, 0, 0.15); border: 2px solid #ff8400; color: #ff8400; font-size: 1.75rem;">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">Личный кабинет</h3>
+                        <p class="text-secondary small mb-0">Для физических лиц и юридических партнеров</p>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body p-4 p-md-5 bg-white">
+
+                        {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags|default:'info' }} rounded-3 small py-2 px-3 mb-2" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger rounded-3 small py-2 px-3 mb-4">
+                            {% for error in form.non_field_errors %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <span>{{ error }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'accounts:login' %}" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="next" value="{{ next }}">
+
+                            <div class="mb-3">
+                                <label for="{{ form.login.id_for_label }}" class="form-label small fw-bold text-dark">
+                                    <i class="bi bi-envelope-at text-warning me-1"></i>{{ form.login.label }}
+                                </label>
+                                {{ form.login }}
+                                {% if form.login.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.login.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="{{ form.password.id_for_label }}" class="form-label small fw-bold text-dark mb-0">
+                                        <i class="bi bi-shield-lock text-warning me-1"></i>{{ form.password.label }}
+                                    </label>
+                                </div>
+                                {{ form.password }}
+                                {% if form.password.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ form.password.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-check mb-4">
+                                {{ form.remember_me }}
+                                <label class="form-check-label small text-muted user-select-none" for="{{ form.remember_me.id_for_label }}">
+                                    {{ form.remember_me.label }}
+                                </label>
+                            </div>
+
+                            {% render_captcha 'login' form=form %}
+
+                            <button type="submit" class="btn btn-sib-orange w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="font-size: 1rem;">
+                                <i class="bi bi-box-arrow-in-right fs-5"></i>
+                                <span>Войти в личный кабинет</span>
+                            </button>
+                        </form>
+
+                        <div class="text-center my-4 position-relative">
+                            <hr class="text-muted opacity-25">
+                            <span class="position-absolute top-50 start-50 translate-middle bg-white px-3 small text-muted">
+                                Еще нет аккаунта?
+                            </span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'accounts:register' %}?type=individual" class="btn btn-outline-dark rounded-pill py-2 small fw-semibold d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-person-plus text-warning"></i>
+                                <span>Регистрация покупателя (Физлицо)</span>
+                            </a>
+                            <a href="{% url 'accounts:register' %}?type=legal" class="btn btn-outline-primary rounded-pill py-2 small fw-semibold d-flex align-items-center justify-content-center gap-2" style="border-color: #cbd5e1; color: #1e293b;">
+                                <i class="bi bi-building text-primary"></i>
+                                <span>Регистрация организации / ИП (B2B)</span>
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Features list -->
+                <div class="mt-4 p-3 rounded-4 bg-white shadow-sm border text-muted small">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Полная история всех ваших покупок и заказов</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Электронные чеки, счета на оплату и накладные ТОРГ-12</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-success"></i>
+                        <span>Автозаполнение реквизитов и адреса доставки при заказе</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

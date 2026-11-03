@@ -1,0 +1,62 @@
+{% if is_required %}
+{% if form_type == 'admin_login' %}
+<div class="sib-admin-captcha-wrapper">
+    <div class="sib-captcha-header">
+        <label for="id_captcha_answer" class="sib-input-label">
+            <i class="bi bi-shield-check"></i>
+            <span>Проверочный код (Защита от ботов)</span>
+        </label>
+        <button type="button" class="sib-captcha-refresh-btn captcha-refresh-btn" title="Обновить проверочный код" aria-label="Обновить код">
+            <i class="bi bi-arrow-clockwise"></i>
+            <span>Обновить</span>
+        </button>
+    </div>
+    <div class="sib-captcha-body">
+        <div class="sib-captcha-img-box captcha-img-box">
+            <img src="{{ image_url }}" alt="Проверочный код" class="captcha-img" />
+        </div>
+        <div class="sib-captcha-input-box">
+            <input type="hidden" name="captcha_key" value="{{ key }}" class="captcha-key-input">
+            <input type="text" id="id_captcha_answer" name="captcha_answer" class="{{ input_class|default:'sib-input' }} captcha-answer-input" placeholder="{{ placeholder }}" autocomplete="off" required>
+        </div>
+    </div>
+    {% if error %}
+    <div class="sib-captcha-error">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+<div class="sib-captcha-wrapper mb-3 p-3 rounded-4" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <label class="form-label small fw-bold text-dark mb-0 d-flex align-items-center gap-1">
+            <i class="bi bi-shield-check text-warning fs-6"></i>
+            <span>Защита от спама</span>
+            <span class="text-danger">*</span>
+        </label>
+        <button type="button" class="btn btn-sm btn-link text-decoration-none text-muted p-0 d-flex align-items-center gap-1 captcha-refresh-btn" title="Обновить проверочный код" style="font-size: 11px;">
+            <i class="bi bi-arrow-clockwise fs-6"></i>
+            <span>Обновить</span>
+        </button>
+    </div>
+    <div class="row g-2 align-items-center">
+        <div class="col-auto">
+            <div class="captcha-img-box rounded-3 overflow-hidden shadow-sm d-flex align-items-center justify-content-center" style="background: #ffffff; border: 1px solid #cbd5e1; height: 46px; min-width: 140px;">
+                <img src="{{ image_url }}" alt="Проверочный код" class="captcha-img" style="height: 44px; width: auto; max-width: 100%; display: block;" />
+            </div>
+        </div>
+        <div class="col">
+            <input type="hidden" name="captcha_key" value="{{ key }}" class="captcha-key-input">
+            <input type="text" name="captcha_answer" class="{{ input_class }} captcha-answer-input" placeholder="{{ placeholder }}" autocomplete="off" required>
+        </div>
+    </div>
+    {% if error %}
+    <div class="text-danger small mt-2 d-flex align-items-center gap-1">
+        <i class="bi bi-exclamation-circle-fill"></i>
+        <span>{{ error }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endif %}

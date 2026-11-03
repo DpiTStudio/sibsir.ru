@@ -1,0 +1,535 @@
+{% extends "admin/base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="icon" type="image/x-icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}/media/branding/favicon_xGSJUqX.ico{% endif %}">
+<link rel="shortcut icon" type="image/x-icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}/media/branding/favicon_xGSJUqX.ico{% endif %}">
+<link rel="stylesheet" href="{% static 'admin/css/custom_admin.css' %}?v=4.2">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<link rel="icon" type="image/x-icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}/media/branding/favicon_xGSJUqX.ico{% endif %}">
+<link rel="shortcut icon" type="image/x-icon" href="{% if site_settings.favicon %}{{ site_settings.favicon.url }}{% else %}/media/branding/favicon_xGSJUqX.ico{% endif %}">
+<!-- Chart.js для интерактивных графиков и статистики -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="{% static 'admin/js/custom_admin.js' %}?v=4.2" defer></script>
+{% endblock %}
+
+{% block header %}
+<header id="header" class="admin-unified-header">
+    <div class="admin-header-container">
+        <!-- 1. Верхняя строка: Бренд и логотип (слева) + Инструменты пользователя (справа) -->
+        <div class="admin-header-row admin-header-top">
+            <div id="branding">
+                <button type="button" class="admin-mobile-toggle" id="adminMobileMenuToggle" aria-label="Открыть главное меню" aria-expanded="false" title="Навигационное меню">
+                    <i class="bi bi-list"></i>
+                </button>
+                <a href="{% url 'admin:index' %}" class="admin-brand-link" title="Главная страница панели управления">
+                    <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}/media/branding/logo-inner.png{% endif %}" alt="{% if site_settings.brand_short_name %}{{ site_settings.brand_short_name }}{% else %}Сибсыр{% endif %}" class="admin-brand-logo">
+                    <div class="admin-brand-text-wrap d-none d-sm-flex">
+                        <span class="admin-brand-title">Панель управления</span>
+                        <span class="admin-brand-version-badge">ТМ «Сибсыр»</span>
+                    </div>
+                </a>
+            </div>
+
+            {% if has_permission %}
+            <!-- Инструменты пользователя (Справа в верхней строке) -->
+            <div id="user-tools">
+                <!-- Кнопка быстрого поиска по меню (Ctrl + K) -->
+                <button type="button" class="admin-nav-search-btn" id="adminQuickNavSearchBtn" title="Быстрый поиск по всем разделам админки (Ctrl + K)">
+                    <i class="bi bi-search"></i>
+                    <span class="admin-search-text">Поиск</span>
+                    <span class="admin-search-kbd">Ctrl+K</span>
+                </button>
+
+                {% if admin_nav_counts.total_alerts > 0 %}
+                <a href="/admin/shop/order/?status__exact=new" class="admin-alerts-pill" title="Новые заказы и обращения, требующие внимания">
+                    <span class="admin-pulse-dot"></span>
+                    <i class="bi bi-bell-fill"></i>
+                    <span>{{ admin_nav_counts.total_alerts }} нов.</span>
+                </a>
+                {% endif %}
+
+                <a href="/" target="_blank" class="btn-site-preview" title="Открыть интернет-магазин в новой вкладке">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                    <span class="d-none d-md-inline">На витрину</span>
+                </a>
+
+                <div class="admin-user-profile-chip" title="Текущий пользователь">
+                    <span class="admin-user-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </span>
+                    <span class="admin-user-name">{% firstof user.get_short_name user.get_username %}</span>
+                </div>
+
+                {% if user.has_usable_password %}
+                    <a href="{% url 'admin:password_change' %}" class="admin-btn-tool" title="Сменить пароль учетной записи">
+                        <i class="bi bi-key-fill"></i>
+                    </a>
+                {% endif %}
+
+                <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="admin-btn-tool admin-btn-logout" title="Выйти из системы">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if has_permission %}
+        <!-- 2. Нижняя строка: Главное навигационное меню -->
+        <div class="admin-header-row admin-header-bottom">
+            <nav class="admin-global-nav" aria-label="Главная навигация">
+        <!-- 1. Дашборд -->
+        <a href="{% url 'admin:index' %}" class="admin-nav-link {% if request.path == '/admin/' %}active{% endif %}" title="Сводная аналитика и ключевые показатели">
+            <i class="bi bi-speedometer2"></i>
+            <span>Дашборд</span>
+        </a>
+
+        <!-- 2. Продажи и Заказы (Dropdown) -->
+        <div class="admin-nav-dropdown {% if '/shop/order/' in request.path or '/wholesalepricerequest/' in request.path %}active-parent{% endif %}" data-dropdown>
+            <button type="button" class="admin-nav-dropdown-btn {% if '/shop/order/' in request.path or '/wholesalepricerequest/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
+                <i class="bi bi-cart3"></i>
+                <span>Продажи</span>
+                {% if admin_nav_counts.new_orders > 0 or admin_nav_counts.pending_wholesale > 0 %}
+                <span class="admin-nav-badge warning">{{ admin_nav_counts.new_orders|add:admin_nav_counts.pending_wholesale }}</span>
+                {% endif %}
+                <i class="bi bi-chevron-down admin-chevron"></i>
+            </button>
+            <div class="admin-dropdown-menu" role="menu">
+                <div class="admin-dropdown-header">
+                    <i class="bi bi-cart-check"></i>
+                    <span>Заказы и Оптовые заявки</span>
+                </div>
+                <div class="admin-dropdown-list">
+                    <a href="/admin/shop/order/" class="admin-dropdown-item {% if '/shop/order/' in request.path and not '/add/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon amber"><i class="bi bi-cart-check-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Заказы клиентов</span>
+                            <span class="admin-dd-desc">Розничные и B2B заказы</span>
+                        </div>
+                        {% if admin_nav_counts.new_orders > 0 %}
+                        <span class="admin-dd-badge badge-warning" title="Новые не обработанные заказы">{{ admin_nav_counts.new_orders }} нов.</span>
+                        {% endif %}
+                    </a>
+                    <a href="/admin/main/wholesalepricerequest/" class="admin-dropdown-item {% if '/wholesalepricerequest/' in request.path and not '/mailing/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon blue"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Оптовые заявки (B2B)</span>
+                            <span class="admin-dd-desc">Запросы прайса и одобрение</span>
+                        </div>
+                        {% if admin_nav_counts.pending_wholesale > 0 %}
+                        <span class="admin-dd-badge badge-blue" title="Ожидают одобрения">{{ admin_nav_counts.pending_wholesale }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="/admin/main/wholesalepricerequest/mailing/" class="admin-dropdown-item {% if '/mailing/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon purple"><i class="bi bi-send-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Оптовая email-рассылка</span>
+                            <span class="admin-dd-desc">Отправка прайс-листа клиентам</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="admin-dropdown-footer">
+                    <a href="/admin/shop/order/add/" class="admin-dd-quick-btn" title="Оформить новый заказ вручную">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Создать заказ</span>
+                    </a>
+                    <a href="/admin/main/wholesalepricerequest/download/" class="admin-dd-quick-btn secondary" title="Скачать актуальный оптовый прайс-лист в XLSX">
+                        <i class="bi bi-file-earmark-excel-fill"></i>
+                        <span>Прайс XLSX</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Каталог продукции (Dropdown) -->
+        <div class="admin-nav-dropdown {% if '/shop/product/' in request.path or '/shop/category/' in request.path or '/shop/promotion/' in request.path or '/shop/promocode/' in request.path or '/shop/review/' in request.path %}active-parent{% endif %}" data-dropdown>
+            <button type="button" class="admin-nav-dropdown-btn {% if '/shop/product/' in request.path or '/shop/category/' in request.path or '/shop/promotion/' in request.path or '/shop/promocode/' in request.path or '/shop/review/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
+                <i class="bi bi-basket2"></i>
+                <span>Каталог</span>
+                <i class="bi bi-chevron-down admin-chevron"></i>
+            </button>
+            <div class="admin-dropdown-menu" role="menu">
+                <div class="admin-dropdown-header">
+                    <i class="bi bi-basket2-fill"></i>
+                    <span>Каталог сыров и маркетинг</span>
+                </div>
+                <div class="admin-dropdown-list">
+                    <a href="/admin/shop/product/" class="admin-dropdown-item {% if '/shop/product/' in request.path and not '/add/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon emerald"><i class="bi bi-basket2-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Товары каталога</span>
+                            <span class="admin-dd-desc">Ассортимент, цены, фасовка</span>
+                        </div>
+                    </a>
+                    <a href="/admin/shop/category/" class="admin-dropdown-item {% if '/shop/category/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon indigo"><i class="bi bi-tags-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Категории продукции</span>
+                            <span class="admin-dd-desc">Разделы каталога и SEO</span>
+                        </div>
+                    </a>
+                    <a href="/admin/shop/promotion/" class="admin-dropdown-item {% if '/shop/promotion/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon red"><i class="bi bi-percent"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Акции и спецпредложения</span>
+                            <span class="admin-dd-desc">Скидки, баннеры и таймеры</span>
+                        </div>
+                    </a>
+                    <a href="/admin/shop/promocode/" class="admin-dropdown-item {% if '/shop/promocode/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon violet"><i class="bi bi-ticket-perforated-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Промокоды и купоны</span>
+                            <span class="admin-dd-desc">Промо-акции на корзину</span>
+                        </div>
+                    </a>
+                    <a href="/admin/shop/review/" class="admin-dropdown-item {% if '/shop/review/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon amber"><i class="bi bi-star-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Отзывы покупателей</span>
+                            <span class="admin-dd-desc">Модерация и оценки</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="admin-dropdown-footer">
+                    <a href="/admin/shop/product/add/" class="admin-dd-quick-btn" title="Добавить новый сыр в каталог">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Добавить товар</span>
+                    </a>
+                    <a href="/admin/shop/category/add/" class="admin-dd-quick-btn secondary" title="Создать новую категорию">
+                        <i class="bi bi-folder-plus"></i>
+                        <span>Категория</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Клиенты и Доступ (Dropdown) -->
+        <div class="admin-nav-dropdown {% if '/accounts/' in request.path or '/auth/' in request.path %}active-parent{% endif %}" data-dropdown>
+            <button type="button" class="admin-nav-dropdown-btn {% if '/accounts/' in request.path or '/auth/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
+                <i class="bi bi-people"></i>
+                <span>Клиенты</span>
+                <i class="bi bi-chevron-down admin-chevron"></i>
+            </button>
+            <div class="admin-dropdown-menu" role="menu">
+                <div class="admin-dropdown-header">
+                    <i class="bi bi-people-fill"></i>
+                    <span>Клиентская база и операторы</span>
+                </div>
+                <div class="admin-dropdown-list">
+                    <a href="/admin/accounts/userprofile/" class="admin-dropdown-item {% if '/accounts/userprofile/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon amber"><i class="bi bi-person-vcard-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Профили клиентов</span>
+                            <span class="admin-dd-desc">Физлица и Юрлица (ИНН, КПП)</span>
+                        </div>
+                    </a>
+                    <a href="/admin/accounts/" class="admin-dropdown-item {% if request.path == '/admin/accounts/' %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon blue"><i class="bi bi-graph-up-arrow"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Сводная аналитика клиентов</span>
+                            <span class="admin-dd-desc">Статистика регистраций и заказов</span>
+                        </div>
+                    </a>
+                    <a href="/admin/auth/user/" class="admin-dropdown-item {% if '/auth/user/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon emerald"><i class="bi bi-person-badge-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Пользователи и операторы</span>
+                            <span class="admin-dd-desc">Учетные записи системы</span>
+                        </div>
+                    </a>
+                    <a href="/admin/auth/group/" class="admin-dropdown-item {% if '/auth/group/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon slate"><i class="bi bi-shield-lock-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Группы прав доступа</span>
+                            <span class="admin-dd-desc">Роли менеджеров и права</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="admin-dropdown-footer">
+                    <a href="/admin/accounts/userprofile/add/" class="admin-dd-quick-btn" title="Создать профиль клиента">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Создать клиента</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Контент и Обратная связь (Dropdown) -->
+        <div class="admin-nav-dropdown {% if '/articles/' in request.path or '/callbackrequest/' in request.path or '/faq' in request.path or '/productionfeature/' in request.path or '/companytimeline/' in request.path or '/qualitycertificate/' in request.path or '/deliverymethod/' in request.path or '/paymentmethod/' in request.path or '/contactdepartment/' in request.path or '/sociallink/' in request.path %}active-parent{% endif %}" data-dropdown>
+            <button type="button" class="admin-nav-dropdown-btn {% if '/articles/' in request.path or '/callbackrequest/' in request.path or '/faq' in request.path or '/productionfeature/' in request.path or '/companytimeline/' in request.path or '/qualitycertificate/' in request.path or '/deliverymethod/' in request.path or '/paymentmethod/' in request.path or '/contactdepartment/' in request.path or '/sociallink/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
+                <i class="bi bi-layout-text-window-reverse"></i>
+                <span>Контент</span>
+                {% if admin_nav_counts.pending_callbacks > 0 %}
+                <span class="admin-nav-badge warning">{{ admin_nav_counts.pending_callbacks }}</span>
+                {% endif %}
+                <i class="bi bi-chevron-down admin-chevron"></i>
+            </button>
+            <div class="admin-dropdown-menu admin-dropdown-wide" role="menu">
+                <div class="admin-dropdown-header">
+                    <i class="bi bi-journal-richtext"></i>
+                    <span>Информационные разделы и контент</span>
+                </div>
+                <div class="admin-dropdown-list admin-dropdown-grid-2">
+                    <a href="/admin/main/callbackrequest/" class="admin-dropdown-item {% if '/main/callbackrequest/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon purple"><i class="bi bi-telephone-inbound-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Заявки на звонки</span>
+                            <span class="admin-dd-desc">Вопросы и обратная связь</span>
+                        </div>
+                        {% if admin_nav_counts.pending_callbacks > 0 %}
+                        <span class="admin-dd-badge badge-warning">{{ admin_nav_counts.pending_callbacks }} нов.</span>
+                        {% endif %}
+                    </a>
+                    <a href="/admin/articles/article/" class="admin-dropdown-item {% if '/articles/article/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon teal"><i class="bi bi-journal-bookmark-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Статьи и публикации</span>
+                            <span class="admin-dd-desc">Блог, новости, сыроделие</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/faqitem/" class="admin-dropdown-item {% if '/main/faqitem/' in request.path or '/main/faqcategory/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon blue"><i class="bi bi-question-circle-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">FAQ (Вопросы и ответы)</span>
+                            <span class="admin-dd-desc">Часто задаваемые вопросы</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/productionfeature/" class="admin-dropdown-item {% if '/main/productionfeature/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon amber"><i class="bi bi-shield-check"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Преимущества завода</span>
+                            <span class="admin-dd-desc">Блок преимуществ витрины</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/companytimeline/" class="admin-dropdown-item {% if '/main/companytimeline/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon emerald"><i class="bi bi-hourglass-split"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">История развития</span>
+                            <span class="admin-dd-desc">Этапы и хронология бренда</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/qualitycertificate/" class="admin-dropdown-item {% if '/main/qualitycertificate/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon violet"><i class="bi bi-award-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Сертификаты качества</span>
+                            <span class="admin-dd-desc">ГОСТ, протоколы, награды</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/deliverymethod/" class="admin-dropdown-item {% if '/main/deliverymethod/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon indigo"><i class="bi bi-truck"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Способы доставки</span>
+                            <span class="admin-dd-desc">Тарифы и условия доставки</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/paymentmethod/" class="admin-dropdown-item {% if '/main/paymentmethod/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon emerald"><i class="bi bi-credit-card-2-front-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Способы оплаты</span>
+                            <span class="admin-dd-desc">Наличные, безнал, терминал</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/contactdepartment/" class="admin-dropdown-item {% if '/main/contactdepartment/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon slate"><i class="bi bi-buildings-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Отделы и контакты</span>
+                            <span class="admin-dd-desc">Телефоны и адреса служб</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/sociallink/" class="admin-dropdown-item {% if '/main/sociallink/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon cyan"><i class="bi bi-share-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Социальные сети</span>
+                            <span class="admin-dd-desc">Telegram, VK, WhatsApp</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Настройки системы (Dropdown) -->
+        <div class="admin-nav-dropdown {% if '/main/sitesettings/' in request.path %}active-parent{% endif %}" data-dropdown>
+            <button type="button" class="admin-nav-dropdown-btn {% if '/main/sitesettings/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
+                <i class="bi bi-gear-wide-connected"></i>
+                <span>Настройки</span>
+                <i class="bi bi-chevron-down admin-chevron"></i>
+            </button>
+            <div class="admin-dropdown-menu" role="menu">
+                <div class="admin-dropdown-header">
+                    <i class="bi bi-sliders"></i>
+                    <span>Системные параметры сайта</span>
+                </div>
+                <div class="admin-dropdown-list">
+                    <a href="/admin/main/sitesettings/1/change/" class="admin-dropdown-item {% if '/main/sitesettings/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon amber"><i class="bi bi-gear-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Основные реквизиты</span>
+                            <span class="admin-dd-desc">Контакты, логотип, SEO, капча</span>
+                        </div>
+                    </a>
+                    <a href="/robots.txt" target="_blank" class="admin-dropdown-item" role="menuitem">
+                        <div class="admin-dd-icon slate"><i class="bi bi-robot"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Файл robots.txt</span>
+                            <span class="admin-dd-desc">Просмотр правил для поисковиков</span>
+                        </div>
+                        <i class="bi bi-box-arrow-up-right" style="color: var(--admin-text-muted); font-size: 0.8rem;"></i>
+                    </a>
+                    <a href="/sitemap.xml" target="_blank" class="admin-dropdown-item" role="menuitem">
+                        <div class="admin-dd-icon blue"><i class="bi bi-diagram-3-fill"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Карта сайта sitemap.xml</span>
+                            <span class="admin-dd-desc">XML-индекс страниц каталога</span>
+                        </div>
+                        <i class="bi bi-box-arrow-up-right" style="color: var(--admin-text-muted); font-size: 0.8rem;"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</header>
+
+{% if has_permission %}
+<!-- Мобильное выдвижное меню (Drawer) -->
+<div class="admin-mobile-drawer-backdrop" id="adminMobileDrawerBackdrop"></div>
+<aside class="admin-mobile-drawer" id="adminMobileDrawer" aria-label="Мобильное меню навигации">
+    <div class="admin-drawer-header">
+        <div class="admin-drawer-brand">
+            <img src="{% if site_settings.logo %}{{ site_settings.logo.url }}{% else %}/media/branding/logo-inner.png{% endif %}" alt="Сибсыр" class="admin-drawer-logo">
+            <span>Навигация</span>
+        </div>
+        <button type="button" class="admin-drawer-close" id="adminMobileDrawerClose" aria-label="Закрыть меню">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="admin-drawer-search">
+        <i class="bi bi-search"></i>
+        <input type="text" id="adminDrawerSearchInput" placeholder="Поиск по разделам...">
+    </div>
+    <div class="admin-drawer-body">
+        <a href="{% url 'admin:index' %}" class="admin-drawer-single-link {% if request.path == '/admin/' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Дашборд и сводка</span>
+        </a>
+
+        <!-- Группа Продажи -->
+        <div class="admin-drawer-group">
+            <div class="admin-drawer-group-title">
+                <i class="bi bi-cart3"></i>
+                <span>Продажи и Заказы</span>
+            </div>
+            <div class="admin-drawer-links">
+                <a href="/admin/shop/order/" class="{% if '/shop/order/' in request.path %}active{% endif %}">
+                    <span>Заказы клиентов</span>
+                    {% if admin_nav_counts.new_orders > 0 %}<span class="badge-count">{{ admin_nav_counts.new_orders }}</span>{% endif %}
+                </a>
+                <a href="/admin/main/wholesalepricerequest/" class="{% if '/wholesalepricerequest/' in request.path %}active{% endif %}">
+                    <span>Оптовые заявки (B2B)</span>
+                    {% if admin_nav_counts.pending_wholesale > 0 %}<span class="badge-count">{{ admin_nav_counts.pending_wholesale }}</span>{% endif %}
+                </a>
+                <a href="/admin/main/wholesalepricerequest/mailing/">
+                    <span>Оптовая email-рассылка</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Группа Каталог -->
+        <div class="admin-drawer-group">
+            <div class="admin-drawer-group-title">
+                <i class="bi bi-basket2"></i>
+                <span>Каталог продукции</span>
+            </div>
+            <div class="admin-drawer-links">
+                <a href="/admin/shop/product/" class="{% if '/shop/product/' in request.path %}active{% endif %}">Товары каталога</a>
+                <a href="/admin/shop/category/" class="{% if '/shop/category/' in request.path %}active{% endif %}">Категории сыров</a>
+                <a href="/admin/shop/promotion/" class="{% if '/shop/promotion/' in request.path %}active{% endif %}">Акции и скидки</a>
+                <a href="/admin/shop/promocode/" class="{% if '/shop/promocode/' in request.path %}active{% endif %}">Промокоды</a>
+                <a href="/admin/shop/review/" class="{% if '/shop/review/' in request.path %}active{% endif %}">Отзывы покупателей</a>
+            </div>
+        </div>
+
+        <!-- Группа Клиенты -->
+        <div class="admin-drawer-group">
+            <div class="admin-drawer-group-title">
+                <i class="bi bi-people"></i>
+                <span>Клиенты и Доступ</span>
+            </div>
+            <div class="admin-drawer-links">
+                <a href="/admin/accounts/userprofile/" class="{% if '/accounts/userprofile/' in request.path %}active{% endif %}">Профили клиентов</a>
+                <a href="/admin/accounts/" class="{% if request.path == '/admin/accounts/' %}active{% endif %}">Аналитика клиентов</a>
+                <a href="/admin/auth/user/" class="{% if '/auth/user/' in request.path %}active{% endif %}">Пользователи админки</a>
+                <a href="/admin/auth/group/" class="{% if '/auth/group/' in request.path %}active{% endif %}">Группы прав доступа</a>
+            </div>
+        </div>
+
+        <!-- Группа Контент -->
+        <div class="admin-drawer-group">
+            <div class="admin-drawer-group-title">
+                <i class="bi bi-layout-text-window-reverse"></i>
+                <span>Контент и Сайт</span>
+            </div>
+            <div class="admin-drawer-links">
+                <a href="/admin/main/callbackrequest/" class="{% if '/main/callbackrequest/' in request.path %}active{% endif %}">
+                    <span>Заявки на звонки</span>
+                    {% if admin_nav_counts.pending_callbacks > 0 %}<span class="badge-count">{{ admin_nav_counts.pending_callbacks }}</span>{% endif %}
+                </a>
+                <a href="/admin/articles/article/" class="{% if '/articles/article/' in request.path %}active{% endif %}">Статьи и публикации</a>
+                <a href="/admin/main/faqitem/" class="{% if '/main/faqitem/' in request.path %}active{% endif %}">FAQ (Вопросы и ответы)</a>
+                <a href="/admin/main/productionfeature/" class="{% if '/main/productionfeature/' in request.path %}active{% endif %}">Преимущества производства</a>
+                <a href="/admin/main/companytimeline/" class="{% if '/main/companytimeline/' in request.path %}active{% endif %}">История развития завода</a>
+                <a href="/admin/main/qualitycertificate/" class="{% if '/main/qualitycertificate/' in request.path %}active{% endif %}">Сертификаты качества</a>
+                <a href="/admin/main/deliverymethod/" class="{% if '/main/deliverymethod/' in request.path %}active{% endif %}">Способы доставки</a>
+                <a href="/admin/main/paymentmethod/" class="{% if '/main/paymentmethod/' in request.path %}active{% endif %}">Способы оплаты</a>
+                <a href="/admin/main/contactdepartment/" class="{% if '/main/contactdepartment/' in request.path %}active{% endif %}">Контакты отделов</a>
+                <a href="/admin/main/sociallink/" class="{% if '/main/sociallink/' in request.path %}active{% endif %}">Социальные сети</a>
+            </div>
+        </div>
+
+        <!-- Группа Настройки -->
+        <div class="admin-drawer-group">
+            <div class="admin-drawer-group-title">
+                <i class="bi bi-gear-wide-connected"></i>
+                <span>Настройки</span>
+            </div>
+            <div class="admin-drawer-links">
+                <a href="/admin/main/sitesettings/1/change/" class="{% if '/main/sitesettings/' in request.path %}active{% endif %}">Реквизиты и настройки сайта</a>
+                <a href="/" target="_blank">Витрина интернет-магазина</a>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<!-- Модальное окно быстрого поиска команд (Command Palette) -->
+<div class="admin-cmd-palette-backdrop" id="adminCmdPaletteBackdrop"></div>
+<div class="admin-cmd-palette" id="adminCmdPalette" role="dialog" aria-modal="true" aria-label="Быстрый переход по меню">
+    <div class="admin-cmd-search-header">
+        <i class="bi bi-search admin-cmd-search-icon"></i>
+        <input type="text" id="adminCmdInput" placeholder="Введите название раздела, товара, заказа... (Esc для закрытия)" autocomplete="off">
+        <button type="button" class="admin-cmd-close-btn" id="adminCmdCloseBtn" title="Закрыть (Esc)">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="admin-cmd-results" id="adminCmdResults">
+        <!-- Результаты генерируются динамически через custom_admin.js -->
+    </div>
+    <div class="admin-cmd-footer">
+        <span class="admin-cmd-hint"><kbd>↑</kbd><kbd>↓</kbd> выбор</span>
+        <span class="admin-cmd-hint"><kbd>Enter</kbd> перейти</span>
+        <span class="admin-cmd-hint"><kbd>Esc</kbd> закрыть</span>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

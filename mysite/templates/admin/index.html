@@ -1,0 +1,928 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="{% static 'admin/css/dashboard.css' %}">
+{% endblock %}
+
+{% block coltype %}colM{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard sib-dashboard-page{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div class="sib-dashboard-wrapper">
+
+    <!-- 1. Главный баннер приветствия и быстрые действия -->
+    <div class="sib-welcome-hero">
+        <div class="sib-hero-left">
+            <h1>Панель управления ТМ «Сибсыр»</h1>
+            <p>Добро пожаловать, <strong>{% firstof user.get_full_name user.username %}</strong>! Сводка продаж, каталога и заявок на {% now "d E Y" %} г.</p>
+            <div class="sib-hero-status-pill">
+                <span class="sib-pulse-dot"></span>
+                <span>Интернет-магазин и документооборот активны</span>
+            </div>
+        </div>
+        <div class="sib-hero-actions">
+            <a href="/admin/shop/product/add/" class="sib-btn-action primary">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>Добавить товар</span>
+            </a>
+            <a href="/admin/shop/order/add/" class="sib-btn-action">
+                <i class="bi bi-cart-plus-fill"></i>
+                <span>Новый заказ</span>
+            </a>
+            <a href="/admin/main/sitesettings/1/change/" class="sib-btn-action">
+                <i class="bi bi-sliders"></i>
+                <span>Реквизиты и сайт</span>
+            </a>
+            <a href="/" target="_blank" class="sib-btn-action">
+                <i class="bi bi-arrow-up-right-square"></i>
+                <span>Витрина сайта</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 2. Сетка ключевых показателей KPI (6 карточек) -->
+    <div class="sib-kpi-grid">
+        <!-- Карточка 1: Выручка -->
+        <div class="sib-kpi-card">
+            <div class="sib-kpi-header">
+                <span class="sib-kpi-title">Общая выручка</span>
+                <div class="sib-kpi-icon-wrap icon-amber">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+            </div>
+            <div class="sib-kpi-value">{{ stats.total_revenue|floatformat:0 }} ₽</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="sib-kpi-badge badge-success">
+                    <i class="bi bi-check-circle"></i> Оплачено: {{ stats.paid_revenue|floatformat:0 }} ₽
+                </span>
+                <span class="sib-kpi-badge badge-warning">
+                    К оплате: {{ stats.pending_revenue|floatformat:0 }} ₽
+                </span>
+            </div>
+        </div>
+
+        <!-- Карточка 2: Заказы -->
+        <div class="sib-kpi-card">
+            <div class="sib-kpi-header">
+                <span class="sib-kpi-title">Заказы клиентов</span>
+                <div class="sib-kpi-icon-wrap icon-blue">
+                    <i class="bi bi-bag-check-fill"></i>
+                </div>
+            </div>
+            <div class="sib-kpi-value">{{ stats.total_orders }}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                {% if stats.new_orders_count > 0 %}
+                <span class="sib-kpi-badge badge-warning">
+                    <i class="bi bi-bell-fill"></i> {{ stats.new_orders_count }} новых
+                </span>
+                {% else %}
+                <span class="sib-kpi-badge badge-success">Все обработаны</span>
+                {% endif %}
+                <span class="sib-kpi-badge badge-neutral">
+                    Юрлица: {{ stats.legal_orders_count }} | Физлица: {{ stats.individual_orders_count }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Карточка 3: Каталог товаров -->
+        <div class="sib-kpi-card">
+            <div class="sib-kpi-header">
+                <span class="sib-kpi-title">Каталог продукции</span>
+                <div class="sib-kpi-icon-wrap icon-emerald">
+                    <i class="bi bi-pie-chart-fill"></i>
+                </div>
+            </div>
+            <div class="sib-kpi-value">{{ stats.total_products }} <span style="font-size: 1rem; color: #64748b; font-weight: normal;">поз.</span></div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="sib-kpi-badge badge-success">
+                    <i class="bi bi-check2"></i> {{ stats.active_products }} в наличии
+                </span>
+                <span class="sib-kpi-badge badge-info">
+                    {{ stats.featured_products }} на главной
+                </span>
+                <span class="sib-kpi-badge badge-neutral">
+                    {{ stats.total_categories }} категорий
+                </span>
+            </div>
+        </div>
+
+        <!-- Карточка 4: Заявки на звонки и опт -->
+        <div class="sib-kpi-card">
+            <div class="sib-kpi-header">
+                <span class="sib-kpi-title">Заявки и звонки</span>
+                <div class="sib-kpi-icon-wrap icon-purple">
+                    <i class="bi bi-telephone-inbound-fill"></i>
+                </div>
+            </div>
+            <div class="sib-kpi-value">{{ stats.total_callbacks }}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                {% if stats.pending_wholesale_requests > 0 %}
+                <a href="/admin/main/wholesalepricerequest/?approval_status__exact=pending" class="sib-kpi-badge badge-warning" style="text-decoration: none; background: #fff7ed; color: #ea580c; border: 1px solid #fdba74;" title="Оптовые клиенты ожидают одобрения и отправки прайс-листа">
+                    <i class="bi bi-file-earmark-spreadsheet-fill"></i> {{ stats.pending_wholesale_requests }} ждут прайс
+                </a>
+                {% endif %}
+                {% if stats.pending_callbacks > 0 %}
+                <span class="sib-kpi-badge badge-warning">
+                    <i class="bi bi-exclamation-circle-fill"></i> {{ stats.pending_callbacks }} ждут ответа
+                </span>
+                {% else %}
+                <span class="sib-kpi-badge badge-success">Все закрыты</span>
+                {% endif %}
+                <span class="sib-kpi-badge badge-neutral">
+                    Обработано: {{ stats.processed_callbacks }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Карточка 5: Рейтинг и отзывы -->
+        <div class="sib-kpi-card">
+            <div class="sib-kpi-header">
+                <span class="sib-kpi-title">Оценка покупателей</span>
+                <div class="sib-kpi-icon-wrap icon-amber">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+            </div>
+            <div class="sib-kpi-value">{{ stats.avg_rating }} <span style="font-size: 1.2rem; color: #ff8400;">★</span></div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="sib-kpi-badge badge-success">
+                    <i class="bi bi-chat-quote-fill"></i> {{ stats.total_reviews }} отзывов
+                </span>
+                <span class="sib-kpi-badge badge-neutral">
+                    100% одобрено
+                </span>
+            </div>
+        </div>
+
+        <!-- Карточка 6: База знаний и статьи -->
+        <div class="sib-kpi-card">
+            <div class="sib-kpi-header">
+                <span class="sib-kpi-title">Статьи и просмотры</span>
+                <div class="sib-kpi-icon-wrap icon-teal">
+                    <i class="bi bi-journal-richtext"></i>
+                </div>
+            </div>
+            <div class="sib-kpi-value">{{ stats.total_article_views }} <span style="font-size: 1rem; color: #64748b; font-weight: normal;">просмотров</span></div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                <span class="sib-kpi-badge badge-info">
+                    {{ stats.total_articles }} статей
+                </span>
+                <span class="sib-kpi-badge badge-success">
+                    Опубликованы
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Интерактивные графики Chart.js -->
+    <div class="sib-charts-grid">
+        <!-- График 1: Статусы заказов и клиенты -->
+        <div class="sib-chart-box">
+            <div class="sib-chart-header">
+                <h3>
+                    <i class="bi bi-bar-chart-line-fill" style="color: #ff8400;"></i>
+                    Статусы заказов и воронка обработки
+                </h3>
+                <span style="font-size: 0.85rem; color: #64748b;">Распределение по статусам</span>
+            </div>
+            <div class="sib-chart-container">
+                <canvas id="ordersStatusChart"></canvas>
+            </div>
+        </div>
+
+        <!-- График 2: Структура каталога -->
+        <div class="sib-chart-box">
+            <div class="sib-chart-header">
+                <h3>
+                    <i class="bi bi-pie-chart-fill" style="color: #2563eb;"></i>
+                    Продукция по категориям
+                </h3>
+                <span style="font-size: 0.85rem; color: #64748b;">Доля ассортимента</span>
+            </div>
+            <div class="sib-chart-container">
+                <canvas id="categoriesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Таблица свежих заказов (Полноразмерная карточка) -->
+    <div class="sib-panel-card" style="margin-bottom: 24px;">
+        <div class="sib-panel-header">
+            <h3>
+                <i class="bi bi-cart3" style="color: #ff8400;"></i>
+                Последние заказы клиентов
+            </h3>
+            <a href="/admin/shop/order/" class="sib-panel-link">
+                Перейти ко всем заказам ({{ stats.total_orders }}) <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="sib-panel-body">
+            {% if recent_orders %}
+            <div class="sib-table-responsive">
+            <table class="sib-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">№</th>
+                        <th>Покупатель / Организация</th>
+                        <th>Телефон</th>
+                        <th>Сумма заказа</th>
+                        <th>Оплата</th>
+                        <th>Статус заказа</th>
+                        <th>Документы для печати (1 клик)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>
+                            <a href="/admin/shop/order/{{ order.id }}/change/" style="font-weight: 800; color: var(--admin-text-title); text-decoration: none;">
+                                #{{ order.id }}
+                            </a>
+                        </td>
+                        <td>
+                            {% if order.is_legal %}
+                                <span style="background: rgba(99, 102, 241, 0.15); color: #818cf8; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-right: 4px;">🏢 ЮР. ЛИЦО</span>
+                                <strong style="color: var(--admin-text-title);">{{ order.company_name|default:order.name }}</strong>
+                                {% if order.inn %}
+                                <span style="color: var(--admin-text-muted); font-size: 0.78rem;">(ИНН: {{ order.inn }})</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; margin-right: 4px;">👤 ФИЗ. ЛИЦО</span>
+                                <strong style="color: var(--admin-text-title);">{{ order.name }}</strong>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="tel:{{ order.phone }}" style="color: var(--admin-text-main); text-decoration: none; font-weight: 500;">
+                                <i class="bi bi-telephone" style="color: var(--admin-text-muted);"></i> {{ order.phone }}
+                            </a>
+                        </td>
+                        <td>
+                            <strong style="color: #ff8400; font-size: 1rem;">{{ order.calculate_total_amount|floatformat:0 }} ₽</strong>
+                        </td>
+                        <td>
+                            {% if order.is_paid %}
+                                <span style="color: #10b981; font-weight: 700; font-size: 0.82rem; background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 6px;">● Оплачен</span>
+                            {% else %}
+                                <span style="color: #f59e0b; font-weight: 600; font-size: 0.82rem; background: rgba(245, 158, 11, 0.15); padding: 3px 8px; border-radius: 6px;">○ К оплате</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span style="font-size: 0.8rem; font-weight: 600; padding: 4px 10px; border-radius: 6px; 
+                                {% if order.status == 'new' %}background: rgba(245, 158, 11, 0.18); color: #f59e0b;
+                                {% elif order.status == 'processing' %}background: rgba(14, 165, 233, 0.18); color: #38bdf8;
+                                {% elif order.status == 'completed' %}background: rgba(16, 185, 129, 0.18); color: #34d399;
+                                {% else %}background: var(--admin-input-bg); color: var(--admin-text-muted); border: 1px solid var(--admin-border-color);{% endif %}">
+                                {{ order.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="sib-print-btn-group">
+                                <a href="{% url 'shop:order_receipt' order.id %}" target="_blank" class="sib-print-btn btn-receipt" title="Товарный / кассовый чек">
+                                    🧾 Чек
+                                </a>
+                                <a href="{% url 'shop:order_waybill' order.id %}" target="_blank" class="sib-print-btn btn-waybill" title="Расходная товарная накладная">
+                                    📋 Накладная
+                                </a>
+                                <a href="{% url 'shop:order_torg12' order.id %}" target="_blank" class="sib-print-btn btn-torg12" title="Унифицированная форма ТОРГ-12">
+                                    🏢 ТОРГ-12
+                                </a>
+                                <a href="{% url 'shop:order_bill' order.id %}" target="_blank" class="sib-print-btn btn-bill" title="Счет на безналичную оплату">
+                                    💼 Счет
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div style="padding: 30px; text-align: center; color: var(--admin-text-muted);">
+                Заказов пока нет. Клиенты могут оформить заказ прямо на сайте!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 5. Сетка из двух колонок: Заявки и Отзывы -->
+    <div class="sib-two-col-grid">
+        <!-- Таблица свежих заявок и звонков -->
+        <div class="sib-panel-card">
+            <div class="sib-panel-header">
+                <h3>
+                    <i class="bi bi-telephone-outbound" style="color: #7c3aed;"></i>
+                    Заявки на звонки и опт
+                </h3>
+                <a href="/admin/main/callbackrequest/" class="sib-panel-link">
+                    Все заявки ({{ stats.total_callbacks }}) <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="sib-panel-body">
+                {% if recent_callbacks %}
+                <div class="sib-table-responsive">
+                <table class="sib-table" style="min-width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Клиент</th>
+                            <th>Телефон</th>
+                            <th>Тип запроса</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cb in recent_callbacks %}
+                        <tr>
+                            <td>
+                                <a href="/admin/main/callbackrequest/{{ cb.id }}/change/" style="font-weight: 700; color: var(--admin-text-title); text-decoration: none;">
+                                    {{ cb.name }}
+                                </a>
+                            </td>
+                            <td>
+                                <a href="tel:{{ cb.phone }}" style="color: var(--admin-text-main); text-decoration: none; font-size: 0.85rem;">
+                                    <i class="bi bi-telephone" style="color: #7c3aed;"></i> {{ cb.phone }}
+                                </a>
+                            </td>
+                            <td>
+                                <span style="font-size: 0.78rem; font-weight: 600; color: var(--admin-text-muted);">
+                                    {{ cb.get_request_type_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if cb.is_processed %}
+                                    <span style="background: rgba(16, 185, 129, 0.15); color: #059669; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">✓ Закрыта</span>
+                                {% else %}
+                                    <span style="background: rgba(245, 158, 11, 0.18); color: #d97706; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">⌛ Ждет ответа</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+                {% else %}
+                <div style="padding: 30px; text-align: center; color: var(--admin-text-muted);">
+                    Новых обращений пока нет.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Отзывы покупателей -->
+        <div class="sib-panel-card">
+            <div class="sib-panel-header">
+                <h3>
+                    <i class="bi bi-star-fill" style="color: #f59e0b;"></i>
+                    Отзывы покупателей
+                </h3>
+                <a href="/admin/shop/review/" class="sib-panel-link">
+                    Все отзывы ({{ stats.total_reviews }}) <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div style="padding: 16px;">
+                {% if recent_reviews %}
+                    {% for rev in recent_reviews %}
+                    <div style="padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--admin-border-subtle);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <strong style="color: var(--admin-text-title);">{{ rev.author_name }}</strong>
+                            <span style="color: #ff8400; font-size: 0.85rem;">
+                                {% if rev.rating == 5 %}★★★★★{% elif rev.rating == 4 %}★★★★☆{% else %}★★★☆☆{% endif %}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.78rem; color: var(--admin-text-muted); margin-bottom: 4px;">
+                            {{ rev.city }} {% if rev.product_mention %}• <strong style="color: var(--admin-text-main);">{{ rev.product_mention }}</strong>{% endif %}
+                        </div>
+                        <p style="margin: 0; font-size: 0.84rem; color: var(--admin-text-main); line-height: 1.4;">
+                            «{{ rev.text|truncatewords:20 }}»
+                        </p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p style="color: var(--admin-text-muted); text-align: center; margin: 20px 0;">Отзывов пока нет.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Товары на главной («Хиты и избранное») -->
+    <div class="sib-panel-card" style="margin-bottom: 24px;">
+        <div class="sib-panel-header">
+            <h3>
+                <i class="bi bi-award-fill" style="color: #ff8400;"></i>
+                Товары на главной витрине («Хиты и новинки»)
+            </h3>
+            <a href="/admin/shop/product/" class="sib-panel-link">
+                Весь каталог ({{ stats.total_products }}) <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+        <div class="sib-panel-body">
+            <div class="sib-table-responsive">
+            <table class="sib-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">Фото</th>
+                        <th>Наименование</th>
+                        <th>Категория</th>
+                        <th>Фасовка / Вес</th>
+                        <th>Цена</th>
+                        <th>Бейдж</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prod in top_featured_products %}
+                    <tr>
+                        <td style="width: 50px;">
+                            <img src="{{ prod.image_url }}" alt="" style="width: 44px; height: 44px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border-color);">
+                        </td>
+                        <td>
+                            <a href="/admin/shop/product/{{ prod.id }}/change/" style="font-weight: 700; color: var(--admin-text-title); text-decoration: none;">
+                                {{ prod.title }}
+                            </a>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.82rem; color: var(--admin-text-muted);">
+                                {{ prod.category.name|default:"Общая" }}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="font-size: 0.82rem; color: var(--admin-text-muted);">{{ prod.unit_weight|default:"По запросу" }}</span>
+                        </td>
+                        <td>
+                            <strong style="color: #ff8400;">{{ prod.price_display }}</strong>
+                        </td>
+                        <td>
+                            {% if prod.badge %}
+                            <span style="background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; padding: 2px 7px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">
+                                {{ prod.badge }}
+                            </span>
+                            {% else %}
+                            <span style="color: var(--admin-text-muted);">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if prod.is_active %}
+                            <span style="color: #16a34a; font-weight: 600; font-size: 0.8rem;">● В наличии</span>
+                            {% else %}
+                            <span style="color: #dc2626; font-weight: 600; font-size: 0.8rem;">○ Снято</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Структурированные модули управления (Разделы приложений) -->
+    <div class="sib-apps-section">
+        <div class="sib-section-header-row">
+            <div class="sib-section-title">
+                <i class="bi bi-grid-3x3-gap-fill" style="color: var(--admin-primary);"></i>
+                <span>Разделы управления сайтом и базой данных</span>
+            </div>
+            <div class="sib-section-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="sibModelFilterInput" placeholder="Фильтр по разделам и таблицам..." autocomplete="off">
+            </div>
+        </div>
+
+        <div class="sib-apps-grid" id="sibAppsGrid">
+            <!-- Блок 1: Магазин и Продажи -->
+            <div class="sib-app-card" data-category="shop">
+                <div class="sib-app-header">
+                    <h4>
+                        <i class="bi bi-cart4" style="color: #ff8400; font-size: 1.2rem;"></i>
+                        Магазин и Продажи
+                    </h4>
+                    <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">SHOP</span>
+                </div>
+                <ul class="sib-app-models">
+                    <li class="sib-app-model-row" data-model="заказы покупателей розница опт order">
+                        <a href="/admin/shop/order/" class="sib-model-name">
+                            <i class="bi bi-receipt" style="color: #ff8400;"></i>
+                            <span>Заказы клиентов</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            {% if stats.new_orders_count > 0 %}
+                            <span class="sib-mini-badge warning" title="Новые не обработанные">{{ stats.new_orders_count }} нов.</span>
+                            {% endif %}
+                            <span class="sib-mini-counter">{{ stats.total_orders }}</span>
+                            <a href="/admin/shop/order/add/" class="sib-btn-add" title="Создать заказ вручную">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="каталог товаров продукция сыр сыры product">
+                        <a href="/admin/shop/product/" class="sib-model-name">
+                            <i class="bi bi-basket2-fill" style="color: #10b981;"></i>
+                            <span>Каталог продукции</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_products }}</span>
+                            <a href="/admin/shop/product/add/" class="sib-btn-add" title="Добавить новый товар">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="категории продукции разделы сыров category">
+                        <a href="/admin/shop/category/" class="sib-model-name">
+                            <i class="bi bi-tags-fill" style="color: #6366f1;"></i>
+                            <span>Категории сыров</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_categories }}</span>
+                            <a href="/admin/shop/category/add/" class="sib-btn-add" title="Добавить категорию">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="акции скидки спецпредложения баннеры promotion">
+                        <a href="/admin/shop/promotion/" class="sib-model-name">
+                            <i class="bi bi-percent" style="color: #ef4444;"></i>
+                            <span>Акции и спецпредложения</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_promotions }}</span>
+                            <a href="/admin/shop/promotion/add/" class="sib-btn-add" title="Создать акцию">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="промокоды купоны скидка promocode">
+                        <a href="/admin/shop/promocode/" class="sib-model-name">
+                            <i class="bi bi-ticket-perforated-fill" style="color: #8b5cf6;"></i>
+                            <span>Промокоды и купоны</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_promocodes }}</span>
+                            <a href="/admin/shop/promocode/add/" class="sib-btn-add" title="Добавить промокод">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="отзывы оценки покупателей review">
+                        <a href="/admin/shop/review/" class="sib-model-name">
+                            <i class="bi bi-chat-heart-fill" style="color: #f59e0b;"></i>
+                            <span>Отзывы покупателей</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_reviews }}</span>
+                            <a href="/admin/shop/review/add/" class="sib-btn-add" title="Добавить отзыв">+</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Блок 2: Оптовые продажи & B2B Заявки -->
+            <div class="sib-app-card" data-category="wholesale">
+                <div class="sib-app-header">
+                    <h4>
+                        <i class="bi bi-briefcase-fill" style="color: #0284c7; font-size: 1.2rem;"></i>
+                        Оптовые продажи & B2B
+                    </h4>
+                    <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700;">WHOLESALE</span>
+                </div>
+                <ul class="sib-app-models">
+                    <li class="sib-app-model-row" data-model="оптовые заявки прайс-лист опт b2b wholesalepricerequest">
+                        <a href="/admin/main/wholesalepricerequest/" class="sib-model-name">
+                            <i class="bi bi-file-earmark-spreadsheet-fill" style="color: #0284c7;"></i>
+                            <span>Запросы прайс-листов B2B</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            {% if stats.pending_wholesale_requests > 0 %}
+                            <span class="sib-mini-badge warning" title="Ожидают одобрения">{{ stats.pending_wholesale_requests }} ждут</span>
+                            {% endif %}
+                            <span class="sib-mini-counter">{{ stats.total_wholesale_requests }}</span>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="оптовая email рассылка прайс mailing">
+                        <a href="/admin/main/wholesalepricerequest/mailing/" class="sib-model-name">
+                            <i class="bi bi-send-fill" style="color: #8b5cf6;"></i>
+                            <span>Оптовая email-рассылка</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <a href="/admin/main/wholesalepricerequest/mailing/" class="sib-link-action" style="font-size: 0.78rem; font-weight: 700; color: #8b5cf6; text-decoration: none;">Рассылка &rarr;</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="заявки на звонки обратная связь callback callbackrequest">
+                        <a href="/admin/main/callbackrequest/" class="sib-model-name">
+                            <i class="bi bi-telephone-inbound-fill" style="color: #7c3aed;"></i>
+                            <span>Заявки на звонки и связь</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            {% if stats.pending_callbacks > 0 %}
+                            <span class="sib-mini-badge warning" title="Ожидают звонка">{{ stats.pending_callbacks }} нов.</span>
+                            {% endif %}
+                            <span class="sib-mini-counter">{{ stats.total_callbacks }}</span>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="скачать оптовый прайс лист excel xlsx download">
+                        <a href="/admin/main/wholesalepricerequest/download/" class="sib-model-name">
+                            <i class="bi bi-file-earmark-excel-fill" style="color: #10b981;"></i>
+                            <span>Скачать прайс-лист XLSX</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <a href="/admin/main/wholesalepricerequest/download/" class="sib-link-action" style="font-size: 0.78rem; font-weight: 700; color: #10b981; text-decoration: none;">Скачать</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Блок 3: Клиенты и Доступ -->
+            <div class="sib-app-card" data-category="accounts">
+                <div class="sib-app-header">
+                    <h4>
+                        <i class="bi bi-people-fill" style="color: #ff8400; font-size: 1.2rem;"></i>
+                        Клиенты и Личные кабинеты
+                    </h4>
+                    <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">ACCOUNTS</span>
+                </div>
+                <ul class="sib-app-models">
+                    <li class="sib-app-model-row" data-model="профили клиентов физлица юрлица инн userprofile">
+                        <a href="/admin/accounts/userprofile/" class="sib-model-name">
+                            <i class="bi bi-person-vcard-fill" style="color: #ff8400;"></i>
+                            <span>Профили клиентов (Физ. и Юр.)</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_profiles }}</span>
+                            <a href="/admin/accounts/userprofile/add/" class="sib-btn-add" title="Добавить профиль клиента">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="сводная панель аналитика клиентов обзор accounts">
+                        <a href="/admin/accounts/" class="sib-model-name">
+                            <i class="bi bi-speedometer2" style="color: #0284c7;"></i>
+                            <span>Сводная панель клиентов</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <a href="/admin/accounts/" class="sib-link-action" style="font-size: 0.78rem; font-weight: 700; color: #0284c7; text-decoration: none;">Обзор &rarr;</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="пользователи операторы менеджеры админы user">
+                        <a href="/admin/auth/user/" class="sib-model-name">
+                            <i class="bi bi-person-badge-fill" style="color: #4f46e5;"></i>
+                            <span>Пользователи и операторы</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_users }}</span>
+                            <a href="/admin/auth/user/add/" class="sib-btn-add" title="Добавить пользователя">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="группы прав роли доступа group">
+                        <a href="/admin/auth/group/" class="sib-model-name">
+                            <i class="bi bi-diagram-3-fill" style="color: #64748b;"></i>
+                            <span>Группы прав доступа</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_groups }}</span>
+                            <a href="/admin/auth/group/add/" class="sib-btn-add" title="Создать группу">+</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Блок 4: Контент и Публикации -->
+            <div class="sib-app-card" data-category="content">
+                <div class="sib-app-header">
+                    <h4>
+                        <i class="bi bi-journal-richtext" style="color: #14b8a6; font-size: 1.2rem;"></i>
+                        Контент и Публикации
+                    </h4>
+                    <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">CONTENT</span>
+                </div>
+                <ul class="sib-app-models">
+                    <li class="sib-app-model-row" data-model="статьи публикации блог сыроделие новости article">
+                        <a href="/admin/articles/article/" class="sib-model-name">
+                            <i class="bi bi-journal-bookmark-fill" style="color: #14b8a6;"></i>
+                            <span>Статьи и публикации блога</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_articles }}</span>
+                            <a href="/admin/articles/article/add/" class="sib-btn-add" title="Написать статью">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="вопросы и ответы faq faqitem">
+                        <a href="/admin/main/faqitem/" class="sib-model-name">
+                            <i class="bi bi-question-circle-fill" style="color: #0284c7;"></i>
+                            <span>FAQ (Вопросы и ответы)</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_faqs }}</span>
+                            <a href="/admin/main/faqitem/add/" class="sib-btn-add" title="Добавить вопрос">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="преимущества завода производства productionfeature">
+                        <a href="/admin/main/productionfeature/" class="sib-model-name">
+                            <i class="bi bi-shield-check" style="color: #f97316;"></i>
+                            <span>Преимущества производства</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_features }}</span>
+                            <a href="/admin/main/productionfeature/add/" class="sib-btn-add" title="Добавить преимущество">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="история завода хронология этапы companytimeline">
+                        <a href="/admin/main/companytimeline/" class="sib-model-name">
+                            <i class="bi bi-hourglass-split" style="color: #10b981;"></i>
+                            <span>История развития (Timeline)</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_timeline }}</span>
+                            <a href="/admin/main/companytimeline/add/" class="sib-btn-add" title="Добавить этап">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="сертификаты качества гост награды qualitycertificate">
+                        <a href="/admin/main/qualitycertificate/" class="sib-model-name">
+                            <i class="bi bi-award-fill" style="color: #8b5cf6;"></i>
+                            <span>Сертификаты качества ГОСТ</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_certificates }}</span>
+                            <a href="/admin/main/qualitycertificate/add/" class="sib-btn-add" title="Добавить сертификат">+</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Блок 5: Логистика, Контакты и Настройки -->
+            <div class="sib-app-card" data-category="settings">
+                <div class="sib-app-header">
+                    <h4>
+                        <i class="bi bi-sliders2-vertical" style="color: #475569; font-size: 1.2rem;"></i>
+                        Логистика, Контакты и Настройки
+                    </h4>
+                    <span style="font-size: 0.78rem; color: #64748b; font-weight: 700;">SYSTEM</span>
+                </div>
+                <ul class="sib-app-models">
+                    <li class="sib-app-model-row" data-model="настройки сайта реквизиты логотип контакты sitesettings">
+                        <a href="/admin/main/sitesettings/1/change/" class="sib-model-name">
+                            <i class="bi bi-sliders" style="color: #0ea5e9;"></i>
+                            <span>Реквизиты и настройки сайта</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <a href="/admin/main/sitesettings/1/change/" class="sib-link-action" style="font-size: 0.78rem; font-weight: 700; color: #0ea5e9; text-decoration: none;">Изменить</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="способы доставки тарифы условия спецтранспорт deliverymethod">
+                        <a href="/admin/main/deliverymethod/" class="sib-model-name">
+                            <i class="bi bi-truck" style="color: #6366f1;"></i>
+                            <span>Способы доставки</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_delivery_methods }}</span>
+                            <a href="/admin/main/deliverymethod/add/" class="sib-btn-add" title="Добавить способ доставки">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="способы оплаты безнал наличные paymentmethod">
+                        <a href="/admin/main/paymentmethod/" class="sib-model-name">
+                            <i class="bi bi-credit-card-2-front-fill" style="color: #10b981;"></i>
+                            <span>Способы оплаты</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_payment_methods }}</span>
+                            <a href="/admin/main/paymentmethod/add/" class="sib-btn-add" title="Добавить способ оплаты">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="контактные отделы телефоны службы contactdepartment">
+                        <a href="/admin/main/contactdepartment/" class="sib-model-name">
+                            <i class="bi bi-buildings-fill" style="color: #64748b;"></i>
+                            <span>Отделы и контакты</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_departments }}</span>
+                            <a href="/admin/main/contactdepartment/add/" class="sib-btn-add" title="Добавить отдел">+</a>
+                        </div>
+                    </li>
+                    <li class="sib-app-model-row" data-model="социальные сети телеграм мессенджеры sociallink">
+                        <a href="/admin/main/sociallink/" class="sib-model-name">
+                            <i class="bi bi-share-fill" style="color: #06b6d4;"></i>
+                            <span>Социальные сети</span>
+                        </a>
+                        <div class="sib-model-actions">
+                            <span class="sib-mini-counter">{{ stats.total_socials }}</span>
+                            <a href="/admin/main/sociallink/add/" class="sib-btn-add" title="Добавить соцсеть">+</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Скрипт инициализации графиков Chart.js -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark' || 
+                   (!document.documentElement.hasAttribute('data-theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    const chartTicksColor = isDark ? '#94a3b8' : '#64748b';
+    const chartLabelsColor = isDark ? '#cbd5e1' : '#475569';
+    const chartGridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : '#f1f5f9';
+    const donutBorderColor = isDark ? '#1e293b' : '#ffffff';
+
+    // 1. График статусов заказов
+    try {
+        const statusesData = {{ chart_statuses_json|safe }};
+        const ctxStatus = document.getElementById('ordersStatusChart');
+        if (ctxStatus) {
+            new Chart(ctxStatus, {
+                type: 'bar',
+                data: {
+                    labels: statusesData.labels,
+                    datasets: [{
+                        label: 'Количество заказов',
+                        data: statusesData.counts,
+                        backgroundColor: [
+                            'rgba(255, 132, 0, 0.85)',
+                            'rgba(14, 165, 233, 0.85)',
+                            'rgba(139, 92, 246, 0.85)',
+                            'rgba(16, 185, 129, 0.85)',
+                            'rgba(239, 68, 68, 0.75)'
+                        ],
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { family: 'Inter', weight: 'bold' },
+                            bodyFont: { family: 'Inter' },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { stepSize: 1, color: chartTicksColor },
+                            grid: { color: chartGridColor }
+                        },
+                        x: {
+                            ticks: { color: chartLabelsColor, font: { family: 'Inter', weight: '600' } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Ошибка построения графика статусов заказов:", e);
+    }
+
+    // 2. График категорий продукции
+    try {
+        const catsData = {{ chart_categories_json|safe }};
+        const ctxCat = document.getElementById('categoriesChart');
+        if (ctxCat) {
+            new Chart(ctxCat, {
+                type: 'doughnut',
+                data: {
+                    labels: catsData.labels,
+                    datasets: [{
+                        data: catsData.data,
+                        backgroundColor: [
+                            '#ff8400',
+                            '#0ea5e9',
+                            '#10b981',
+                            '#8b5cf6',
+                            '#f59e0b',
+                            '#ec4899',
+                            '#06b6d4',
+                            '#64748b'
+                        ],
+                        borderWidth: 2,
+                        borderColor: donutBorderColor
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 12,
+                                font: { family: 'Inter', size: 11, weight: '500' },
+                                color: chartLabelsColor
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            titleFont: { family: 'Inter', weight: 'bold' },
+                            bodyFont: { family: 'Inter' },
+                            padding: 10,
+                            cornerRadius: 8
+                        }
+                    },
+                    cutout: '62%'
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Ошибка построения графика категорий:", e);
+    }
+});
+</script>
+{% endblock %}

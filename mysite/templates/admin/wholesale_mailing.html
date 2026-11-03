@@ -1,0 +1,195 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block title %}Рассылка оптового прайс-листа | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+  &rsaquo; <a href="{% url 'admin:main_wholesalepricerequest_changelist' %}">Заявки на оптовый прайс-лист</a>
+  &rsaquo; Отправка прайс-листа
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="wholesale-mailing-container" style="max-width: 1100px; margin: 0 auto; padding: 10px 0 40px 0;">
+
+  <!-- Header Banner -->
+  <div style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #ffffff; padding: 24px 28px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; border: 1px solid rgba(255,255,255,0.08);">
+    <div>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span style="background: rgba(255, 132, 0, 0.2); color: #ff8400; padding: 6px 10px; border-radius: 8px; font-size: 1.25rem; display: inline-flex; align-items: center;">
+          <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+        </span>
+        <h1 style="font-size: 1.4rem; font-weight: 800; margin: 0; color: #ffffff;">Отправка оптового прайс-листа клиентам</h1>
+      </div>
+      <p style="color: #94a3b8; margin: 0; font-size: 0.88rem;">
+        Динамическая генерация коммерческого предложения по текущей базе сыров и масла ТМ «Сибсыр» с автоматической отправкой на Email.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <a href="{% url 'admin:main_wholesalepricerequest_download' %}" target="_blank" class="sib-btn-action primary" style="padding: 8px 14px; font-size: 0.85rem;" title="Сгенерировать и скачать файл .xlsx на свой компьютер">
+        <i class="bi bi-download"></i> Скачать свежий .xlsx
+      </a>
+      <a href="{% url 'admin:main_wholesalepricerequest_preview' %}" target="_blank" class="sib-btn-action" style="padding: 8px 14px; font-size: 0.85rem;" title="Посмотреть таблицу прайс-листа в браузере">
+        <i class="bi bi-eye"></i> Предпросмотр в браузере
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px;">
+    <div style="background: var(--admin-card-bg, #1e293b); border: 1px solid var(--admin-border-color, #334155); border-radius: 10px; padding: 18px 20px;">
+      <div style="color: var(--admin-text-muted, #94a3b8); font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Ожидают одобрения</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #f59e0b; margin-top: 4px;">{{ pending_requests_count }} <span style="font-size: 0.85rem; font-weight: normal; color: var(--admin-text-muted, #94a3b8);">заявок</span></div>
+      <div style="font-size: 0.75rem; color: var(--admin-text-muted, #94a3b8); margin-top: 4px;">Новые обращения с сайта</div>
+    </div>
+
+    <div style="background: var(--admin-card-bg, #1e293b); border: 1px solid var(--admin-border-color, #334155); border-radius: 10px; padding: 18px 20px;">
+      <div style="color: var(--admin-text-muted, #94a3b8); font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Всего заявок на опт</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #38bdf8; margin-top: 4px;">{{ total_wholesale_requests_count }} <span style="font-size: 0.85rem; font-weight: normal; color: var(--admin-text-muted, #94a3b8);">контактов</span></div>
+      <div style="font-size: 0.75rem; color: var(--admin-text-muted, #94a3b8); margin-top: 4px;">База обращений (B2B)</div>
+    </div>
+
+    <div style="background: var(--admin-card-bg, #1e293b); border: 1px solid var(--admin-border-color, #334155); border-radius: 10px; padding: 18px 20px;">
+      <div style="color: var(--admin-text-muted, #94a3b8); font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Юр. лица / ИП</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #34d399; margin-top: 4px;">{{ legal_clients_count }} <span style="font-size: 0.85rem; font-weight: normal; color: var(--admin-text-muted, #94a3b8);">клиентов</span></div>
+      <div style="font-size: 0.75rem; color: var(--admin-text-muted, #94a3b8); margin-top: 4px;">Зарегистрированные B2B профили</div>
+    </div>
+
+    <div style="background: var(--admin-card-bg, #1e293b); border: 1px solid var(--admin-border-color, #334155); border-radius: 10px; padding: 18px 20px;">
+      <div style="color: var(--admin-text-muted, #94a3b8); font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Позиций в прайсе</div>
+      <div style="font-size: 1.8rem; font-weight: 800; color: #ff8400; margin-top: 4px;">{{ active_products_count }} <span style="font-size: 0.85rem; font-weight: normal; color: var(--admin-text-muted, #94a3b8);">товаров</span></div>
+      <div style="font-size: 0.75rem; color: var(--admin-text-muted, #94a3b8); margin-top: 4px;">Активная номенклатура</div>
+    </div>
+  </div>
+
+  {% if report %}
+  <!-- Results Banner -->
+  <div style="background: {% if report.errors %}#fef2f2; border: 1px solid #fecaca; color: #991b1b;{% else %}#f0fdf4; border: 1px solid #bbf7d0; color: #166534;{% endif %} padding: 18px 22px; border-radius: 10px; margin-bottom: 24px;">
+    <h3 style="margin: 0 0 8px 0; font-size: 1.1rem; font-weight: 700;">
+      {% if report.errors %}⚠️ Результаты отправки (есть замечания){% else %}✅ Прайс-лист успешно разослан!{% endif %}
+    </h3>
+    <p style="margin: 0 0 10px 0; font-size: 0.9rem;">
+      Успешно отправлено писем: <strong>{{ report.sent_count }}</strong>.
+      {% if report.skipped_count %}Пропущено (нет корректного email): <strong>{{ report.skipped_count }}</strong>.{% endif %}
+    </p>
+
+    {% if report.details %}
+    <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 6px; font-size: 0.82rem; max-height: 200px; overflow-y: auto;">
+      {% for item in report.details %}
+        <div style="margin-bottom: 4px; display: flex; justify-content: space-between;">
+          <span>• <strong>{{ item.email }}</strong> ({% if item.name %}{{ item.name }}{% else %}Партнер{% endif %})</span>
+          <span style="color: {% if item.success %}#16a34a{% else %}#dc2626{% endif %}; font-weight: 600;">
+            {% if item.success %}✓ Отправлено{% else %}✕ Ошибка: {{ item.error }}{% endif %}
+          </span>
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Main Mailing Form -->
+  <form method="POST" action="" style="background: var(--admin-card-bg, #1e293b); border: 1px solid var(--admin-border-color, #334155); border-radius: 12px; padding: 24px 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+    {% csrf_token %}
+
+    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--admin-text-title, #f8fafc); margin: 0 0 18px 0; border-bottom: 1px solid var(--admin-border-color, #334155); padding-bottom: 12px;">
+      1. Выберите получателей прайс-листа
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 26px;">
+      {% if target_single_email %}
+      <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3);">
+        <input type="radio" name="recipient_target" value="single" checked style="margin-top: 3px;">
+        <div>
+          <strong style="color: #38bdf8;">Конкретному клиенту по текущей заявке:</strong>
+          <span style="color: var(--admin-text-main, #e2e8f0); font-weight: 600;">{{ target_single_name }} &lt;{{ target_single_email }}&gt;</span>
+          <input type="hidden" name="single_email" value="{{ target_single_email }}">
+          <input type="hidden" name="single_name" value="{{ target_single_name }}">
+          <input type="hidden" name="single_request_id" value="{{ target_single_request_id }}">
+        </div>
+      </label>
+      {% endif %}
+
+      <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: var(--admin-bg, #0f172a); border: 1px solid var(--admin-border-color, #334155);">
+        <input type="radio" name="recipient_target" value="pending" {% if not target_single_email %}checked{% endif %} style="margin-top: 3px;">
+        <div>
+          <strong style="color: #fbbf24;">⚡ ВСЕМ ожидающим одобрения заявкам</strong>
+          <span style="color: var(--admin-text-muted, #94a3b8); font-size: 0.85rem;">({{ pending_requests_count }} контактов с email)</span>
+          <div style="font-size: 0.8rem; color: var(--admin-text-muted, #94a3b8); margin-top: 2px;">
+            Одобрит все новые входящие запросы оптовиков, сгенерирует свежий прайс и отправит письмо каждому из них.
+          </div>
+        </div>
+      </label>
+
+      <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: var(--admin-bg, #0f172a); border: 1px solid var(--admin-border-color, #334155);">
+        <input type="radio" name="recipient_target" value="legal_profiles" style="margin-top: 3px;">
+        <div>
+          <strong style="color: #34d399;">🏢 ВСЕМ зарегистрированным оптовым клиентам (Юр. лица / ИП)</strong>
+          <span style="color: var(--admin-text-muted, #94a3b8); font-size: 0.85rem;">({{ legal_clients_count }} компаний с email)</span>
+          <div style="font-size: 0.8rem; color: var(--admin-text-muted, #94a3b8); margin-top: 2px;">
+            Отправит обновленный прайс-лист действующим партнерам (магазинам, кафе, ресторанам и дистрибьюторам).
+          </div>
+        </div>
+      </label>
+
+      <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: var(--admin-bg, #0f172a); border: 1px solid var(--admin-border-color, #334155);">
+        <input type="radio" name="recipient_target" value="all_wholesale" style="margin-top: 3px;">
+        <div>
+          <strong style="color: #ff8400;">🚀 ПОЛНОЙ оптовой базе ТМ «Сибсыр» (заявки + юр. лица)</strong>
+          <span style="color: var(--admin-text-muted, #94a3b8); font-size: 0.85rem;">(все уникальные адреса)</span>
+          <div style="font-size: 0.8rem; color: var(--admin-text-muted, #94a3b8); margin-top: 2px;">
+            Объединяет всех оптовых контрагентов, удаляет дубликаты адресов и направляет свежие цены.
+          </div>
+        </div>
+      </label>
+
+      <label style="display: flex; align-items: flex-start; gap: 10px; cursor: pointer; padding: 10px 14px; border-radius: 8px; background: var(--admin-bg, #0f172a); border: 1px solid var(--admin-border-color, #334155);">
+        <input type="radio" name="recipient_target" value="custom" id="radioCustom" style="margin-top: 3px;">
+        <div style="flex: 1;">
+          <strong style="color: var(--admin-text-title, #f8fafc);">Указать Email партнера вручную</strong>
+          <div style="display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap;">
+            <input type="email" name="custom_email" placeholder="partner@retail.ru" style="padding: 7px 12px; border-radius: 6px; border: 1px solid var(--admin-border-color, #334155); background: var(--admin-card-bg, #1e293b); color: var(--admin-text-main, #e2e8f0); min-width: 260px;" onclick="document.getElementById('radioCustom').checked = true;">
+            <input type="text" name="custom_name" placeholder="Название организации / Контактное лицо" style="padding: 7px 12px; border-radius: 6px; border: 1px solid var(--admin-border-color, #334155); background: var(--admin-card-bg, #1e293b); color: var(--admin-text-main, #e2e8f0); min-width: 260px;" onclick="document.getElementById('radioCustom').checked = true;">
+          </div>
+        </div>
+      </label>
+    </div>
+
+    <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--admin-text-title, #f8fafc); margin: 0 0 18px 0; border-bottom: 1px solid var(--admin-border-color, #334155); padding-bottom: 12px;">
+      2. Содержание сопроводительного письма
+    </h2>
+
+    <div style="margin-bottom: 18px;">
+      <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--admin-text-muted, #94a3b8); margin-bottom: 6px;">Тема письма:</label>
+      <input type="text" name="email_subject" value="{{ default_subject }}" style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--admin-border-color, #334155); background: var(--admin-bg, #0f172a); color: var(--admin-text-title, #f8fafc); font-size: 0.95rem; font-weight: 600;">
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <label style="display: block; font-weight: 600; font-size: 0.85rem; color: var(--admin-text-muted, #94a3b8); margin-bottom: 6px;">
+        Текст сообщения:
+        <span style="font-weight: normal; font-size: 0.78rem; color: #64748b;">(поддерживаются теги {name}, {company}, {phone}, {email}, {address}, {date})</span>
+      </label>
+      <textarea name="email_body" rows="9" style="width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--admin-border-color, #334155); background: var(--admin-bg, #0f172a); color: var(--admin-text-main, #e2e8f0); font-family: inherit; font-size: 0.9rem; line-height: 1.6;">{{ default_body }}</textarea>
+    </div>
+
+    <div style="background: rgba(255, 132, 0, 0.08); border-left: 4px solid #ff8400; padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 24px; font-size: 0.85rem; color: var(--admin-text-main, #e2e8f0);">
+      📎 <strong>Вложение:</strong> К каждому отправленному письму будет автоматически прикреплен свежесформированный файл <strong>Sibsir_Wholesale_Price_List_{% now "Y-m-d" %}.xlsx</strong> с актуальными ценами и остатками.
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; border-top: 1px solid var(--admin-border-color, #334155); padding-top: 20px;">
+      <a href="{% url 'admin:main_wholesalepricerequest_changelist' %}" style="color: var(--admin-text-muted, #94a3b8); text-decoration: none; font-size: 0.9rem;">
+        <i class="bi bi-arrow-left"></i> Вернуться к списку заявок
+      </a>
+
+      <button type="submit" class="sib-btn-action primary" style="padding: 12px 28px; font-size: 0.95rem; font-weight: 700; border-radius: 8px; cursor: pointer;" onclick="return confirm('Вы уверены, что хотите сгенерировать прайс-лист и выполнить отправку выбранным получателям?');">
+        <i class="bi bi-send-fill"></i> Сгенерировать и отправить прайс-лист
+      </button>
+    </div>
+  </form>
+
+</div>
+{% endblock %}
+

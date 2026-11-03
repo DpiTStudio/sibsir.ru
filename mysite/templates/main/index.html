@@ -1,0 +1,1115 @@
+{% extends 'base.html' %}
+{% load static captcha_tags %}
+
+{% block content %}
+<div class="container py-3">
+
+    <!-- 1. HERO SECTION -->
+    <section class="hero-wrapper">
+        <div class="row align-items-center g-4 g-lg-5">
+            <div class="col-lg-6">
+                <div class="hero-badge">
+                    <i class="bi bi-patch-check-fill text-warning"></i>
+                    <span>{{ site_settings.hero_badge_text|default:"Собственное производство • 100% натуральное молоко" }}</span>
+                </div>
+                <h1 class="hero-title-main">{{ site_settings.hero_title|default:"Здесь делают сыр" }}</h1>
+                <p class="hero-desc">
+                    {{ site_settings.hero_subtitle|default:"Компания «СибСыр» уже более 25 лет поставляет натуральные сыры, масло сливочное и кисломолочную продукцию высочайшего качества из свежего омского молока." }}
+                </p>
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 gap-sm-3 mb-4">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange justify-content-center py-2 px-3">
+                        <span>{{ site_settings.cta_button_text|default:"Перейти в каталог" }}</span>
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </a>
+                    <button class="btn btn-sib-outline justify-content-center py-2 px-3" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                        <span>Оптовый прайс-лист</span>
+                    </button>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-md-4 text-muted fw-medium small pt-2 border-top border-light-subtle">
+                    <div><i class="bi bi-check2-circle text-success me-1"></i> ГОСТ и ТУ</div>
+                    <div><i class="bi bi-shield-check text-success me-1"></i> Система «Меркурий»</div>
+                    <div><i class="bi bi-truck text-success me-1"></i> Рефрижераторы</div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-img-box">
+                    <img src="{{ site_settings.hero_image_url }}" alt="{{ site_settings.hero_title }}">
+                    <div class="hero-floating-card">
+                        <div class="brand-icon-box" style="width: 40px; height: 40px; font-size: 1.2rem; flex-shrink: 0;">
+                            <i class="bi bi-award"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small">Продукция завода «Сибсыр»</div>
+                            <div class="text-secondary small" style="font-size: 0.75rem;">г. Омск, ул. Зеленая, 16 • Свежие поставки каждый день</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. FEATURES / ADVANTAGES SECTION -->
+    <section class="mb-5" id="features">
+        <div class="text-center mb-4">
+            <span class="section-head-badge">{{ site_settings.features_badge|default:"Наши стандарты" }}</span>
+            <h2 class="section-head-title">{{ site_settings.features_title|default:"Почему выбирают ТМ «Сибсыр»" }}</h2>
+        </div>
+        <div class="row g-3 g-md-4">
+            {% for feat in features %}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="feature-card-box position-relative">
+                        {% if feat.badge %}
+                            <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                {{ feat.badge }}
+                            </span>
+                        {% endif %}
+                        <div class="feature-icon-wrap">
+                            {% if feat.image %}
+                                <img src="{{ feat.image.url }}" alt="{{ feat.title }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            {% else %}
+                                <i class="bi {{ feat.icon|default:'bi-check2-circle' }}"></i>
+                            {% endif %}
+                        </div>
+                        <h3 class="feature-card-title">{{ feat.title }}</h3>
+                        <p class="feature-card-desc">{{ feat.subtitle }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 2.5 PROMOTIONS & SPECIAL OFFERS SECTION -->
+    {% if promotions or featured_promocodes %}
+    <section class="mb-5" id="promotions">
+        <div class="promo-showcase-wrap">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                <div>
+                    <span class="promo-showcase-badge"><i class="bi bi-fire"></i> Спецпредложения & Скидки</span>
+                    <h3 class="fw-bold text-dark fs-3 mt-2 mb-1">Выгодные акции и промокоды от фабрики</h3>
+                    <p class="text-muted small mb-0">Покупайте любимые натуральные сыры и молочную продукцию по специальным ценам</p>
+                </div>
+                <a href="{% url 'main:catalog' %}?cat=sale" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <i class="bi bi-tag-fill me-1"></i> Все акционные товары ({{ sale_products_count }})
+                </a>
+            </div>
+
+            <div class="row g-3 g-lg-4">
+                {% for promo in promotions %}
+                <div class="col-md-6 {% if promotions|length == 1 %}col-lg-6{% else %}col-lg-4{% endif %}">
+                    <div class="promo-card-item shadow-sm">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-danger fw-bold px-2 py-1 rounded-3 font-monospace" style="font-size: 0.8rem;">
+                                    {{ promo.badge_text|default:"АКЦИЯ" }}
+                                </span>
+                                {% if promo.discount_percent %}
+                                    <span class="fw-bold text-danger fs-5">-{{ promo.discount_percent }}%</span>
+                                {% elif promo.discount_amount %}
+                                    <span class="fw-bold text-danger fs-5">-{{ promo.discount_amount|floatformat:0 }} ₽</span>
+                                {% endif %}
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">{{ promo.title }}</h5>
+                            <p class="text-muted small mb-3">{{ promo.description|default:"Специальная скидка на отборную продукцию ТМ «Сибсыр»." }}</p>
+                        </div>
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                {% if promo.applies_to == 'all' %}Весь каталог{% elif promo.applies_to == 'categories' %}На категорию{% else %}На товары{% endif %}
+                            </span>
+                            <a href="{% url 'main:catalog' %}?cat=sale" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
+                                Смотреть товары <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% for pcode in featured_promocodes %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="promo-card-item shadow-sm" style="border: 2px dashed #f59e0b; background: #fffdfa;">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-3 font-monospace" style="font-size: 0.8rem;">
+                                    ПРОМОКОД
+                                </span>
+                                <span class="fw-bold text-success fs-5">
+                                    {% if pcode.discount_type == 'percent' %}-{{ pcode.discount_value|floatformat:0 }}%{% else %}-{{ pcode.discount_value|floatformat:0 }} ₽{% endif %}
+                                </span>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">{{ pcode.title }}</h5>
+                            <p class="text-muted small mb-3">
+                                {% if pcode.min_order_amount > 0 %}При заказе от {{ pcode.min_order_amount|floatformat:0 }} ₽.{% else %}Действует на любой заказ.{% endif %}
+                            </p>
+                        </div>
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                            <div class="promocode-pill-copy" onclick="copyAndApplyPromo('{{ pcode.code }}')" title="Нажмите, чтобы скопировать и применить в корзине">
+                                <code class="fw-bold text-dark fs-6">{{ pcode.code }}</code>
+                                <i class="bi bi-clipboard text-warning"></i>
+                            </div>
+                            <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark" onclick="copyAndApplyPromo('{{ pcode.code }}')">
+                                Применить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- 3. POPULAR PRODUCTS (ХИТЫ ПРОДАЖ - КАРУСЕЛЬ: 3 НА ДЕСКТОПЕ, 1 НА МОБ/ПЛАНШЕТЕ) -->
+    <section class="mb-5" id="popular-products">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <span class="section-head-badge"><i class="bi bi-fire text-danger"></i> Хиты продаж</span>
+                <h2 class="section-head-title mb-1">Самые популярные товары</h2>
+                <p class="section-head-subtitle mb-0">Любимая продукция наших покупателей с классическим и непревзойденным сливочным вкусом</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="carousel-nav-arrows d-flex align-items-center gap-2 me-1">
+                    <button type="button" class="btn btn-carousel-nav" data-carousel-prev="#popularCarousel" aria-label="Предыдущий товар" title="Предыдущий">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-carousel-nav" data-carousel-next="#popularCarousel" aria-label="Следующий товар" title="Следующий">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <a href="{% url 'main:catalog' %}" class="btn btn-sib-outline px-3 py-2 fw-semibold">
+                    <span>Весь каталог ({{ total_products_count|default:"47" }})</span>
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="products-carousel-wrapper" id="popularCarousel">
+            <div class="products-carousel-viewport">
+                <div class="products-carousel-track">
+                    {% for prod in popular_products %}
+                        <div class="products-carousel-slide">
+                            <div class="product-card">
+                                {% if prod.effective_badge %}
+                                    <div class="product-badge-float {% if prod.has_discount %}product-badge-sale{% endif %}">
+                                        {% if prod.has_discount %}<i class="bi bi-fire me-1"></i>{% endif %}{{ prod.effective_badge }}
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'main:product_detail' slug=prod.slug %}" class="product-img-holder text-decoration-none">
+                                    <img src="{{ prod.image_url }}" alt="{{ prod.title }}" loading="lazy">
+                                </a>
+                                <div class="product-body">
+                                    <span class="product-category-sub">{{ prod.category.name|default:"Сибсыр" }}</span>
+                                    <h3 class="product-title" title="{{ prod.title }}">
+                                        <a href="{% url 'main:product_detail' slug=prod.slug %}">{{ prod.title }}</a>
+                                    </h3>
+                                    
+                                    <div class="product-specs-list">
+                                        {% if prod.fat_content %}
+                                            <div class="product-spec-row">
+                                                <span>Жирность (м.д.ж.):</span>
+                                                <strong>{{ prod.fat_content }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.unit_weight %}
+                                            <div class="product-spec-row">
+                                                <span>Фасовка:</span>
+                                                <strong>{{ prod.unit_weight }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.package_type %}
+                                            <div class="product-spec-row">
+                                                <span>Упаковка:</span>
+                                                <strong>{{ prod.package_type }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.shelf_life %}
+                                            <div class="product-spec-row">
+                                                <span>Срок годности:</span>
+                                                <strong>{{ prod.shelf_life }}</strong>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="product-footer">
+                                        <div>
+                                            <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                            {% if prod.has_discount and prod.effective_old_price_numeric > 0 %}
+                                                <div class="d-flex align-items-baseline gap-2">
+                                                    <span class="product-price-val text-danger fw-bold">{{ prod.effective_price_display }}</span>
+                                                    <span class="product-price-old">{{ prod.effective_old_price_numeric }} ₽</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="product-price-val">{{ prod.effective_price_display }}</span>
+                                            {% endif %}
+                                            {% if prod.effective_wholesale_price_display %}
+                                                <div class="mt-1" title="Оптовая цена {{ prod.wholesale_min_qty|default:'оптом' }}">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem; font-weight: 600;">
+                                                        <i class="bi bi-box-seam me-1"></i>Опт: {{ prod.effective_wholesale_price_display }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <button type="button" class="btn btn-card-share" 
+                                                    onclick="openShareModal('{{ prod.title|escapejs }}', '{% url 'main:product_detail' slug=prod.slug %}', '{{ prod.description|default:prod.full_description|truncatewords:15|escapejs }}')"
+                                                    title="Поделиться в мессенджерах">
+                                                <i class="bi bi-share"></i>
+                                            </button>
+                                            <button class="btn btn-card-cart" 
+                                                    onclick="addToCart('{{ prod.title|escapejs }}', '{{ prod.effective_price_display|escapejs }}', '{{ prod.image_url|escapejs }}', {{ prod.effective_price_numeric|default:prod.price_numeric }})"
+                                                    title="Добавить в корзину">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <a href="{% url 'main:product_detail' slug=prod.slug %}" class="btn btn-card-detail" title="Подробнее о товаре">
+                                                <span>Детали</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="button" class="carousel-side-nav carousel-side-prev" data-carousel-prev="#popularCarousel" aria-label="Предыдущий товар" title="Предыдущий">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button type="button" class="carousel-side-nav carousel-side-next" data-carousel-next="#popularCarousel" aria-label="Следующий товар" title="Следующий">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <div class="products-carousel-dots" data-carousel-dots="#popularCarousel"></div>
+        </div>
+    </section>
+
+    <!-- 3.5 SALE PRODUCTS SECTION (ТОЛЬКО ЕСЛИ ЕСТЬ АКЦИИ - ВСЕГО 4 ТОВАРА) -->
+    {% if sale_products %}
+    <section class="mb-5" id="sale-products">
+        <div class="p-4 p-md-5 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #fff5f5 0%, #fff1f2 100%); border: 1.5px solid #fecdd3;">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+                <div>
+                    <span class="badge bg-danger text-white px-3 py-1 rounded-pill fw-bold mb-2">
+                        <i class="bi bi-percent me-1"></i> Специальные цены
+                    </span>
+                    <h2 class="section-head-title text-dark mb-1">Товары со скидкой и по акции</h2>
+                    <p class="text-muted small mb-0">Успейте купить отборные сыры и натуральную продукцию по специальным фабричным ценам</p>
+                </div>
+                <a href="{% url 'main:catalog' %}?cat=sale" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <span>Все товары со скидкой ({{ sale_products_count }})</span>
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <div class="row g-2 g-md-4">
+                {% for prod in sale_products %}
+                    <div class="col-6 col-md-6 col-lg-3">
+                        <div class="product-card">
+                            {% if prod.effective_badge %}
+                                <div class="product-badge-float product-badge-sale">
+                                    <i class="bi bi-fire me-1"></i>{{ prod.effective_badge }}
+                                </div>
+                            {% endif %}
+                            <a href="{% url 'main:product_detail' slug=prod.slug %}" class="product-img-holder text-decoration-none">
+                                <img src="{{ prod.image_url }}" alt="{{ prod.title }}" loading="lazy">
+                            </a>
+                            <div class="product-body">
+                                <span class="product-category-sub">{{ prod.category.name|default:"Сибсыр" }}</span>
+                                <h3 class="product-title" title="{{ prod.title }}">
+                                    <a href="{% url 'main:product_detail' slug=prod.slug %}">{{ prod.title }}</a>
+                                </h3>
+                                
+                                <div class="product-specs-list">
+                                    {% if prod.fat_content %}
+                                        <div class="product-spec-row">
+                                            <span>Жирность (м.д.ж.):</span>
+                                            <strong>{{ prod.fat_content }}</strong>
+                                        </div>
+                                    {% endif %}
+                                    {% if prod.unit_weight %}
+                                        <div class="product-spec-row">
+                                            <span>Фасовка:</span>
+                                            <strong>{{ prod.unit_weight }}</strong>
+                                        </div>
+                                    {% endif %}
+                                    {% if prod.package_type %}
+                                        <div class="product-spec-row">
+                                            <span>Упаковка:</span>
+                                            <strong>{{ prod.package_type }}</strong>
+                                        </div>
+                                    {% endif %}
+                                    {% if prod.shelf_life %}
+                                        <div class="product-spec-row">
+                                            <span>Срок годности:</span>
+                                            <strong>{{ prod.shelf_life }}</strong>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="product-footer">
+                                    <div>
+                                        <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                        {% if prod.has_discount and prod.effective_old_price_numeric > 0 %}
+                                            <div class="d-flex align-items-baseline gap-2">
+                                                <span class="product-price-val text-danger fw-bold">{{ prod.effective_price_display }}</span>
+                                                <span class="product-price-old">{{ prod.effective_old_price_numeric }} ₽</span>
+                                            </div>
+                                        {% else %}
+                                            <span class="product-price-val">{{ prod.effective_price_display }}</span>
+                                        {% endif %}
+                                        {% if prod.effective_wholesale_price_display %}
+                                            <div class="mt-1" title="Оптовая цена {{ prod.wholesale_min_qty|default:'оптом' }}">
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem; font-weight: 600;">
+                                                    <i class="bi bi-box-seam me-1"></i>Опт: {{ prod.effective_wholesale_price_display }}
+                                                </span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <button type="button" class="btn btn-card-share" 
+                                                onclick="openShareModal('{{ prod.title|escapejs }}', '{% url 'main:product_detail' slug=prod.slug %}', '{{ prod.description|default:prod.full_description|truncatewords:15|escapejs }}')"
+                                                title="Поделиться в мессенджерах">
+                                            <i class="bi bi-share"></i>
+                                        </button>
+                                        <button class="btn btn-card-cart" 
+                                                onclick="addToCart('{{ prod.title|escapejs }}', '{{ prod.effective_price_display|escapejs }}', '{{ prod.image_url|escapejs }}', {{ prod.effective_price_numeric|default:prod.price_numeric }})"
+                                                title="Добавить в корзину">
+                                            <i class="bi bi-cart-plus"></i>
+                                        </button>
+                                        <a href="{% url 'main:product_detail' slug=prod.slug %}" class="btn btn-card-detail" title="Подробнее о товаре">
+                                            <span>Детали</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- 4. RECOMMENDED PRODUCTS (ВЫБОР ПОКУПАТЕЛЕЙ - КАРУСЕЛЬ: 3 НА ДЕСКТОПЕ, 1 НА МОБ/ПЛАНШЕТЕ) -->
+    <section class="mb-5" id="recommended-products">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <span class="section-head-badge"><i class="bi bi-hand-thumbs-up-fill text-warning"></i> Выбор покупателей</span>
+                <h2 class="section-head-title mb-1">Рекомендуем попробовать</h2>
+                <p class="section-head-subtitle mb-0">Признанные фавориты и традиционные сыры по отзывам наших постоянных покупателей</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="carousel-nav-arrows d-flex align-items-center gap-2 me-1">
+                    <button type="button" class="btn btn-carousel-nav" data-carousel-prev="#recommendedCarousel" aria-label="Предыдущий товар" title="Предыдущий">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-carousel-nav" data-carousel-next="#recommendedCarousel" aria-label="Следующий товар" title="Следующий">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <a href="{% url 'main:catalog' %}" class="btn btn-sib-outline px-3 py-2 fw-semibold">
+                    <span>Перейти в каталог</span>
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="products-carousel-wrapper" id="recommendedCarousel">
+            <div class="products-carousel-viewport">
+                <div class="products-carousel-track">
+                    {% for prod in recommended_products %}
+                        <div class="products-carousel-slide">
+                            <div class="product-card">
+                                {% if prod.effective_badge %}
+                                    <div class="product-badge-float {% if prod.has_discount %}product-badge-sale{% endif %}">
+                                        {% if prod.has_discount %}<i class="bi bi-fire me-1"></i>{% endif %}{{ prod.effective_badge }}
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'main:product_detail' slug=prod.slug %}" class="product-img-holder text-decoration-none">
+                                    <img src="{{ prod.image_url }}" alt="{{ prod.title }}" loading="lazy">
+                                </a>
+                                <div class="product-body">
+                                    <span class="product-category-sub">{{ prod.category.name|default:"Сибсыр" }}</span>
+                                    <h3 class="product-title" title="{{ prod.title }}">
+                                        <a href="{% url 'main:product_detail' slug=prod.slug %}">{{ prod.title }}</a>
+                                    </h3>
+                                    
+                                    <div class="product-specs-list">
+                                        {% if prod.fat_content %}
+                                            <div class="product-spec-row">
+                                                <span>Жирность (м.д.ж.):</span>
+                                                <strong>{{ prod.fat_content }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.unit_weight %}
+                                            <div class="product-spec-row">
+                                                <span>Фасовка:</span>
+                                                <strong>{{ prod.unit_weight }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.package_type %}
+                                            <div class="product-spec-row">
+                                                <span>Упаковка:</span>
+                                                <strong>{{ prod.package_type }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.shelf_life %}
+                                            <div class="product-spec-row">
+                                                <span>Срок годности:</span>
+                                                <strong>{{ prod.shelf_life }}</strong>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="product-footer">
+                                        <div>
+                                            <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                            {% if prod.has_discount and prod.effective_old_price_numeric > 0 %}
+                                                <div class="d-flex align-items-baseline gap-2">
+                                                    <span class="product-price-val text-danger fw-bold">{{ prod.effective_price_display }}</span>
+                                                    <span class="product-price-old">{{ prod.effective_old_price_numeric }} ₽</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="product-price-val">{{ prod.effective_price_display }}</span>
+                                            {% endif %}
+                                            {% if prod.effective_wholesale_price_display %}
+                                                <div class="mt-1" title="Оптовая цена {{ prod.wholesale_min_qty|default:'оптом' }}">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem; font-weight: 600;">
+                                                        <i class="bi bi-box-seam me-1"></i>Опт: {{ prod.effective_wholesale_price_display }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <button type="button" class="btn btn-card-share" 
+                                                    onclick="openShareModal('{{ prod.title|escapejs }}', '{% url 'main:product_detail' slug=prod.slug %}', '{{ prod.description|default:prod.full_description|truncatewords:15|escapejs }}')"
+                                                    title="Поделиться в мессенджерах">
+                                                <i class="bi bi-share"></i>
+                                            </button>
+                                            <button class="btn btn-card-cart" 
+                                                    onclick="addToCart('{{ prod.title|escapejs }}', '{{ prod.effective_price_display|escapejs }}', '{{ prod.image_url|escapejs }}', {{ prod.effective_price_numeric|default:prod.price_numeric }})"
+                                                    title="Добавить в корзину">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <a href="{% url 'main:product_detail' slug=prod.slug %}" class="btn btn-card-detail" title="Подробнее о товаре">
+                                                <span>Детали</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="button" class="carousel-side-nav carousel-side-prev" data-carousel-prev="#recommendedCarousel" aria-label="Предыдущий товар" title="Предыдущий">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button type="button" class="carousel-side-nav carousel-side-next" data-carousel-next="#recommendedCarousel" aria-label="Следующий товар" title="Следующий">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <div class="products-carousel-dots" data-carousel-dots="#recommendedCarousel"></div>
+        </div>
+    </section>
+
+    <!-- 4.5 CALLOUT BANNER TO FULL CATALOG (47 ITEMS) -->
+    <section class="mb-5">
+        <div class="p-4 p-md-5 rounded-4 shadow-sm text-center text-md-start position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+            <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.08; font-size: 13rem; pointer-events: none; line-height: 1;">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </div>
+            <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+                <div class="col-md-8">
+                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Полный ассортимент завода</span>
+                    <h3 class="fw-bold text-white mb-2">Весь каталог сыров и молочной продукции ({{ total_products_count|default:"47" }} товаров)</h3>
+                    <p class="text-white-50 mb-0" style="font-size: 1.05rem;">
+                        В нашем отдельном каталоге вы можете ознакомиться со всеми наименованиями, воспользоваться быстрым поиском и фильтром по категориям: рассольные, мягкие, колбасные сыры, домашнее масло и напитки.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange btn-lg px-4 py-3 fw-bold shadow">
+                        <span>Перейти в каталог</span>
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. ABOUT COMPANY SECTION (НАДЕЖНОСТЬ И ТРАДИЦИИ) -->
+    <section class="about-section-wrap" id="about">
+        <!-- Background watermark icon -->
+        <div class="about-bg-decoration">
+            <i class="bi bi-award"></i>
+        </div>
+
+        <div class="row align-items-center g-4 g-lg-5 position-relative" style="z-index: 2;">
+            <!-- Left Column: Story, Quality Pillars, KPIs & Action Buttons -->
+            <div class="col-lg-6">
+                <span class="section-head-badge d-inline-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-patch-check-fill text-warning"></i> Надежность и традиции с 1999 года
+                </span>
+                <h2 class="section-head-title mb-3">{{ site_settings.about_heading|default:"О компании Сибсыр — качество и традиции" }}</h2>
+                <p class="about-lead-text mb-4">
+                    {{ site_settings.about_text|default:"Компания «СибСыр» уже более 25 лет поставляет кисломолочные продукты, рассольные и мягкие сыры, сливочное и топленое масло высочайшего качества. Вся наша продукция изготавливается исключительно из натурального отборного молока от проверенных фермерских хозяйств с применением классических и авторских технологий." }}
+                </p>
+
+                <!-- Quality Pillars -->
+                <div class="about-pillars-list">
+                    <div class="about-pillar-item">
+                        <div class="about-pillar-icon">
+                            <i class="bi bi-cup-hot-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark" style="font-size: 0.92rem;">100% цельное сибирское молоко</strong>
+                            <span class="small text-muted">Никакого пальмового масла, консервантов или сухого концентрата</span>
+                        </div>
+                    </div>
+                    <div class="about-pillar-item">
+                        <div class="about-pillar-icon">
+                            <i class="bi bi-snow2"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark" style="font-size: 0.92rem;">Собственные климатические камеры созревания</strong>
+                            <span class="small text-muted">Точный контроль влажности и температуры для формирования благородного сырного букета</span>
+                        </div>
+                    </div>
+                    <div class="about-pillar-item">
+                        <div class="about-pillar-icon">
+                            <i class="bi bi-shield-fill-check"></i>
+                        </div>
+                        <div>
+                            <strong class="d-block text-dark" style="font-size: 0.92rem;">Аттестованная заводская лаборатория</strong>
+                            <span class="small text-muted">Ежедневный входной экспресс-анализ молока и микробиологический контроль каждой партии</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 KPI Stat Boxes (Admin controlled) -->
+                <div class="row g-2 g-sm-3 text-center mb-4">
+                    <div class="col-6 col-sm-3">
+                        <div class="about-stat-box">
+                            <i class="bi bi-hourglass-split about-stat-icon"></i>
+                            <div class="about-stat-number">{{ site_settings.about_stat_1_val|default:"25+" }}</div>
+                            <div class="about-stat-label">{{ site_settings.about_stat_1_label|default:"Лет на рынке" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="about-stat-box">
+                            <i class="bi bi-grid-3x3-gap-fill about-stat-icon"></i>
+                            <div class="about-stat-number">{{ site_settings.about_stat_2_val|default:"47" }}</div>
+                            <div class="about-stat-label">{{ site_settings.about_stat_2_label|default:"Видов товаров" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="about-stat-box">
+                            <i class="bi bi-droplet-half about-stat-icon"></i>
+                            <div class="about-stat-number">{{ site_settings.about_stat_3_val|default:"100%" }}</div>
+                            <div class="about-stat-label">{{ site_settings.about_stat_3_label|default:"Свежее молоко" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="about-stat-box">
+                            <i class="bi bi-buildings about-stat-icon"></i>
+                            <div class="about-stat-number">{{ site_settings.about_stat_4_val|default:">500" }}</div>
+                            <div class="about-stat-label">{{ site_settings.about_stat_4_label|default:"Партнеров" }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call to action buttons -->
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <a href="{% url 'main:about' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                        <span>Подробнее о компании и производстве</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                    <button type="button" class="btn btn-sib-outline rounded-pill px-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-file-earmark-check me-1"></i>
+                        <span>Запросить сертификаты</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Visual Showcase + Factory Security Passport Card -->
+            <div class="col-lg-6">
+                <!-- Visual Craft Photo Card -->
+                <div class="about-visual-card overflow-hidden rounded-4 shadow-sm mb-3">
+                    <img src="{% if site_settings.about_image %}{{ site_settings.about_image.url }}{% else %}{% static 'images/card1.jpg' %}{% endif %}" 
+                         alt="Производство натуральных сыров ТМ Сибсыр в Омске" 
+                         class="about-visual-img" 
+                         loading="lazy">
+                    <div class="about-floating-glass-pill">
+                        <i class="bi bi-award-fill text-warning"></i>
+                        <span>Собственный завод в Омске • Ручная работа и строгие ГОСТы</span>
+                    </div>
+                </div>
+
+                <!-- Safety & Enterprise Passport Card -->
+                <div class="about-passport-card shadow">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon-box" style="width: 44px; height: 44px; font-size: 1.3rem; background: linear-gradient(135deg, #ff8400, #ffaa00); color: #fff;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white fw-bold mb-0 fs-5">Гарантия безопасности продукции</h4>
+                            <span class="small text-warning" style="font-size: 0.78rem;">Сертификация ТР ТС 033/2013, ГОСТ и СанПиН</span>
+                        </div>
+                    </div>
+
+                    <!-- Checklist -->
+                    <ul class="passport-checklist">
+                        <li class="passport-check-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div><strong>ФГИС «Меркурий» & «Честный ЗНАК»:</strong> 100% электронная ветеринарная прослеживаемость и DataMatrix-маркировка.</div>
+                        </li>
+                        <li class="passport-check-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div><strong>Система ХАССП (HACCP):</strong> непрерывный контроль критических точек на всех стадиях сыроделия.</div>
+                        </li>
+                        <li class="passport-check-item">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div><strong>Холодовая цепь (+2...+4°C):</strong> собственный автопарк рефрижераторов для бережной сохранности свежести.</div>
+                        </li>
+                    </ul>
+
+                    <!-- Factory Passport Info -->
+                    <div class="border-top border-secondary border-opacity-25 pt-3">
+                        <div class="passport-info-row">
+                            <span>Юридическое лицо:</span>
+                            <strong class="text-white">{{ site_settings.inn_kpp|default:"ТМ «Сибсыр» ИП Нахшкарян А.Л." }}</strong>
+                        </div>
+                        <div class="passport-info-row">
+                            <span>Адрес производства:</span>
+                            <strong class="text-white">{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</strong>
+                        </div>
+                        <div class="passport-info-row">
+                            <span>Телефон отдела сбыта:</span>
+                            <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="text-warning text-decoration-none fw-bold">
+                                <i class="bi bi-telephone-fill me-1"></i>{{ site_settings.phone }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. DELIVERY & PAYMENT SECTION -->
+    <section class="mb-5" id="delivery">
+        <div class="p-4 p-md-5 rounded-4" style="background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 8px 30px rgba(0,0,0,0.03);">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <span class="section-head-badge">Логистика и сервис</span>
+                    <h2 class="section-head-title mb-3">Условия доставки и оплаты продукции</h2>
+                    <p class="text-muted" style="line-height: 1.7;">
+                        {{ site_settings.delivery_text|default:"Доставка продукции осуществляется специализированным автотранспортом с соблюдением строгого температурного режима по Омску, Омской области и регионам РФ. Для оптовых покупателей и сетей действуют индивидуальные условия и гибкий график поставок." }}
+                    </p>
+                    <div class="row g-3 mt-2">
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light">
+                                <i class="bi bi-truck text-warning fs-5"></i>
+                                <span class="small fw-semibold">Доставка по Омску от 1 дня</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light">
+                                <i class="bi bi-thermometer-snow text-primary fs-5"></i>
+                                <span class="small fw-semibold">Контроль температуры (+2...+4°C)</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light">
+                                <i class="bi bi-credit-card text-success fs-5"></i>
+                                <span class="small fw-semibold">Безналичный расчет с НДС</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="d-flex align-items-center gap-2 p-2 rounded-3 bg-light">
+                                <i class="bi bi-box-seam text-secondary fs-5"></i>
+                                <span class="small fw-semibold">Вакуумная и гофротара</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <a href="{% url 'main:delivery' %}" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+                            <i class="bi bi-truck me-1"></i> Подробные условия доставки и оплаты
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-center">
+                    <div class="p-4 rounded-4" style="background: var(--primary-orange-light); border: 2px dashed #ff8400;">
+                        <i class="bi bi-file-earmark-arrow-down text-warning" style="font-size: 2.75rem;"></i>
+                        <h5 class="fw-bold text-dark mt-2">Получить оптовый прайс-лист</h5>
+                        <p class="text-muted small mb-3">Скачайте актуальные цены для розничных магазинов, дистрибьюторов и заведений HoReCa</p>
+                        <button class="btn btn-sib-orange w-100" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                            <i class="bi bi-download me-1"></i> Запросить оптовый прайс
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. ARTICLES / CHEESE KNOWLEDGE BASE SECTION -->
+    <section class="mb-5" id="articles">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <span class="section-head-badge">Полезно знать</span>
+                <h2 class="section-head-title mb-0">Статьи о сыре и производстве</h2>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small d-none d-md-inline">Советы сыроваров, рецепты и факты</span>
+                <a href="{% url 'main:articles' %}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 fw-semibold">
+                    Все статьи ({% if total_articles_count %}{{ total_articles_count }}{% else %}{{ articles|length }}{% endif %}) <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            {% for art in articles %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="article-card">
+                        <a href="{% url 'main:article_detail' art.slug %}" class="article-img-wrap text-decoration-none d-block">
+                            <img src="{{ art.image_url }}" alt="{{ art.title }}" loading="lazy">
+                        </a>
+                        <div class="article-body">
+                            <div class="article-date-row">
+                                <i class="bi bi-calendar3"></i>
+                                <span>{{ art.date_str }}</span>
+                                <span class="mx-1">•</span>
+                                <i class="bi bi-eye"></i>
+                                <span>{{ art.views_count }} просмотров</span>
+                            </div>
+                            <h3 class="article-title">
+                                <a href="{% url 'main:article_detail' art.slug %}" class="text-dark text-decoration-none">
+                                    {{ art.title }}
+                                </a>
+                            </h3>
+                            <p class="article-snippet">{{ art.snippet }}</p>
+                            <div class="d-flex align-items-center justify-content-between mt-auto pt-2">
+                                <a href="{% url 'main:article_detail' art.slug %}" class="btn-read-article">
+                                    <span>Читать статью</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-light rounded-pill px-2 py-0 text-muted border-0" 
+                                        onclick="openArticleModal('{{ art.slug }}')" 
+                                        title="Быстрый предпросмотр">
+                                    <i class="bi bi-arrows-angle-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- 7. REVIEWS SECTION -->
+    <section class="mb-5" id="reviews">
+        <div class="text-center mb-4">
+            <span class="section-head-badge">Доверие партнеров</span>
+            <h2 class="section-head-title">Отзывы о продукции Сибсыр</h2>
+        </div>
+        <div class="row g-3 g-md-4">
+            {% for rev in reviews %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="review-card">
+                        <div class="review-stars">
+                            {% for i in "12345" %}
+                                <i class="bi bi-star-fill"></i>
+                            {% endfor %}
+                        </div>
+                        <p class="review-text">«{{ rev.text }}»</p>
+                        <div class="review-author">
+                            {{ rev.author_name }}
+                            <div class="review-city">{{ rev.city }} • {{ rev.product_mention }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'main:reviews' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-chat-quote-fill me-1"></i> Все отзывы и добавить свой отзыв
+            </a>
+        </div>
+    </section>
+
+    <!-- 8. CONTACTS & FEEDBACK SECTION -->
+    <section class="contacts-wrapper" id="contacts">
+        <div class="row g-4 g-lg-5">
+            <div class="col-lg-6">
+                <span class="section-head-badge">Наши координаты</span>
+                <h2 class="section-head-title mb-2">Контакты производства Сибсыр</h2>
+                <div class="mb-4">
+                    <a href="{% url 'main:contacts' %}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1">
+                        <i class="bi bi-info-circle me-1"></i> Полные реквизиты, карта и контакты отделов
+                    </a>
+                </div>
+
+                <div class="contact-item-box">
+                    <div class="contact-icon-circle">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div>
+                        <div class="contact-label">Адрес производства и офиса</div>
+                        <div class="contact-val">{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</div>
+                    </div>
+                </div>
+
+                <div class="contact-item-box">
+                    <div class="contact-icon-circle">
+                        <i class="bi bi-telephone-fill"></i>
+                    </div>
+                    <div>
+                        <div class="contact-label">Телефон для заказов и опта</div>
+                        <div class="contact-val">
+                            <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}">{{ site_settings.phone }}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-item-box">
+                    <div class="contact-icon-circle">
+                        <i class="bi bi-envelope-fill"></i>
+                    </div>
+                    <div>
+                        <div class="contact-label">Электронная почта</div>
+                        <div class="contact-val">
+                            <a href="mailto:{{ site_settings.email }}">{{ site_settings.email }}</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="contact-item-box">
+                    <div class="contact-icon-circle">
+                        <i class="bi bi-clock-fill"></i>
+                    </div>
+                    <div>
+                        <div class="contact-label">График работы склада и отдела сбыта</div>
+                        <div class="contact-val">{{ site_settings.working_hours }}</div>
+                    </div>
+                </div>
+
+                <!-- Interactive Map iframe -->
+                <div class="rounded-4 overflow-hidden border shadow-sm mt-3" style="height: 220px;">
+                    <iframe src="https://yandex.ru/map-widget/v1/?text=%D0%9E%D0%BC%D1%81%D0%BA%2C%20%D1%83%D0%BB%D0%B8%D1%86%D0%B0%20%D0%97%D0%B5%D0%BB%D0%B5%D0%BD%D0%B0%D1%8F%2C%2016&z=15" 
+                            width="100%" height="100%" frameborder="0" allowfullscreen="true" style="position:relative;"></iframe>
+                </div>
+            </div>
+
+            <!-- Feedback / Callback Form -->
+            <div class="col-lg-6">
+                <div class="feedback-form-card">
+                    <h3 class="fw-bold text-dark fs-4 mb-2">Напишите нам</h3>
+                    <p class="text-muted small mb-4">Оставьте заявку на звонок, прайс или задайте любой вопрос по продукции завода</p>
+
+                    <form action="{% url 'main:create_callback' %}" method="POST" id="pageCallbackForm">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Тип обращения</label>
+                            <select name="request_type" class="form-select rounded-pill px-3">
+                                <option value="call">Заказать обратный звонок</option>
+                                <option value="wholesale">Запрос оптового прайс-листа и условий</option>
+                                <option value="question">Вопрос по ассортименту и качеству</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Ваше имя / Организация *</label>
+                            <input type="text" name="name" class="form-control rounded-pill px-3" placeholder="Иван / ООО «Сибирь»" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Номер телефона *</label>
+                            <input type="tel" name="phone" class="form-control rounded-pill px-3" placeholder="+7 (___) ___-__-__" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Электронная почта (E-mail)</label>
+                            <input type="email" name="email" class="form-control rounded-pill px-3" placeholder="example@mail.ru">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Ваш вопрос или комментарий</label>
+                            <textarea name="message" class="form-control rounded-4 px-3" rows="3" placeholder="Опишите интересующие сорта сыра, объем партии или вопрос..."></textarea>
+                        </div>
+
+                        {% render_captcha 'callback' %}
+
+                        <button type="submit" class="btn btn-sib-orange w-100 py-3">
+                            <span>Отправить сообщение</span> <i class="bi bi-send ms-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    // --- PRODUCTS CAROUSEL (Desktop: 3 items, Mobile/Tablet: 1 item) ---
+    function initProductsCarousel(wrapper) {
+        if (!wrapper) return;
+        const track = wrapper.querySelector('.products-carousel-track');
+        const viewport = wrapper.querySelector('.products-carousel-viewport');
+        if (!track || !viewport) return;
+        const slides = Array.from(track.querySelectorAll('.products-carousel-slide'));
+        if (!slides.length) return;
+
+        const id = '#' + wrapper.id;
+        const prevBtns = document.querySelectorAll(`[data-carousel-prev="${id}"]`);
+        const nextBtns = document.querySelectorAll(`[data-carousel-next="${id}"]`);
+        const dotsContainer = document.querySelector(`[data-carousel-dots="${id}"]`);
+
+        let currentPage = 0;
+        let itemsPerPage = window.innerWidth >= 992 ? 3 : 1;
+        let totalPages = Math.ceil(slides.length / itemsPerPage);
+
+        function renderDots() {
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            if (totalPages <= 1) {
+                dotsContainer.style.display = 'none';
+                return;
+            }
+            dotsContainer.style.display = 'flex';
+            for (let i = 0; i < totalPages; i++) {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'carousel-dot' + (i === currentPage ? ' active' : '');
+                dot.setAttribute('aria-label', `Слайд ${i + 1}`);
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function updateNavVisibility() {
+            const hide = totalPages <= 1;
+            prevBtns.forEach(btn => btn.style.display = hide ? 'none' : '');
+            nextBtns.forEach(btn => btn.style.display = hide ? 'none' : '');
+        }
+
+        function goTo(page) {
+            if (page < 0) page = totalPages - 1;
+            if (page >= totalPages) page = 0;
+            currentPage = page;
+
+            let offsetPercent;
+            if (itemsPerPage === 1) {
+                offsetPercent = currentPage * 100;
+            } else {
+                const maxOffset = (slides.length - itemsPerPage) * (100 / itemsPerPage);
+                offsetPercent = Math.min(currentPage * 100, Math.max(0, maxOffset));
+            }
+
+            track.style.transform = `translateX(-${offsetPercent}%)`;
+
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.carousel-dot');
+                dots.forEach((d, idx) => {
+                    d.classList.toggle('active', idx === currentPage);
+                });
+            }
+        }
+
+        prevBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                goTo(currentPage - 1);
+            });
+        });
+
+        nextBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                goTo(currentPage + 1);
+            });
+        });
+
+        // Touch swipe gestures for smartphones and tablets
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isSwiping = false;
+
+        viewport.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isSwiping = true;
+        }, { passive: true });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            const dx = e.touches[0].clientX - touchStartX;
+            const dy = e.touches[0].clientY - touchStartY;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+                if (e.cancelable) e.preventDefault();
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            const touchEndX = e.changedTouches[0].clientX;
+            const dx = touchEndX - touchStartX;
+            if (dx < -40) {
+                goTo(currentPage + 1);
+            } else if (dx > 40) {
+                goTo(currentPage - 1);
+            }
+        });
+
+        // Window resize adaptation
+        function onResize() {
+            const newItemsPerPage = window.innerWidth >= 992 ? 3 : 1;
+            if (newItemsPerPage !== itemsPerPage) {
+                itemsPerPage = newItemsPerPage;
+                totalPages = Math.ceil(slides.length / itemsPerPage);
+                if (currentPage >= totalPages) currentPage = totalPages - 1;
+                renderDots();
+                updateNavVisibility();
+                goTo(currentPage);
+            }
+        }
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(onResize, 100);
+        });
+
+        renderDots();
+        updateNavVisibility();
+        goTo(0);
+    }
+
+    // Hook up page callback form as well as carousels
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.products-carousel-wrapper').forEach(wrapper => {
+            initProductsCarousel(wrapper);
+        });
+
+        const pageForm = document.getElementById('pageCallbackForm');
+        if (pageForm) {
+            pageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(pageForm);
+                fetch(pageForm.action, { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            pageForm.reset();
+                            showToast(data.message);
+                        } else {
+                            alert(data.error || 'Ошибка при отправке');
+                            if (typeof refreshCaptchaInWrapper === 'function') {
+                                refreshCaptchaInWrapper(pageForm.querySelector('.sib-captcha-wrapper'));
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof refreshCaptchaInWrapper === 'function') {
+                            refreshCaptchaInWrapper(pageForm.querySelector('.sib-captcha-wrapper'));
+                        }
+                    });
+            });
+        }
+    });
+</script>
+{% endblock %}

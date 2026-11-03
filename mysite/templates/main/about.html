@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"О компании ТМ «Сибсыр» — История завода, производство и стандарты качества" }}{% endblock %}
+
+{% block meta_description %}{{ page_description|default:"История и производство сыродельного предприятия ТМ «Сибсыр» (ИП Нахшкарян А.Л.) в Омске. Более 25 лет на рынке, натуральное молоко, система ХАССП и ФГИС «Меркурий»." }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+
+{% block og_title %}{{ page_title }}{% endblock %}
+{% block og_description %}{{ page_description }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+
+{% block schema_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "О компании",
+      "item": "{{ canonical_url }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- 1. BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">О компании</li>
+        </ol>
+    </nav>
+
+    <!-- 2. HERO SECTION -->
+    <div class="p-4 p-md-5 rounded-4 mb-5 shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+        <div style="position: absolute; right: -40px; bottom: -50px; opacity: 0.06; font-size: 18rem; pointer-events: none; line-height: 1;">
+            <i class="bi bi-award"></i>
+        </div>
+        <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" 
+                     style="background: rgba(255, 132, 0, 0.15); border: 1px solid rgba(255, 132, 0, 0.4); color: #ffaa33; font-size: 0.85rem; font-weight: 600;">
+                    <i class="bi bi-shield-check"></i>
+                    <span>{{ site_settings.about_hero_badge|default:"ТМ «Сибсыр» • Сыродельное производство в Омске с 1999 года" }}</span>
+                </div>
+                <h1 class="display-6 fw-bold text-white mb-3 fs-2 fs-md-1">
+                    {{ site_settings.about_heading|default:"О компании «Сибсыр» — качество, проверенное временем" }}
+                </h1>
+                <p class="text-white-50 mb-4" style="line-height: 1.8; font-size: 1.05rem; max-width: 720px;">
+                    {{ site_settings.about_text|default:"Компания «СибСыр» уже более 25 лет поставляет кисломолочные продукты, рассольные и мягкие сыры, сливочное и топленое масло высочайшего качества. Вся наша продукция изготавливается исключительно из натурального отборного молока от проверенных фермерских хозяйств с применением классических и авторских технологий." }}
+                </p>
+
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-grid-3x3-gap-fill me-1"></i> Каталог продукции
+                    </a>
+                    <a href="{% url 'main:contacts' %}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-geo-alt me-1"></i> Контакты завода
+                    </a>
+                    <a href="{% url 'main:delivery' %}" class="btn btn-outline-warning rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-truck me-1"></i> Доставка и оплата
+                    </a>
+                </div>
+            </div>
+
+            <!-- KPI Cards (Управляются из админки) -->
+            <div class="col-lg-4">
+                <div class="row g-3 text-center">
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 h-100">
+                            <div class="display-6 fw-bold text-warning mb-1">{{ site_settings.about_stat_1_val|default:"25+" }}</div>
+                            <div class="small text-white-50">{{ site_settings.about_stat_1_label|default:"Лет на рынке" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 h-100">
+                            <div class="display-6 fw-bold text-warning mb-1">{{ site_settings.about_stat_2_val|default:"47" }}</div>
+                            <div class="small text-white-50">{{ site_settings.about_stat_2_label|default:"Видов товаров" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 h-100">
+                            <div class="display-6 fw-bold text-warning mb-1">{{ site_settings.about_stat_3_val|default:"100%" }}</div>
+                            <div class="small text-white-50">{{ site_settings.about_stat_3_label|default:"Свежее молоко" }}</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="p-3 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 h-100">
+                            <div class="display-6 fw-bold text-warning mb-1">{{ site_settings.about_stat_4_val|default:">500" }}</div>
+                            <div class="small text-white-50">{{ site_settings.about_stat_4_label|default:"Партнеров" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. PRODUCTION & STANDARDS (Управляются из админки) -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Наше производство</span>
+                <h2 class="fw-bold text-dark mb-3">{{ site_settings.about_tech_heading|default:"Современные технологии и вековые традиции сыроварения" }}</h2>
+                <p class="text-muted" style="line-height: 1.8;">
+                    {{ site_settings.about_tech_text_1|default:"Сыроварня ТМ «Сибсыр» расположена в экологически чистом регионе Западной Сибири (г. Омск). Производственный комплекс оснащен высокотехнологичным оборудованием: закрытыми сыроизготовителями, пастеризационно-охладительными установками и специализированными климатическими камерами созревания сыра." }}
+                </p>
+                <p class="text-muted" style="line-height: 1.8;">
+                    {{ site_settings.about_tech_text_2|default:"Мы принципиально не используем искусственные красители, консерванты, стабилизаторы или растительные заменители молочного жира (пальмовое масло). В основе рецептур — классические стандарты ГОСТ и многолетний практический опыт наших мастеров-сыроваров." }}
+                </p>
+
+                {% if site_settings.about_image %}
+                <div class="rounded-4 overflow-hidden shadow-sm mb-4">
+                    <img src="{{ site_settings.about_image.url }}" alt="Производство ТМ «Сибсыр»" class="img-fluid w-100" style="max-height: 280px; object-fit: cover;">
+                </div>
+                {% endif %}
+
+                <div class="row g-3 mt-1">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light">
+                            <i class="bi bi-droplet-half text-primary fs-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Входной контроль молока</h6>
+                                <span class="small text-muted">Собственная лаборатория</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light">
+                            <i class="bi bi-patch-check-fill text-success fs-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Система ХАССП (ISO)</h6>
+                                <span class="small text-muted">Строгий регламент СанПиН</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light">
+                            <i class="bi bi-qr-code text-dark fs-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">ФГИС «Меркурий»</h6>
+                                <span class="small text-muted">100% цифровая прослеживаемость</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-center gap-3 p-3 rounded-3 bg-light">
+                            <i class="bi bi-fire text-danger fs-3"></i>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">Натуральное копчение</h6>
+                                <span class="small text-muted">На ольховой и буковой щепе</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="p-4 p-md-5 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon-box" style="width: 48px; height: 48px; font-size: 1.4rem;">
+                            <i class="bi bi-award-fill"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-white fw-bold mb-0">{{ site_settings.about_safety_heading|default:"Сертификация ГОСТ и ТУ" }}</h4>
+                            <span class="small text-warning">Качество государственного уровня</span>
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-4" style="line-height: 1.7;">
+                        {{ site_settings.about_safety_text|default:"Вся выпускаемая продукция сертифицирована в соответствии с техническими регламентами Таможенного союза ТР ТС 033/2013 «О безопасности молока и молочной продукции» и ТР ТС 021/2011 «О безопасности пищевой продукции»." }}
+                    </p>
+
+                    <!-- Динамический список сертификатов из БД -->
+                    <ul class="list-unstyled mb-4">
+                        {% for cert in certificates %}
+                        <li class="d-flex align-items-start gap-2 mb-2 text-white-50 small">
+                            <i class="bi {{ cert.icon|default:'bi-check-circle-fill' }} text-warning mt-1"></i>
+                            <span><strong>{{ cert.title }}:</strong> {{ cert.subtitle }}</span>
+                        </li>
+                        {% empty %}
+                        <li class="d-flex align-items-start gap-2 mb-2 text-white-50 small">
+                            <i class="bi bi-check-circle-fill text-warning mt-1"></i>
+                            <span><strong>ГОСТ Р 53437-2009:</strong> Сыры рассольные («Сулугуни», «Брынза», «Чечил», «Косичка»)</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 mb-2 text-white-50 small">
+                            <i class="bi bi-check-circle-fill text-warning mt-1"></i>
+                            <span><strong>ГОСТ 32261-2013:</strong> Масло сливочное «Крестьянское» 72.5% и «Традиционное» 82.5%</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 mb-2 text-white-50 small">
+                            <i class="bi bi-check-circle-fill text-warning mt-1"></i>
+                            <span><strong>ГОСТ 32260-2013:</strong> Сыры полутвердые и столовые</span>
+                        </li>
+                        <li class="d-flex align-items-start gap-2 text-white-50 small">
+                            <i class="bi bi-check-circle-fill text-warning mt-1"></i>
+                            <span><strong>ГОСТ 31661-2012:</strong> Традиционные кисломолочные напитки («Кумыс», «Тан»)</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="border-top border-secondary border-opacity-25 pt-3">
+                        <div class="d-flex justify-content-between text-secondary small mb-2">
+                            <span>Юридическое лицо:</span>
+                            <strong class="text-white">{{ site_settings.inn_kpp|default:"ИП Нахшкарян А.Л. / ТМ «Сибсыр»" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small mb-2">
+                            <span>ИНН / ОГРНИП:</span>
+                            <strong class="text-white">{{ site_settings.seller_inn|default:"550119874521" }} / {{ site_settings.seller_ogrn|default:"318554300045612" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary small">
+                            <span>Адрес завода:</span>
+                            <strong class="text-white">{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. TIMELINE: НАША ИСТОРИЯ (Управляется из админки) -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Хроника завода</span>
+            <h2 class="fw-bold text-dark">История развития предприятия ТМ «Сибсыр»</h2>
+            <p class="text-muted" style="max-width: 680px; margin: 0 auto;">
+                От небольшой ремесленной сыроварни до современного производственного комплекса, поставляющего продукцию по всей России.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            {% for item in timeline %}
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 bg-light h-100 border-start border-4 {{ item.color_class }}">
+                    <span class="badge bg-dark text-white px-3 py-1 rounded-pill mb-2">{{ item.year }}</span>
+                    <h5 class="fw-bold text-dark">{{ item.title }}</h5>
+                    <p class="text-muted small mb-0">{{ item.description }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 bg-light h-100 border-start border-4 border-warning">
+                    <span class="badge bg-dark text-white px-3 py-1 rounded-pill mb-2">1999 год</span>
+                    <h5 class="fw-bold text-dark">Основание сыроварни</h5>
+                    <p class="text-muted small mb-0">Запуск ремесленного производства в Омске. Выпуск первых партий классического сыра Сулугуни и Брынзы по традиционным кавказским рецептам.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 bg-light h-100 border-start border-4 border-primary">
+                    <span class="badge bg-primary text-white px-3 py-1 rounded-pill mb-2">2008 год</span>
+                    <h5 class="fw-bold text-dark">Линия сливочного масла</h5>
+                    <p class="text-muted small mb-0">Установка итальянских закрытых ванн и маслообразователей. Освоение выпуска натурального сливочного и топленого масла высшего сорта по ГОСТ.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 bg-light h-100 border-start border-4 border-success">
+                    <span class="badge bg-success text-white px-3 py-1 rounded-pill mb-2">2016 год</span>
+                    <h5 class="fw-bold text-dark">Стандарты ХАССП и копчение</h5>
+                    <p class="text-muted small mb-0">Внедрение международной системы пищевой безопасности НАССР. Открытие коптильного цеха с натуральной буковой и ольховой щепой.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 bg-light h-100 border-start border-4 border-danger">
+                    <span class="badge bg-danger text-white px-3 py-1 rounded-pill mb-2">Сегодня</span>
+                    <h5 class="fw-bold text-dark">Федеральные поставки</h5>
+                    <p class="text-muted small mb-0">Более 47 видов продукции, собственный автопарк рефрижераторов, работа с крупными торговыми сетями и доставка по Сибири, Уралу и всей РФ.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 5. СТРУКТУРА АССОРТИМЕНТА (КАРТОЧКИ КАТЕГОРИЙ) -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Каталог</span>
+                <h2 class="fw-bold text-dark mb-0">Основные направления нашей продукции</h2>
+            </div>
+            <a href="{% url 'main:catalog' %}" class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+                <span>Перейти в полный каталог</span> <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            {% for cat in categories %}
+            <div class="col-sm-6 col-lg-4">
+                <a href="{% url 'main:catalog' %}?cat={{ cat.slug }}" class="text-decoration-none">
+                    <div class="p-3 p-md-4 rounded-4 border border-light-subtle bg-light h-100 d-flex flex-column justify-content-between transition-all hover-shadow">
+                        <div>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="brand-icon-box" style="width: 42px; height: 42px; font-size: 1.2rem;">
+                                    <i class="bi {{ cat.icon|default:'bi-grid-fill' }}"></i>
+                                </div>
+                                <h5 class="fw-bold text-dark mb-0">{{ cat.name }}</h5>
+                            </div>
+                            <p class="text-muted small mb-3">
+                                {{ cat.description|default:"Натуральная продукция сыродельного завода ТМ «Сибсыр» высшего качества."|truncatewords:15 }}
+                            </p>
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between text-warning fw-semibold small mt-auto">
+                            <span>Смотреть продукцию</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-3">Категории загружаются...</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 6. ИНФОРМАЦИОННЫЙ ПУТЕВОДИТЕЛЬ (О КОМПАНИИ -> КОНТАКТЫ -> ДОСТАВКА И ОПЛАТА) -->
+    <div class="p-4 p-md-5 rounded-4 shadow-sm mb-4" 
+         style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 2px solid #fdba74;">
+        <div class="text-center mb-4">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                <i class="bi bi-signpost-split-fill me-1"></i> Маршрут сотрудничества
+            </span>
+            <h2 class="fw-bold text-dark mb-2">О компании &rarr; Контакты &rarr; Доставка и оплата</h2>
+            <p class="text-muted small" style="max-width: 650px; margin: 0 auto;">
+                Узнайте все детали работы с нами: от знакомства с производством до оперативной связи с отделом сбыта и получения первой партии в рефрижераторах.
+            </p>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            <!-- Step 1: About (Current) -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-warning position-relative">
+                    <div class="badge bg-warning text-dark fw-bold rounded-pill mb-2 px-3 py-1">
+                        Шаг 1 • Текущая страница
+                    </div>
+                    <h5 class="fw-bold text-dark mt-2 mb-2">
+                        <i class="bi bi-building text-warning me-2"></i>О компании «Сибсыр»
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        25+ лет опыта, стандарты качества ХАССП, 100% натуральное цельное сибирское молоко и строгий лабораторный контроль каждой партии.
+                    </p>
+                    <span class="badge bg-light text-muted border">Вы находитесь здесь</span>
+                </div>
+            </div>
+
+            <!-- Step 2: Contacts -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-primary text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                            Шаг 2 • Связь с заводом
+                        </div>
+                        <h5 class="fw-bold text-dark mt-2 mb-2">
+                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>Контакты и реквизиты
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            Адрес завода в Омске (ул. Зеленая, 16), прямые телефоны отдела сбыта, логистики, полные реквизиты ИП и интерактивная карта.
+                        </p>
+                    </div>
+                    <a href="{% url 'main:contacts' %}" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
+                        <span>Перейти к контактам</span> <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 3: Delivery -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-success text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                            Шаг 3 • Получение партии
+                        </div>
+                        <h5 class="fw-bold text-dark mt-2 mb-2">
+                            <i class="bi bi-truck text-success me-2"></i>Доставка и оплата
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            Доставка по Омску от 1 дня, температурные перевозки (+2...+4°C) по РФ, безналичный расчет с НДС, самовывоз и оптовый прайс.
+                        </p>
+                    </div>
+                    <a href="{% url 'main:delivery' %}" class="btn btn-sib-orange rounded-pill w-100 fw-semibold">
+                        <span>Условия доставки и оплаты</span> <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

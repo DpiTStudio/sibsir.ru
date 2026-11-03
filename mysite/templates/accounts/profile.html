@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Личный кабинет — {{ profile.display_name }} | Сыроварня «Сибсыр»{% endblock %}
+{% block meta_description %}Личный кабинет клиента сыроварни «Сибсыр». История покупок, реквизиты, документы и статус заказов.{% endblock %}
+
+{% block content %}
+<div class="account-dashboard-wrapper py-5" style="background: #f8fafc; min-height: 85vh;">
+    <div class="container">
+        
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="{% url 'main:index' %}" class="text-decoration-none text-muted">Главная</a></li>
+                <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">Личный кабинет</li>
+            </ol>
+        </nav>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show rounded-4 shadow-sm border-0 py-3 px-4 mb-2" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="row g-4">
+            
+            <!-- ================= SIDEBAR ================= -->
+            <div class="col-12 col-lg-4 col-xl-3">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                    <!-- User Header -->
+                    <div class="p-4 text-center text-white position-relative" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                        <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 76px; height: 76px; background: {% if profile.is_legal %}rgba(37, 99, 235, 0.2){% else %}rgba(255, 132, 0, 0.2){% endif %}; border: 2px solid {% if profile.is_legal %}#60a5fa{% else %}#ff8400{% endif %}; color: {% if profile.is_legal %}#60a5fa{% else %}#ff8400{% endif %}; font-size: 2rem;">
+                            <i class="bi {% if profile.is_legal %}bi-building{% else %}bi-person-circle{% endif %}"></i>
+                        </div>
+                        <h5 class="fw-bold mb-1 text-white text-truncate" title="{{ profile.display_name }}">{{ profile.display_name }}</h5>
+                        <p class="text-secondary small mb-2 text-truncate">{{ request.user.email }}</p>
+                        
+                        {% if profile.is_legal %}
+                        <span class="badge rounded-pill bg-primary px-3 py-1" style="font-size: 0.75rem;">
+                            <i class="bi bi-shield-check me-1"></i>Юридическое лицо / ИП
+                        </span>
+                        {% else %}
+                        <span class="badge rounded-pill bg-warning text-dark px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+                            <i class="bi bi-person-check me-1"></i>Розничный покупатель
+                        </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Navigation Links -->
+                    <div class="list-group list-group-flush py-2">
+                        <a href="{% url 'accounts:profile' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between px-4 py-3 active" style="background: #fff8f1; color: #ff8400; border-color: transparent; border-left: 4px solid #ff8400; font-weight: 600;">
+                            <span class="d-flex align-items-center gap-3">
+                                <i class="bi bi-grid-fill fs-5"></i>
+                                <span>Сводка кабинета</span>
+                            </span>
+                            <i class="bi bi-chevron-right small"></i>
+                        </a>
+
+                        <a href="{% url 'accounts:orders' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between px-4 py-3 text-dark border-0">
+                            <span class="d-flex align-items-center gap-3">
+                                <i class="bi bi-bag-check fs-5 text-muted"></i>
+                                <span>История покупок</span>
+                            </span>
+                            <span class="badge rounded-pill bg-secondary text-white">{{ orders_count }}</span>
+                        </a>
+
+                        <a href="{% url 'accounts:profile_edit' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between px-4 py-3 text-dark border-0">
+                            <span class="d-flex align-items-center gap-3">
+                                <i class="bi bi-pencil-square fs-5 text-muted"></i>
+                                <span>{% if profile.is_legal %}Реквизиты компании{% else %}Данные профиля{% endif %}</span>
+                            </span>
+                            <i class="bi bi-chevron-right small text-muted"></i>
+                        </a>
+
+                        <a href="{% url 'accounts:password_change' %}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between px-4 py-3 text-dark border-0">
+                            <span class="d-flex align-items-center gap-3">
+                                <i class="bi bi-shield-lock fs-5 text-muted"></i>
+                                <span>Безопасность</span>
+                            </span>
+                            <i class="bi bi-chevron-right small text-muted"></i>
+                        </a>
+
+                        <hr class="my-2 opacity-10">
+
+                        <a href="{% url 'accounts:logout' %}" class="list-group-item list-group-item-action d-flex align-items-center gap-3 px-4 py-3 text-danger border-0">
+                            <i class="bi bi-box-arrow-right fs-5"></i>
+                            <span>Выйти из аккаунта</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- B2B Manager Box -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 text-center" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1px solid #bbf7d0;">
+                    <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-success text-white mx-auto mb-2" style="width: 44px; height: 44px;">
+                        <i class="bi bi-headset fs-5"></i>
+                    </div>
+                    <div class="fw-bold text-dark mb-1">Служба заботы о клиентах</div>
+                    <div class="small text-muted mb-3">Поможем с подбором сыра, отгрузкой и закрывающими документами</div>
+                    <a href="tel:{{ site_settings.phone|default:'+7 (913) 970-22-22' }}" class="btn btn-sm btn-success rounded-pill fw-bold px-3">
+                        <i class="bi bi-telephone-fill me-1"></i>Связаться
+                    </a>
+                </div>
+            </div>
+
+            <!-- ================= MAIN CONTENT ================= -->
+            <div class="col-12 col-lg-8 col-xl-9">
+                
+                <!-- Welcome Banner -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 text-white overflow-hidden position-relative" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                    <div class="position-absolute end-0 top-0 bottom-0 d-none d-md-block opacity-10 pe-4" style="font-size: 10rem;">
+                        <i class="bi bi-award"></i>
+                    </div>
+                    <div class="position-relative z-1">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div>
+                                <span class="badge rounded-pill bg-warning text-dark px-3 py-1 mb-2 fw-bold">
+                                    {% if profile.is_legal %}B2B ПАРТНЕР{% else %}ПОСТОЯННЫЙ ПОКУПАТЕЛЬ{% endif %}
+                                </span>
+                                <h3 class="fw-bold mb-1">Рады видеть вас, {{ profile.display_name }}!</h3>
+                                <p class="text-secondary small mb-0">
+                                    {% if profile.is_legal %}
+                                    Здесь вы можете оформлять оптовые закупки, скачивать счета, ТОРГ-12 и накладные.
+                                    {% else %}
+                                    Здесь хранится вся история ваших покупок ремесленных сыров «Сибсыр».
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                                <i class="bi bi-cart3"></i>
+                                <span>Перейти к покупкам</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Stats Cards -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small text-muted fw-semibold">Всего заказов</span>
+                                <div class="rounded-3 p-2 bg-primary-subtle text-primary">
+                                    <i class="bi bi-bag-check-fill"></i>
+                                </div>
+                            </div>
+                            <div class="fs-4 fw-bold text-dark">{{ orders_count }}</div>
+                            <div class="small text-muted">за все время</div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small text-muted fw-semibold">Сумма покупок</span>
+                                <div class="rounded-3 p-2 text-warning" style="background: #fff8f1;">
+                                    <i class="bi bi-currency-ruble"></i>
+                                </div>
+                            </div>
+                            <div class="fs-4 fw-bold" style="color: #c25e00;">{{ total_spent }} ₽</div>
+                            <div class="small text-muted">выполненные заказы</div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small text-muted fw-semibold">В обработке</span>
+                                <div class="rounded-3 p-2 bg-info-subtle text-info">
+                                    <i class="bi bi-truck"></i>
+                                </div>
+                            </div>
+                            <div class="fs-4 fw-bold text-dark">{{ active_orders_count }}</div>
+                            <div class="small text-muted">активные заказы</div>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="small text-muted fw-semibold">Статус клиента</span>
+                                <div class="rounded-3 p-2 bg-success-subtle text-success">
+                                    <i class="bi bi-patch-check-fill"></i>
+                                </div>
+                            </div>
+                            <div class="fs-5 fw-bold text-dark text-truncate">
+                                {% if profile.is_legal %}Юр. Лицо / ИП{% else %}Розничный{% endif %}
+                            </div>
+                            <div class="small text-muted">доступ к скидкам</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Data & Requisites Summary Card -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi {% if profile.is_legal %}bi-building-check text-primary{% else %}bi-person-vcard text-warning{% endif %}"></i>
+                            <span>{% if profile.is_legal %}Реквизиты организации (для счетов и ТОРГ-12){% else %}Контактные данные покупателя{% endif %}</span>
+                        </h5>
+                        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                            <i class="bi bi-pencil me-1"></i>Изменить
+                        </a>
+                    </div>
+
+                    {% if profile.is_legal %}
+                    <div class="row g-3 small">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Наименование компании / ИП:</span>
+                                <strong class="text-dark fs-6">{{ profile.company_name|default:"Не указано" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">ИНН:</span>
+                                <strong class="text-dark">{{ profile.inn|default:"—" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">КПП:</span>
+                                <strong class="text-dark">{{ profile.kpp|default:"—" }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Юридический адрес:</span>
+                                <span class="text-dark">{{ profile.legal_address|default:"Не указан" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Адрес доставки / Склад:</span>
+                                <span class="text-dark">{{ profile.delivery_address|default:"Не указан" }}</span>
+                            </div>
+                        </div>
+
+                        {% if profile.bank_name or profile.bik or profile.account_number %}
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Банк:</span>
+                                <span class="text-dark">{{ profile.bank_name|default:"—" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">БИК:</span>
+                                <span class="text-dark">{{ profile.bik|default:"—" }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Р/счет:</span>
+                                <span class="text-dark">{{ profile.account_number|default:"—" }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Контактное лицо / Представитель:</span>
+                                <strong class="text-dark">{{ profile.contact_person|default:profile.display_name }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Рабочий телефон:</span>
+                                <strong class="text-dark">{{ profile.phone|default:"—" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">E-mail для счетов:</span>
+                                <strong class="text-dark">{{ request.user.email }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Individual details -->
+                    <div class="row g-3 small">
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Имя и фамилия:</span>
+                                <strong class="text-dark fs-6">{{ profile.display_name }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Телефон:</span>
+                                <strong class="text-dark">{{ profile.phone|default:"Не указан" }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">E-mail:</span>
+                                <strong class="text-dark">{{ request.user.email }}</strong>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 rounded-3 bg-light">
+                                <span class="text-muted d-block mb-1">Адрес доставки по умолчанию:</span>
+                                <span class="text-dark">{{ profile.delivery_address|default:"Адрес не указан (будет предложен при оформлении заказа)" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Recent Orders Block -->
+                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-clock-history text-warning"></i>
+                            <span>Недавние покупки и заказы</span>
+                        </h5>
+                        {% if orders_count > 0 %}
+                        <a href="{% url 'accounts:orders' %}" class="small fw-bold text-warning text-decoration-none">
+                            Все заказы ({{ orders_count }}) →
+                        </a>
+                        {% endif %}
+                    </div>
+
+                    {% if recent_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light small text-muted">
+                                <tr>
+                                    <th>№ Заказа</th>
+                                    <th>Дата</th>
+                                    <th>Состав заказа</th>
+                                    <th>Сумма</th>
+                                    <th>Статус</th>
+                                    <th class="text-end">Документы / Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody class="small">
+                                {% for order in recent_orders %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'accounts:order_detail' order.id %}" class="fw-bold text-decoration-none text-dark">
+                                            #{{ order.id }}
+                                        </a>
+                                    </td>
+                                    <td class="text-muted text-nowrap">
+                                        {{ order.created_at|date:"d.m.Y H:i" }}
+                                    </td>
+                                    <td style="max-width: 250px;">
+                                        <div class="text-truncate fw-semibold text-dark" title="{{ order.product_choice }}">
+                                            {{ order.product_choice|default:"Продукция Сибсыр" }}
+                                        </div>
+                                        <div class="text-muted small">
+                                            Позиций: {{ order.get_items_count }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold fs-6" style="color: #ff8400;">{{ order.total_price }} ₽</div>
+                                        {% if order.discount_amount > 0 %}
+                                        <span class="badge bg-success-subtle text-success small">Скидка -{{ order.discount_amount }} ₽</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if order.status == 'new' %}
+                                            <span class="badge rounded-pill bg-primary px-2 py-1">Новый</span>
+                                        {% elif order.status == 'processing' %}
+                                            <span class="badge rounded-pill bg-info text-dark px-2 py-1">В обработке</span>
+                                        {% elif order.status == 'confirmed' %}
+                                            <span class="badge rounded-pill bg-warning text-dark px-2 py-1">Подтвержден</span>
+                                        {% elif order.status == 'shipped' %}
+                                            <span class="badge rounded-pill bg-primary px-2 py-1">Отгружен</span>
+                                        {% elif order.status == 'completed' %}
+                                            <span class="badge rounded-pill bg-success px-2 py-1">Выполнен</span>
+                                        {% elif order.status == 'cancelled' %}
+                                            <span class="badge rounded-pill bg-danger px-2 py-1">Отменен</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end text-nowrap">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'accounts:order_detail' order.id %}" class="btn btn-outline-secondary rounded-pill px-3" title="Посмотреть подробности">
+                                                <i class="bi bi-eye me-1"></i>Детали
+                                            </a>
+                                            {% if order.is_legal %}
+                                            <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='bill' %}" target="_blank" class="btn btn-outline-primary ms-1 rounded-pill px-2" title="Счет на оплату">
+                                                <i class="bi bi-file-earmark-text"></i> Счет
+                                            </a>
+                                            <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='torg12' %}" target="_blank" class="btn btn-outline-primary ms-1 rounded-pill px-2" title="ТОРГ-12">
+                                                <i class="bi bi-file-earmark-spreadsheet"></i> ТОРГ-12
+                                            </a>
+                                            {% else %}
+                                            <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='receipt' %}" target="_blank" class="btn btn-outline-success ms-1 rounded-pill px-2" title="Товарный чек">
+                                                <i class="bi bi-receipt"></i> Чек
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-muted mb-3" style="width: 64px; height: 64px;">
+                            <i class="bi bi-bag-x fs-2"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark">У вас пока нет оформленных заказов</h6>
+                        <p class="text-muted small mb-3">Ознакомьтесь с каталогом ремесленных сыров «Сибсыр» и сделайте свой первый заказ!</p>
+                        <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-grid-3x3-gap me-1"></i>В каталог продукции
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

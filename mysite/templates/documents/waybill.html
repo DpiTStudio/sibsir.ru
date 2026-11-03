@@ -1,0 +1,258 @@
+{% extends "documents/base_doc.html" %}
+
+{% block doc_title %}Товарная накладная № ТН-{{ order.id }} — «Сибсыр»{% endblock %}
+
+{% block extra_head %}
+<style>
+    .waybill-sheet {
+        background: #ffffff;
+        font-family: 'Inter', -apple-system, sans-serif;
+        color: #0f172a;
+        line-height: 1.5;
+    }
+
+    .wb-header-title {
+        text-align: center;
+        margin-bottom: 25px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #0f172a;
+    }
+
+    .wb-header-title h2 {
+        font-size: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+
+    .wb-meta-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .wb-meta-table td {
+        padding: 5px 0;
+        vertical-align: top;
+    }
+
+    .wb-meta-table td.wb-label {
+        width: 150px;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    .wb-meta-table td.wb-val {
+        color: #0f172a;
+    }
+
+    .wb-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 12px;
+    }
+
+    .wb-table th, .wb-table td {
+        border: 1px solid #0f172a;
+        padding: 7px 8px;
+    }
+
+    .wb-table th {
+        background: #f1f5f9;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .wb-table td.num {
+        text-align: right;
+    }
+
+    .wb-table td.center {
+        text-align: center;
+    }
+
+    .wb-table tr.total-row td {
+        font-weight: 800;
+        background: #f8fafc;
+    }
+
+    .wb-summary-box {
+        margin: 20px 0;
+        font-size: 13px;
+        line-height: 1.7;
+    }
+
+    .wb-signatures {
+        margin-top: 35px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        font-size: 12px;
+    }
+
+    .wb-sig-block {
+        border-top: 1px solid #0f172a;
+        padding-top: 8px;
+    }
+
+    .wb-under-line {
+        border-bottom: 1px solid #0f172a;
+        display: inline-block;
+        width: 180px;
+        margin: 0 5px;
+    }
+
+    @media print {
+        .wb-table th {
+            background: #e2e8f0 !important;
+            -webkit-print-color-adjust: exact;
+        }
+        .wb-header-title {
+            border-bottom: 2px solid #000000 !important;
+        }
+        .wb-table th, .wb-table td {
+            border: 1px solid #000000 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-wrapper">
+    <div class="waybill-sheet">
+        
+        <!-- HEADER -->
+        <div class="wb-header-title">
+            <h2>Товарная накладная № ТН-{{ order.id }}</h2>
+            <div style="font-weight: 600; font-size: 14px; color: #334155;">
+                от «{{ order.created_at|date:"d" }}» {{ order.created_at|date:"F Y" }} г.
+            </div>
+        </div>
+
+        <!-- REQUISITES -->
+        <table class="wb-meta-table">
+            <tr>
+                <td class="wb-label">Поставщик:</td>
+                <td class="wb-val">
+                    <strong>{{ site_settings.brand_name }}</strong>, ИНН {{ site_settings.seller_inn|default:"550119874521" }}, ОГРНИП {{ site_settings.seller_ogrn|default:"318554300045612" }}<br>
+                    Адрес: {{ site_settings.address }}, тел.: {{ site_settings.phone }}
+                </td>
+            </tr>
+            <tr>
+                <td class="wb-label">Покупатель:</td>
+                <td class="wb-val">
+                    <strong>{% if order.is_legal and order.company_name %}{{ order.company_name }}{% else %}{{ order.name }}{% endif %}</strong><br>
+                    {% if order.is_legal %}
+                        {% if order.inn %}ИНН: {{ order.inn }}{% if order.kpp %}, КПП: {{ order.kpp }}{% endif %}<br>{% endif %}
+                        {% if order.legal_address %}Юр. адрес: {{ order.legal_address }}<br>{% endif %}
+                    {% endif %}
+                    Контактный телефон: {{ order.phone }}
+                </td>
+            </tr>
+            {% if order.delivery_address %}
+            <tr>
+                <td class="wb-label">Пункт разгрузки:</td>
+                <td class="wb-val">{{ order.delivery_address }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td class="wb-label">Основание:</td>
+                <td class="wb-val">Заказ № {{ order.id }} от {{ order.created_at|date:"d.m.Y" }} г.</td>
+            </tr>
+        </table>
+
+        <!-- ITEMS TABLE -->
+        <table class="wb-table">
+            <thead>
+                <tr>
+                    <th style="width: 35px;">№</th>
+                    <th>Наименование продукции / товара</th>
+                    <th style="width: 60px;">Ед. изм.</th>
+                    <th style="width: 70px;">Кол-во</th>
+                    <th style="width: 100px;">Цена, руб.</th>
+                    <th style="width: 120px;">Сумма, руб.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="center">{{ forloop.counter }}</td>
+                    <td><strong>{{ item.title }}</strong></td>
+                    <td class="center">{{ item.unit|default:"шт." }}</td>
+                    <td class="center">{{ item.quantity }}</td>
+                    <td class="num">{{ item.price|floatformat:2 }}</td>
+                    <td class="num" style="font-weight: 700;">{{ item.total|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="center">1</td>
+                    <td><strong>{{ order.product_choice|default:"Сырная продукция ТМ «Сибсыр»" }}</strong></td>
+                    <td class="center">шт.</td>
+                    <td class="center">1</td>
+                    <td class="num">{{ order.total_price|floatformat:2 }}</td>
+                    <td class="num" style="font-weight: 700;">{{ order.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+                {% if order.discount_amount > 0 %}
+                <tr class="total-row">
+                    <td colspan="5" style="text-align: right; padding-right: 15px;">Сумма без скидки:</td>
+                    <td class="num">{{ order.subtotal_price|floatformat:2 }}</td>
+                </tr>
+                <tr class="total-row" style="color: #15803d;">
+                    <td colspan="5" style="text-align: right; padding-right: 15px;">Скидка {% if order.promocode_code %}по промокоду ({{ order.promocode_code }}){% else %}по акции{% endif %}:</td>
+                    <td class="num">-{{ order.discount_amount|floatformat:2 }}</td>
+                </tr>
+                {% endif %}
+                <tr class="total-row">
+                    <td colspan="5" style="text-align: right; padding-right: 15px;">Итого:</td>
+                    <td class="num">{{ total_amount|floatformat:2 }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="5" style="text-align: right; padding-right: 15px;">В том числе НДС:</td>
+                    <td class="num">Без НДС</td>
+                </tr>
+                <tr class="total-row" style="font-size: 14px;">
+                    <td colspan="5" style="text-align: right; padding-right: 15px;">Всего к оплате:</td>
+                    <td class="num">{{ total_amount|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- SUMMARY TEXT -->
+        <div class="wb-summary-box">
+            <div>Всего отпущено наименований <strong>{{ items_count }}</strong>, на сумму <strong>{{ total_amount|floatformat:2 }} руб.</strong></div>
+            <div style="margin-top: 4px;">Сумма прописью: <strong>{{ total_in_words }}</strong></div>
+        </div>
+
+        <!-- SIGNATURES BLOCK -->
+        <div class="wb-signatures">
+            <div>
+                <div style="font-weight: 700; margin-bottom: 15px;">Отпуск разрешил / Отпустил:</div>
+                <div style="margin-bottom: 10px;">
+                    ИП / Представитель Поставщика: <span class="wb-under-line"></span> / {{ site_settings.seller_director|default:"Нахшкарян А.Л." }}
+                </div>
+                <div style="margin-top: 25px;">
+                    М.П.
+                </div>
+            </div>
+
+            <div>
+                <div style="font-weight: 700; margin-bottom: 15px;">Груз принял / Получатель:</div>
+                <div style="margin-bottom: 10px;">
+                    Покупатель / Представитель: <span class="wb-under-line"></span> / {{ order.name }}
+                </div>
+                <div style="margin-top: 15px; font-size: 11px; color: #475569;">
+                    Товар получен в полном объеме, целостность упаковки и сроки годности проверены. Претензий не имею.
+                </div>
+                <div style="margin-top: 15px;">
+                    М.П. (для юр. лиц)
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

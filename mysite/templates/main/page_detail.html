@@ -1,0 +1,501 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:page.title }} — {{ brand_short_name|default:"Сибсыр" }}{% endblock %}
+
+{% block meta_description %}{{ page_description }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+{% block meta_robots %}{{ meta_robots }}{% endblock %}
+
+{% block meta_og %}
+<meta property="og:site_name" content="{{ brand_name|default:'ТМ «Сибсыр»' }}">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:type" content="{{ og_type|default:'website' }}">
+<meta property="og:title" content="{{ og_title|default:page_title }}">
+<meta property="og:description" content="{{ og_description|default:page_description }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:image" content="{{ og_image_url }}">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ og_title|default:page_title }}">
+<meta name="twitter:description" content="{{ og_description|default:page_description }}">
+<meta name="twitter:image" content="{{ og_image_url }}">
+{% endblock %}
+
+{% block extra_meta %}
+{% if page.custom_head_code %}
+{{ page.custom_head_code|safe }}
+{% endif %}
+{% endblock %}
+
+{% block schema_extra %}
+<script type="application/ld+json">
+{{ schema_json|safe }}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ page.get_display_title|escapejs }}",
+      "item": "{{ canonical_url }}"
+    }
+  ]
+}
+</script>
+{% if page.custom_schema_json %}
+<script type="application/ld+json">
+{{ page.custom_schema_json|safe }}
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Стили динамических страниц ТМ «Сибсыр» */
+.sib-page-hero-banner {
+    background: linear-gradient(135deg, #151d30 0%, #0d1322 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    padding: 3rem 0 2.5rem 0;
+    color: #ffffff;
+}
+
+.sib-page-hero-banner::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 132, 0, 0.12) 0%, rgba(255, 132, 0, 0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.sib-page-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 132, 0, 0.15);
+    border: 1px solid rgba(255, 132, 0, 0.35);
+    color: #ffaa40;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+}
+
+.sib-page-title {
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+.sib-page-subtitle {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    color: #cbd5e1;
+    line-height: 1.6;
+    max-width: 820px;
+    margin-bottom: 1.25rem;
+}
+
+.sib-page-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+
+.sib-page-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.sib-page-card-wrap {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+    padding: 2.25rem;
+}
+
+@media (max-width: 768px) {
+    .sib-page-card-wrap {
+        padding: 1.25rem;
+        border-radius: 12px;
+    }
+}
+
+.sib-page-featured-img {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+/* Оформление контента TinyMCE */
+.sib-rich-text {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #334155;
+}
+
+.sib-rich-text h1, .sib-rich-text h2, .sib-rich-text h3, .sib-rich-text h4, .sib-rich-text h5, .sib-rich-text h6 {
+    color: #0f172a;
+    font-weight: 700;
+    margin-top: 1.8em;
+    margin-bottom: 0.6em;
+    line-height: 1.3;
+}
+
+.sib-rich-text h2 {
+    font-size: 1.65rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 0.4rem;
+}
+
+.sib-rich-text h3 {
+    font-size: 1.35rem;
+}
+
+.sib-rich-text p {
+    margin-bottom: 1.25rem;
+}
+
+.sib-rich-text img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.sib-rich-text a {
+    color: #ff8400;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.sib-rich-text a:hover {
+    color: #e07400;
+}
+
+.sib-rich-text ul, .sib-rich-text ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.sib-rich-text li {
+    margin-bottom: 0.4rem;
+}
+
+.sib-rich-text blockquote {
+    border-left: 4px solid #ff8400;
+    background: #fff8f0;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 0 10px 10px 0;
+    font-style: italic;
+    color: #475569;
+}
+
+.sib-rich-text table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.95rem;
+}
+
+.sib-rich-text th, .sib-rich-text td {
+    border: 1px solid #e2e8f0;
+    padding: 10px 14px;
+    text-align: left;
+}
+
+.sib-rich-text th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #0f172a;
+}
+
+/* Блок социальных кнопок */
+.sib-page-share-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 1.5rem;
+    margin-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+}
+
+.sib-share-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-right: 4px;
+}
+
+.sib-share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: #ffffff;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.sib-share-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.92;
+    color: #ffffff;
+}
+
+.sib-share-vk { background: #0077ff; }
+.sib-share-tg { background: #229ed9; }
+.sib-share-wa { background: #25d366; }
+.sib-share-copy { background: #64748b; cursor: pointer; border: none; }
+
+/* Нижний блок CTA */
+.sib-page-cta-banner {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    color: #ffffff;
+    margin-top: 2.5rem;
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.sib-page-cta-banner::before {
+    content: "🧀";
+    position: absolute;
+    right: -20px;
+    bottom: -20px;
+    font-size: 110px;
+    opacity: 0.08;
+    pointer-events: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- 1. HERO ШАПКА СТРАНИЦЫ -->
+{% if page.show_hero_banner %}
+<section class="sib-page-hero-banner">
+    <div class="container">
+        <!-- Хлебные крошки -->
+        {% if page.show_breadcrumbs %}
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb mb-0 py-1 px-3 bg-white bg-opacity-10 rounded-pill d-inline-flex border border-white border-opacity-10" style="font-size: 0.82rem;">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'main:index' %}" class="text-decoration-none text-white-50">
+                        <i class="bi bi-house-door me-1"></i>Главная
+                    </a>
+                </li>
+                <li class="breadcrumb-item active text-white fw-semibold text-truncate" style="max-width: 320px;" aria-current="page">
+                    {{ page.get_display_title }}
+                </li>
+            </ol>
+        </nav>
+        {% endif %}
+
+        {% if page.badge %}
+        <div>
+            <span class="sib-page-badge">
+                <i class="bi bi-stars"></i> {{ page.badge }}
+            </span>
+        </div>
+        {% endif %}
+
+        <h1 class="sib-page-title">{{ page.title }}</h1>
+
+        {% if page.subtitle %}
+        <p class="sib-page-subtitle">{{ page.subtitle }}</p>
+        {% endif %}
+
+        <div class="sib-page-meta-row">
+            <span class="sib-page-meta-item">
+                <i class="bi bi-calendar-event text-warning"></i> {{ page.published_at|date:"d.m.Y" }}
+            </span>
+            <span class="sib-page-meta-item">
+                <i class="bi bi-eye text-warning"></i> {{ page.views_count }} просмотров
+            </span>
+            <span class="sib-page-meta-item">
+                <i class="bi bi-shield-check text-warning"></i> ТМ «Сибсыр»
+            </span>
+            {% if request.user.is_staff %}
+            <a href="{% url 'admin:main_page_change' page.pk %}" target="_blank" class="badge bg-warning text-dark text-decoration-none py-1 px-2 rounded-pill ms-auto">
+                <i class="bi bi-pencil-square me-1"></i>Редактировать в админке
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% else %}
+<div class="container pt-4">
+    {% if page.show_breadcrumbs %}
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0 py-1 px-3 bg-light rounded-pill d-inline-flex border" style="font-size: 0.82rem;">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold text-truncate" style="max-width: 320px;" aria-current="page">
+                {{ page.get_display_title }}
+            </li>
+        </ol>
+    </nav>
+    {% endif %}
+    {% if request.user.is_staff %}
+    <div class="text-end mb-2">
+        <a href="{% url 'admin:main_page_change' page.pk %}" target="_blank" class="badge bg-warning text-dark text-decoration-none py-1 px-2 rounded-pill">
+            <i class="bi bi-pencil-square me-1"></i>Редактировать в админке
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- 2. ОСНОВНОЙ КОНТЕНТ СТРАНИЦЫ -->
+<main class="py-4 py-lg-5">
+    {% if page.template_layout == 'narrow' %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-7">
+    {% elif page.template_layout == 'fullwidth' %}
+    <div class="container-fluid px-3 px-lg-5">
+        <div class="row">
+            <div class="col-12">
+    {% else %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+    {% endif %}
+
+                <div class="sib-page-card-wrap">
+                    {% if not page.show_hero_banner %}
+                    <h1 class="mb-3 fw-bold text-dark">{{ page.title }}</h1>
+                    {% if page.subtitle %}
+                    <p class="lead text-secondary mb-4">{{ page.subtitle }}</p>
+                    {% endif %}
+                    {% endif %}
+
+                    {% if page.featured_image %}
+                    <img src="{{ page.featured_image.url }}" alt="{{ page.title }}" class="sib-page-featured-img">
+                    {% endif %}
+
+                    <!-- Контент из TinyMCE -->
+                    <article class="sib-rich-text">
+                        {{ page.content|safe }}
+                    </article>
+
+                    <!-- Блок шеринга в соцсетях -->
+                    <div class="sib-page-share-bar">
+                        <span class="sib-share-title"><i class="bi bi-share me-1 text-warning"></i>Поделиться:</span>
+                        
+                        <a href="https://vk.com/share.php?url={{ canonical_url|urlencode }}&title={{ page_title|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="sib-share-btn sib-share-vk" title="Поделиться во ВКонтакте">
+                            <i class="bi bi-share-fill"></i> ВКонтакте
+                        </a>
+                        
+                        <a href="https://t.me/share/url?url={{ canonical_url|urlencode }}&text={{ page_title|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="sib-share-btn sib-share-tg" title="Отправить в Telegram">
+                            <i class="bi bi-telegram"></i> Telegram
+                        </a>
+
+                        <a href="https://api.whatsapp.com/send?text={{ page_title|urlencode }}%20{{ canonical_url|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="sib-share-btn sib-share-wa" title="Отправить в WhatsApp">
+                            <i class="bi bi-whatsapp"></i> WhatsApp
+                        </a>
+
+                        <button type="button" class="sib-share-btn sib-share-copy" onclick="copyPageUrl()" title="Скопировать ссылку в буфер обмена">
+                            <i class="bi bi-link-45deg"></i> <span id="copyBtnText">Скопировать ссылку</span>
+                        </button>
+                    </div>
+
+                    <!-- 3. БЛОК ПРИЗЫВА К ДЕЙСТВИЮ (CTA) -->
+                    {% if page.show_cta_block %}
+                    <div class="sib-page-cta-banner">
+                        <div class="row align-items-center g-3">
+                            <div class="col-lg-8">
+                                <h3 class="fw-bold text-white mb-2" style="font-size: 1.35rem;">
+                                    Интересует натуральная сырная продукция от производителя?
+                                </h3>
+                                <p class="text-white-50 mb-0 small" style="line-height: 1.6;">
+                                    Собственный сыродельный завод в Омске с 1999 года. Поставки сыров, масла и кисломолочной продукции оптом и в розницу по всей России.
+                                </p>
+                            </div>
+                            <div class="col-lg-4 text-lg-end">
+                                <div class="d-flex flex-column flex-sm-row flex-lg-column gap-2">
+                                    <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                                        <i class="bi bi-telephone me-1"></i> Связаться с заводом
+                                    </button>
+                                    <a href="{% url 'main:catalog' %}" class="btn btn-outline-light rounded-pill px-4 py-2 small">
+                                        <i class="bi bi-grid-3x3-gap-fill text-warning me-1"></i> Каталог продукции
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function copyPageUrl() {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+        const btnText = document.getElementById("copyBtnText");
+        if (btnText) {
+            const old = btnText.textContent;
+            btnText.textContent = "✓ Скопировано!";
+            setTimeout(() => { btnText.textContent = old; }, 2500);
+        }
+    }).catch(err => {
+        console.error("Не удалось скопировать URL:", err);
+    });
+}
+</script>
+{% if page.custom_body_code %}
+{{ page.custom_body_code|safe }}
+{% endif %}
+{% endblock %}
+

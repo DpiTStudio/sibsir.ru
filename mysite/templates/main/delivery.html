@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Доставка и оплата продукции ТМ «Сибсыр»" }}{% endblock %}
+
+{% block meta_description %}{{ page_description|default:"Условия доставки и оплаты натуральных сыров и молочной продукции ТМ «Сибсыр» (Омск). Собственные авторефрижераторы (+2...+4°C), самовывоз с завода, безналичный расчет с НДС, поставки по РФ." }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+
+{% block og_title %}{{ page_title }}{% endblock %}
+{% block og_description %}{{ page_description }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+
+{% block schema_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Доставка и оплата",
+      "item": "{{ canonical_url }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- 1. BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Доставка и оплата</li>
+        </ol>
+    </nav>
+
+    <!-- 2. HERO SECTION -->
+    <div class="p-4 p-md-5 rounded-4 mb-5 shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+        <div style="position: absolute; right: -40px; bottom: -50px; opacity: 0.06; font-size: 18rem; pointer-events: none; line-height: 1;">
+            <i class="bi bi-truck"></i>
+        </div>
+        <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" 
+                     style="background: rgba(255, 132, 0, 0.15); border: 1px solid rgba(255, 132, 0, 0.4); color: #ffaa33; font-size: 0.85rem; font-weight: 600;">
+                    <i class="bi bi-thermometer-snow"></i>
+                    <span>{{ site_settings.delivery_hero_badge|default:"Контроль холодовой цепи (+2...+4 °C) • Собственные рефрижераторы" }}</span>
+                </div>
+                <h1 class="display-6 fw-bold text-white mb-3 fs-2 fs-md-1">
+                    {{ site_settings.delivery_hero_title|default:"Условия доставки и оплаты продукции «Сибсыр»" }}
+                </h1>
+                <p class="text-white-50 mb-4" style="line-height: 1.8; font-size: 1.05rem; max-width: 720px;">
+                    {{ site_settings.delivery_text|default:"Доставка продукции осуществляется специализированным автотранспортом с соблюдением строгого температурного режима по Омску, Омской области и регионам РФ. Для оптовых покупателей и сетей действуют индивидуальные условия и гибкий график поставок." }}
+                </p>
+
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-grid-3x3-gap-fill me-1"></i> Перейти в каталог
+                    </a>
+                    {% if site_settings.price_list_file %}
+                    <a href="{{ site_settings.price_list_file.url }}" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold" download>
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i> Скачать оптовый прайс
+                    </a>
+                    {% else %}
+                    <button class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-file-earmark-arrow-down me-1"></i> Запросить оптовый прайс
+                    </button>
+                    {% endif %}
+                    <a href="{% url 'main:contacts' %}" class="btn btn-outline-warning rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-geo-alt me-1"></i> Контакты склада
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Specs Box -->
+            <div class="col-lg-4">
+                <div class="p-4 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-patch-check-fill text-warning"></i> Гарантии логистики
+                    </h5>
+                    <div class="d-flex flex-column gap-3 small text-white-50">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-thermometer-half text-warning fs-5"></i>
+                            <div>
+                                <strong class="text-white d-block">Температурный режим</strong>
+                                <span>Постоянный микроклимат +2...+4°C на всем маршруте перевозки.</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-clock text-warning fs-5"></i>
+                            <div>
+                                <strong class="text-white d-block">Сроки по Омску</strong>
+                                <span>Отгрузка день-в-день или на следующий рабочий день.</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-shield-check text-warning fs-5"></i>
+                            <div>
+                                <strong class="text-white d-block">ФГИС «Меркурий»</strong>
+                                <span>Электронные ВСД оформляются автоматически до отправки машины.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. FOUR DELIVERY METHODS -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Варианты получения</span>
+            <h2 class="fw-bold text-dark">Способы доставки продукции ТМ «Сибсыр»</h2>
+            <p class="text-muted" style="max-width: 680px; margin: 0 auto;">
+                Подбираем самый быстрый и экономически выгодный способ доставки для розничных покупателей, магазинов у дома и крупных федеральных сетей.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            {% for dm in delivery_methods %}
+            <div class="col-md-6 col-lg-3">
+                <div class="p-4 rounded-4 bg-light h-100 border border-light-subtle d-flex flex-column">
+                    <div class="brand-icon-box mb-3" style="width: 48px; height: 48px; font-size: 1.3rem;">
+                        <i class="bi {{ dm.icon|default:'bi-truck' }}"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">{{ dm.title }}</h5>
+                    <p class="text-muted small mb-3">
+                        {{ dm.description }}
+                    </p>
+                    {% if dm.details_list %}
+                    <ul class="list-unstyled small text-muted mb-4 mt-auto">
+                        {% for item in dm.details_list %}
+                        <li class="mb-1"><i class="bi bi-check text-success me-1"></i> {{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if dm.badge %}
+                    <span class="badge bg-warning-subtle text-dark border border-warning rounded-pill py-2">{{ dm.badge }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">Данные о доставке загружаются...</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 4. PAYMENT METHODS -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Оплата</span>
+            <h2 class="fw-bold text-dark">Удобные способы расчетов</h2>
+            <p class="text-muted" style="max-width: 680px; margin: 0 auto;">
+                Предоставляем прозрачные финансовые условия как для розничных покупателей, так и для юридических лиц и сетевых операторов.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            {% for pm in payment_methods %}
+            <div class="col-lg-4">
+                <div class="p-4 rounded-4 bg-light border border-light-subtle h-100 d-flex flex-column">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="brand-icon-box" style="width: 44px; height: 44px; font-size: 1.2rem;">
+                            <i class="bi {{ pm.icon|default:'bi-credit-card' }}"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-0">{{ pm.title }}</h5>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        {{ pm.description }}
+                    </p>
+                    {% if pm.details_list %}
+                    <ul class="list-unstyled small text-muted mb-4 mt-auto">
+                        {% for item in pm.details_list %}
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    {% if pm.note %}
+                    <div class="p-2 rounded-3 bg-white border small text-muted text-center mt-auto">
+                        {{ pm.note }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center text-muted py-4">Данные об оплате загружаются...</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 5. PACKAGING & TEMPERATURE PRESERVATION -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5" style="background: linear-gradient(135deg, #0f172a, #1e293b); color: white;">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-7">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Холодовая цепь</span>
+                <h2 class="fw-bold text-white mb-3">{{ site_settings.delivery_cold_chain_title|default:"Как мы сохраняем свежесть сыров при доставке" }}</h2>
+                <div class="text-secondary" style="line-height: 1.8;">
+                    {{ site_settings.delivery_cold_chain_text|linebreaks|default:"Сыры и молочная продукция — живые скоропортящиеся продукты. Разрыв температурной цепочки недопустим. Именно поэтому на заводе ТМ «Сибсыр» выстроена комплексная система контроля качества на всех этапах." }}
+                </div>
+                <div class="row g-3 mt-1">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-box-seam text-warning fs-5 mt-1"></i>
+                            <div>
+                                <strong class="text-white small d-block">Вакуумная барьерная упаковка</strong>
+                                <span class="text-secondary small">Защита от кислорода, влаги и посторонних запахов.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-archive text-warning fs-5 mt-1"></i>
+                            <div>
+                                <strong class="text-white small d-block">Прочная гофротара</strong>
+                                <span class="text-secondary small">Пятислойный гофрокартон, предохраняющий сыры от деформации.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-thermometer-high text-warning fs-5 mt-1"></i>
+                            <div>
+                                <strong class="text-white small d-block">Холодильные установки Carrier</strong>
+                                <span class="text-secondary small">Автоматическое поддержание заданной температуры.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-shield-lock text-warning fs-5 mt-1"></i>
+                            <div>
+                                <strong class="text-white small d-block">Пломбирование кузова</strong>
+                                <span class="text-secondary small">Каждая машина пломбируется перед выездом с завода.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 text-center">
+                {% if site_settings.delivery_cold_chain_image %}
+                <div class="rounded-4 overflow-hidden mb-3 shadow-sm border border-white border-opacity-10">
+                    <img src="{{ site_settings.delivery_cold_chain_image.url }}" alt="Логистика ТМ Сибсыр" class="img-fluid w-100" style="max-height: 220px; object-fit: cover;">
+                </div>
+                {% endif %}
+                <div class="p-4 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 text-white">
+                    <i class="bi bi-file-earmark-spreadsheet-fill text-warning" style="font-size: 3.5rem;"></i>
+                    <h4 class="fw-bold mt-3 mb-2">Оптовый прайс-лист</h4>
+                    <p class="text-white-50 small mb-4">
+                        Скачайте полный перечень сыров, сливочного масла и молочной продукции со специальными оптовыми ценами и фасовкой.
+                    </p>
+                    {% if site_settings.price_list_file %}
+                    <a href="{{ site_settings.price_list_file.url }}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold w-100" download>
+                        <i class="bi bi-download me-1"></i> Скачать оптовый прайс (файл)
+                    </a>
+                    {% else %}
+                    <button class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold w-100" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-download me-1"></i> Запросить оптовый прайс
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. FAQ ACCORDION -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Вопрос-ответ</span>
+            <h2 class="fw-bold text-dark">Часто задаваемые вопросы о доставке</h2>
+        </div>
+
+        <div class="accordion accordion-flush" id="deliveryFaqAccordion">
+            {% for faq in faqs %}
+            <div class="accordion-item border-bottom py-2">
+                <h2 class="accordion-header" id="faqHead{{ forloop.counter }}">
+                    <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} fw-bold text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#faqCol{{ forloop.counter }}" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="faqCol{{ forloop.counter }}">
+                        {{ faq.question }}
+                    </button>
+                </h2>
+                <div id="faqCol{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" aria-labelledby="faqHead{{ forloop.counter }}" data-bs-parent="#deliveryFaqAccordion">
+                    <div class="accordion-body text-muted small" style="line-height: 1.8;">
+                        {{ faq.answer|linebreaksbr }}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-4">Вопросы и ответы обновляются...</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 7. ИНФОРМАЦИОННЫЙ ПУТЕВОДИТЕЛЬ (О КОМПАНИИ -> КОНТАКТЫ -> ДОСТАВКА И ОПЛАТА) -->
+    <div class="p-4 p-md-5 rounded-4 shadow-sm mb-4" 
+         style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 2px solid #fdba74;">
+        <div class="text-center mb-4">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                <i class="bi bi-signpost-split-fill me-1"></i> Маршрут сотрудничества
+            </span>
+            <h2 class="fw-bold text-dark mb-2">О компании &rarr; Контакты &rarr; Доставка и оплата</h2>
+            <p class="text-muted small" style="max-width: 650px; margin: 0 auto;">
+                Вы ознакомились с условиями доставки. Теперь можно связаться с отделом продаж или перейти к выбору сыров в каталоге.
+            </p>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            <!-- Step 1: About -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-secondary text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                            Шаг 1 • О производстве
+                        </div>
+                        <h5 class="fw-bold text-dark mt-2 mb-2">
+                            <i class="bi bi-building text-warning me-2"></i>О компании «Сибсыр»
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            История завода, натуральное сибирское молоко, стандарты ХАССП, технологии созревания и сертификация по ГОСТ.
+                        </p>
+                    </div>
+                    <a href="{% url 'main:about' %}" class="btn btn-outline-dark rounded-pill w-100 fw-semibold">
+                        <i class="bi bi-arrow-left ms-1"></i> <span>Узнать о компании</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 2: Contacts -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-primary text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                            Шаг 2 • Связь с заводом
+                        </div>
+                        <h5 class="fw-bold text-dark mt-2 mb-2">
+                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>Контакты и склад
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            Омск, ул. Зеленая 16, прямые телефоны отдела сбыта и логистики, реквизиты ИП Нахшкарян А.Л. и карта проезда.
+                        </p>
+                    </div>
+                    <a href="{% url 'main:contacts' %}" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
+                        <span>Перейти к контактам</span> <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 3: Delivery (Current) -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-success position-relative">
+                    <div class="badge bg-success text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                        Шаг 3 • Текущая страница
+                    </div>
+                    <h5 class="fw-bold text-dark mt-2 mb-2">
+                        <i class="bi bi-truck text-success me-2"></i>Доставка и оплата
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        Рефрижераторные перевозки (+2...+4°C), самовывоз со склада, расчет с НДС, гарантии холодовой цепи и оптовый прайс.
+                    </p>
+                    <span class="badge bg-light text-muted border">Вы находитесь здесь</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

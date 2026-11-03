@@ -1,0 +1,1342 @@
+{% extends 'base.html' %}
+{% load static captcha_tags %}
+
+{% block title %}{{ page_title|default:product.get_meta_title }}{% endblock %}
+
+{% block meta_description %}{{ page_description|default:product.get_meta_description }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords|default:product.get_meta_keywords }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+
+{% block meta_og %}
+<meta property="og:site_name" content="{{ brand_name|default:'ТМ «Сибсыр»' }}">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:type" content="product">
+<meta property="og:title" content="{{ page_title|default:product.get_meta_title }}">
+<meta property="og:description" content="{{ page_description|default:product.get_meta_description }}">
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image_url }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="product:price:amount" content="{{ product.effective_price_numeric }}">
+<meta property="product:price:currency" content="RUB">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ page_title|default:product.get_meta_title }}">
+<meta name="twitter:description" content="{{ page_description|default:product.get_meta_description }}">
+<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ product.image_url }}">
+{% endblock %}
+
+{% block schema_extra %}
+<!-- Schema.org Microdata: Product & BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.title|escapejs }}",
+  "image": [
+    "{{ request.scheme }}://{{ request.get_host }}{{ product.image_url }}"
+  ],
+  "description": "{{ page_description|default:product.get_meta_description|escapejs }}",
+  "sku": "SIBS-{{ product.id }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "Сибсыр"
+  },
+  "manufacturer": {
+    "@type": "Organization",
+    "name": "{{ brand_name|default:'ТМ «Сибсыр» ИП Нахшкарян А.Л.'|escapejs }}"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ canonical_url }}",
+    "priceCurrency": "RUB",
+    "price": "{{ product.effective_price_numeric }}",
+    "availability": "{% if product.is_active %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "itemCondition": "https://schema.org/NewCondition",
+    "seller": {
+      "@type": "Organization",
+      "name": "Сибсыр"
+    }
+  }{% if product.rating %},
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ average_rating|default:product.rating|default:'4.9' }}",
+    "reviewCount": "{{ product_reviews_count|default:total_reviews_display|default:14 }}"
+  }{% endif %}{% if product_reviews %},
+  "review": [
+    {% for r in product_reviews %}
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "{{ r.author_name }}"
+      },
+      "datePublished": "{{ r.created_at|date:'Y-m-d' }}",
+      "reviewBody": "{{ r.text|escapejs }}",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ r.rating }}",
+        "bestRating": "5"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]{% endif %}
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Каталог",
+      "item": "{{ site_base_url }}/catalog/"
+    }{% if product.category %},
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ product.category.name|escapejs }}",
+      "item": "{{ site_base_url }}/catalog/?cat={{ product.category.slug }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ product.title|escapejs }}",
+      "item": "{{ canonical_url }}"
+    }{% else %},
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ product.title|escapejs }}",
+      "item": "{{ canonical_url }}"
+    }{% endif %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-detail-hero {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        border: 1px solid #f1f5f9;
+        overflow: hidden;
+    }
+    .product-detail-img-wrap {
+        position: relative;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        border: 1px solid #e2e8f0;
+    }
+    .product-detail-img {
+        max-width: 90%;
+        max-height: 380px;
+        object-fit: contain;
+        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .product-detail-img-wrap:hover .product-detail-img {
+        transform: scale(1.04);
+    }
+    .detail-badge-float {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .badge-pill-sib {
+        background: linear-gradient(135deg, #ff8400, #ff5500);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.8rem;
+        padding: 6px 14px;
+        border-radius: 50px;
+        box-shadow: 0 4px 12px rgba(255, 85, 0, 0.3);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        letter-spacing: 0.5px;
+    }
+    .badge-pill-stock {
+        background: rgba(16, 185, 129, 0.95);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 5px 12px;
+        border-radius: 50px;
+        box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25);
+    }
+    .spec-metric-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 12px 14px;
+        transition: all 0.2s ease;
+    }
+    .spec-metric-card:hover {
+        background: #ffffff;
+        border-color: #ff8400;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(255, 132, 0, 0.08);
+    }
+    .spec-metric-label {
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
+    .spec-metric-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .qty-control-box {
+        display: inline-flex;
+        align-items: center;
+        background: #f1f5f9;
+        border-radius: 14px;
+        padding: 4px;
+        border: 1.5px solid #e2e8f0;
+    }
+    .qty-btn {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #1e293b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .qty-btn:hover {
+        background: #ff8400;
+        color: #ffffff;
+    }
+    .qty-input {
+        width: 50px;
+        text-align: center;
+        border: none;
+        background: transparent;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .qty-input:focus {
+        outline: none;
+    }
+    .nav-tabs-sib {
+        border-bottom: 2px solid #e2e8f0;
+        gap: 8px;
+    }
+    .nav-tabs-sib .nav-link {
+        border: none;
+        color: #64748b;
+        font-weight: 600;
+        padding: 12px 20px;
+        border-radius: 12px 12px 0 0;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+    .nav-tabs-sib .nav-link:hover {
+        color: #ff8400;
+        background: rgba(255, 132, 0, 0.04);
+    }
+    .nav-tabs-sib .nav-link.active {
+        color: #ff8400;
+        background: #ffffff;
+        border-bottom: 3px solid #ff8400;
+        font-weight: 700;
+    }
+    .share-btn-round {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: #fff;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .share-btn-round:hover {
+        transform: translateY(-3px) scale(1.08);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        color: #fff;
+    }
+    .share-tg { background: #229ED9; }
+    .share-wa { background: #25D366; }
+    .share-vk { background: #0077FF; }
+    .share-ok { background: #EE8208; }
+    .share-copy { background: #475569; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- 1. BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:catalog' %}" class="text-decoration-none text-muted">
+                    Каталог продукции
+                </a>
+            </li>
+            {% if product.category %}
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:catalog' %}?cat={{ product.category.slug }}" class="text-decoration-none text-muted">
+                    {{ product.category.name }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">{{ product.title }}</li>
+        </ol>
+    </nav>
+
+    <!-- 2. PRODUCT DETAIL HERO CARD -->
+    <div class="product-detail-hero p-3 p-md-5 mb-5">
+        <div class="row g-4 g-lg-5 align-items-start">
+            
+            <!-- LEFT COLUMN: IMAGE & SHARE -->
+            <div class="col-lg-5">
+                <div class="product-detail-img-wrap shadow-sm">
+                    <div class="detail-badge-float">
+                        {% if product.effective_badge %}
+                        <div class="badge-pill-sib">
+                            {% if product.has_discount %}<i class="bi bi-fire"></i>{% else %}<i class="bi bi-patch-check-fill"></i>{% endif %}
+                            <span>{{ product.effective_badge }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="badge-pill-stock">
+                            <i class="bi bi-check2-circle me-1"></i>В наличии (Омск)
+                        </div>
+                    </div>
+                    <img src="{{ product.image_url }}" alt="{{ product.title }}" class="product-detail-img" id="mainProductImage">
+                </div>
+
+                <!-- SHARE PRODUCT SOCIAL WIDGET -->
+                <div class="mt-4 p-3 bg-light rounded-4 border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="small fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-share-fill text-warning me-2"></i>Поделиться товаром:
+                        </span>
+                        <span class="small text-muted" style="font-size: 0.75rem;">мессенджеры и соцсети</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Telegram -->
+                        <a href="https://t.me/share/url?url={{ full_url|urlencode }}&text={{ share_title|urlencode }}%0A{{ share_text|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-tg" title="Поделиться в Telegram">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        <!-- WhatsApp -->
+                        <a href="https://api.whatsapp.com/send?text={{ share_title|urlencode }}%20{{ full_url|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-wa" title="Поделиться в WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <!-- VKontakte -->
+                        <a href="https://vk.com/share.php?url={{ full_url|urlencode }}&title={{ share_title|urlencode }}&comment={{ share_text|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-vk" title="Поделиться ВКонтакте">
+                            <i class="bi bi-vk"></i>
+                        </a>
+                        <!-- Одноклассники -->
+                        <a href="https://connect.ok.ru/offer?url={{ full_url|urlencode }}&title={{ share_title|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-ok" title="Поделиться в Одноклассниках">
+                            <i class="bi bi-people-fill"></i>
+                        </a>
+                        <!-- Скопировать ссылку -->
+                        <button type="button" class="share-btn-round share-copy border-0" onclick="copyDirectProductUrl()" title="Скопировать ссылку на товар">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: PRODUCT INFO & PURCHASE -->
+            <div class="col-lg-7">
+                {% if product.category %}
+                <a href="{% url 'main:catalog' %}?cat={{ product.category.slug }}" class="d-inline-flex align-items-center gap-1 badge bg-warning-subtle text-warning border px-3 py-2 rounded-pill text-decoration-none fw-semibold mb-2" style="font-size: 0.8rem;">
+                    <i class="bi {{ product.category.icon|default:'bi-tag-fill' }}"></i>
+                    <span>{{ product.category.name }}</span>
+                </a>
+                {% endif %}
+
+                <h1 class="fw-bold text-dark display-6 mb-2 fs-2 fs-md-1">{{ product.title }}</h1>
+
+                <!-- Rating and SKU -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3 text-muted small">
+                    <div class="d-inline-flex align-items-center gap-1 text-warning">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= average_rating|default:5 %}
+                                <i class="bi bi-star-fill"></i>
+                            {% else %}
+                                <i class="bi bi-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="text-dark fw-bold ms-1" id="topRatingValue">{{ average_rating|default:"4.9" }}</span>
+                    </div>
+                    <span class="text-muted">•</span>
+                    <a href="#tab-reviews" class="text-muted text-decoration-none" onclick="openReviewsTab(false)">
+                        <i class="bi bi-chat-left-dots me-1"></i><span id="productReviewsCounterTop">{{ total_reviews_display|default:product.reviews_count|default:"14" }}</span> отзывов
+                    </a>
+                    <span class="text-muted">•</span>
+                    <a href="#tab-reviews" class="text-warning fw-semibold text-decoration-none" onclick="openReviewsTab(true)">
+                        <i class="bi bi-pencil-square me-1"></i>Оставить отзыв
+                    </a>
+                    <span class="text-muted">•</span>
+                    <span class="text-muted">Арт: <strong>SIB-{{ product.id|stringformat:"04d" }}</strong></span>
+                    <span class="text-muted">•</span>
+                    <span class="badge bg-success-subtle text-success border"><i class="bi bi-shield-check me-1"></i>ГОСТ / ТУ</span>
+                </div>
+
+                <!-- PRICE BOX -->
+                <div class="p-3 p-md-4 rounded-4 mb-4" style="background: linear-gradient(135deg, #fff7ed 0%, #fffdf8 100%); border: 1.5px solid rgba(255, 132, 0, 0.25);">
+                    <div class="d-flex flex-wrap align-items-baseline gap-3 mb-2">
+                        <span class="display-6 fw-bold text-dark" id="detailProductTotalPrice" style="color: #0f172a !important;">
+                            {{ product.effective_price_display }}
+                        </span>
+                        {% if product.has_discount and product.effective_old_price_numeric > 0 %}
+                            <span class="fs-4 text-muted text-decoration-line-through" id="detailProductOldTotalPrice">
+                                {{ product.effective_old_price_numeric }} ₽
+                            </span>
+                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.85rem;">
+                                Скидка {{ product.effective_discount_percent }}%
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Live calculation breakdown badge -->
+                    <div id="detailCalcRow" class="d-flex align-items-center gap-2 mb-2" style="display: none !important;">
+                        <span class="badge bg-warning text-dark border border-warning px-2 py-1 small fw-bold">
+                            <i class="bi bi-calculator me-1"></i>Расчет: <span id="detailCalcFormula"></span>
+                        </span>
+                        <span class="text-muted small">({{ product.effective_price_display }} за 1 шт.)</span>
+                    </div>
+
+                    {% if product.effective_wholesale_price_display %}
+                    <div class="mt-3 pt-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success text-white rounded-pill px-2 py-1"><i class="bi bi-box-seam me-1"></i>Опт</span>
+                            <span class="text-secondary small">Оптовая цена:</span>
+                            <strong class="text-success fs-5">{{ product.effective_wholesale_price_display }}</strong>
+                        </div>
+                        {% if product.wholesale_min_qty %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                <i class="bi bi-info-circle me-1"></i>{{ product.wholesale_min_qty }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-2 small text-muted d-flex align-items-center gap-3 flex-wrap">
+                        <span><i class="bi bi-check-circle-fill text-success me-1"></i>Прямые поставки от производителя</span>
+                        <span><i class="bi bi-truck text-warning me-1"></i>Отгрузка от 1 упаковки / коробки</span>
+                    </div>
+                </div>
+
+                <!-- SHORT SUMMARY DESCRIPTION -->
+                {% if product.description %}
+                <p class="text-secondary mb-4 leading-relaxed" style="font-size: 1.05rem;">
+                    {{ product.description }}
+                </p>
+                {% endif %}
+
+                <!-- QUICK SPECS 4-GRID -->
+                <div class="row g-2 g-md-3 mb-4">
+                    {% if product.fat_content %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Жирность</div>
+                            <div class="spec-metric-value text-truncate">{{ product.fat_content }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.unit_weight %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Фасовка</div>
+                            <div class="spec-metric-value text-truncate">{{ product.unit_weight }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.package_type %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Упаковка</div>
+                            <div class="spec-metric-value text-truncate">{{ product.package_type }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.shelf_life %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Срок годности</div>
+                            <div class="spec-metric-value text-truncate">{{ product.shelf_life }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- BUY ACTION BAR -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                    <!-- Quantity Picker -->
+                    <div class="qty-control-box">
+                        <button type="button" class="qty-btn" onclick="updateDetailQty(-1)" aria-label="Уменьшить">-</button>
+                        <input type="number" id="detailQtyInput" class="qty-input" value="1" min="1" max="999" oninput="updateDetailQty(0)" onchange="updateDetailQty(0)">
+                        <button type="button" class="qty-btn" onclick="updateDetailQty(1)" aria-label="Увеличить">+</button>
+                    </div>
+
+                    <!-- Add To Cart Button -->
+                    <button type="button" class="btn btn-sib-orange px-4 py-3 fw-bold flex-grow-1 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                            id="detailAddToCartBtn"
+                            onclick="addDetailToCart()" style="border-radius: 14px; font-size: 1.05rem;">
+                        <i class="bi bi-cart-plus-fill fs-5"></i>
+                        <span id="detailAddToCartText">В корзину • {{ product.effective_price_display }}</span>
+                    </button>
+
+                    <!-- 1-Click Order Button -->
+                    <button type="button" class="btn btn-outline-dark px-4 py-3 fw-bold"
+                            id="detailQuickOrderBtn"
+                            onclick="triggerDetailQuickOrder()"
+                            style="border-radius: 14px; font-size: 1.05rem;">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Купить в 1 клик
+                    </button>
+                </div>
+
+                <!-- WhatsApp Quick Chat Button -->
+                <div class="mb-4">
+                    <a href="https://api.whatsapp.com/send?phone=79999999999&text={{ 'Здравствуйте! Интересует сыр ' }}{{ product.title|urlencode }}{{ '. Подскажите по наличию и оптовым условиям.' }}" 
+                       target="_blank" rel="noopener noreferrer" 
+                       class="btn btn-outline-success w-100 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-2 fw-semibold" style="font-size: 0.95rem;">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                        <span>Консультация и заказ через WhatsApp</span>
+                    </a>
+                </div>
+
+                <!-- TRUST BADGES -->
+                <div class="pt-3 border-top">
+                    <div class="row g-3 text-secondary small">
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-truck fs-4 text-warning"></i>
+                            <div>
+                                <strong class="text-dark d-block">Доставка</strong>
+                                <span>Спецтранспорт с рефрижератором</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-patch-check fs-4 text-success"></i>
+                            <div>
+                                <strong class="text-dark d-block">100% Качество</strong>
+                                <span>ФГИС «Меркурий», ГОСТ</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                            <div>
+                                <strong class="text-dark d-block">Для Бизнеса</strong>
+                                <span>Закрывающие документы юрлицам</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. DETAILED INFORMATION TABS -->
+    <div class="bg-white rounded-4 shadow-sm p-3 p-md-5 mb-5 border">
+        <ul class="nav nav-tabs nav-tabs-sib mb-4" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="nav-desc-tab" data-bs-toggle="tab" data-bs-target="#tab-desc" type="button" role="tab" aria-controls="tab-desc" aria-selected="true">
+                    <i class="bi bi-card-text me-2"></i>Подробное описание
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-specs-tab" data-bs-toggle="tab" data-bs-target="#tab-specs" type="button" role="tab" aria-controls="tab-specs" aria-selected="false">
+                    <i class="bi bi-list-check me-2"></i>Состав и характеристики
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-cook-tab" data-bs-toggle="tab" data-bs-target="#tab-cook" type="button" role="tab" aria-controls="tab-cook" aria-selected="false">
+                    <i class="bi bi-egg-fried me-2"></i>Кулинарные советы
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-delivery-tab" data-bs-toggle="tab" data-bs-target="#tab-delivery" type="button" role="tab" aria-controls="tab-delivery" aria-selected="false">
+                    <i class="bi bi-truck me-2"></i>Доставка и оплата
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-reviews-tab" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button" role="tab" aria-controls="tab-reviews" aria-selected="false">
+                    <i class="bi bi-chat-square-quote me-2"></i>Отзывы (<span id="detailReviewsTabCount">{{ total_reviews_display|default:product.reviews_count|default:"14" }}</span>)
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="productTabsContent">
+            
+            <!-- TAB 1: DETAILED DESCRIPTION -->
+            <div class="tab-pane fade show active" id="tab-desc" role="tabpanel" aria-labelledby="nav-desc-tab">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <h3 class="fw-bold text-dark mb-3">О продукте: традиция и качество «Сибсыр»</h3>
+                        <div class="text-secondary leading-relaxed mb-4" style="font-size: 1.05rem;">
+                            {{ product.full_description|default:product.description|linebreaks }}
+                        </div>
+                        <div class="p-3 bg-light rounded-4 border-start border-4 border-warning">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-warning me-1"></i>Прямые поставки с сыроваренного завода</h6>
+                            <p class="small text-muted mb-0">
+                                Мы контролируем каждый этап — от приема свежего молока высшего сорта от проверенных сибирских ферм до финальной упаковки в защитной среде.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <div class="p-4 rounded-4 bg-light border">
+                            <i class="bi bi-award-fill text-warning" style="font-size: 3.5rem;"></i>
+                            <h5 class="fw-bold text-dark mt-2 mb-1">100% Натурально</h5>
+                            <p class="small text-muted mb-0">Без антибиотиков, консервантов и заменителей молочного жира</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: SPECS & COMPOSITION TABLE -->
+            <div class="tab-pane fade" id="tab-specs" role="tabpanel" aria-labelledby="nav-specs-tab">
+                <h4 class="fw-bold text-dark mb-3">Характеристики и состав</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover border align-middle mb-4">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light text-muted w-25">Наименование:</th>
+                                <td class="fw-bold text-dark">{{ product.title }}</td>
+                            </tr>
+                            {% if product.category %}
+                            <tr>
+                                <th class="bg-light text-muted">Категория:</th>
+                                <td>{{ product.category.name }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.standard %}
+                            <tr>
+                                <th class="bg-light text-muted">Стандарт качества:</th>
+                                <td><span class="badge bg-secondary-subtle text-dark border">{{ product.standard }}</span></td>
+                            </tr>
+                            {% endif %}
+                            {% if product.composition %}
+                            <tr>
+                                <th class="bg-light text-muted">Состав:</th>
+                                <td class="text-secondary">{{ product.composition }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.fat_content %}
+                            <tr>
+                                <th class="bg-light text-muted">Массовая доля жира (м.д.ж.):</th>
+                                <td><strong>{{ product.fat_content }}</strong></td>
+                            </tr>
+                            {% endif %}
+                            {% if product.nutritional_value %}
+                            <tr>
+                                <th class="bg-light text-muted">Пищевая ценность (на 100 г):</th>
+                                <td>{{ product.nutritional_value }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.unit_weight %}
+                            <tr>
+                                <th class="bg-light text-muted">Фасовка / Вес:</th>
+                                <td>{{ product.unit_weight }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.package_type %}
+                            <tr>
+                                <th class="bg-light text-muted">Тип упаковки:</th>
+                                <td>{{ product.package_type }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.shelf_life %}
+                            <tr>
+                                <th class="bg-light text-muted">Срок годности:</th>
+                                <td>{{ product.shelf_life }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.storage_conditions %}
+                            <tr>
+                                <th class="bg-light text-muted">Условия хранения:</th>
+                                <td>{{ product.storage_conditions }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th class="bg-light text-muted">Производитель:</th>
+                                <td>ТМ «Сибсыр» (Россия, г. Омск)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: COOKING TIPS -->
+            <div class="tab-pane fade" id="tab-cook" role="tabpanel" aria-labelledby="nav-cook-tab">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-8">
+                        <h4 class="fw-bold text-dark mb-3"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Кулинарное применение и подача</h4>
+                        <div class="text-secondary leading-relaxed mb-4" style="font-size: 1.05rem;">
+                            {{ product.cooking_tips|linebreaks }}
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-cup-hot text-danger me-2"></i>Идеальные сочетания</h6>
+                                    <p class="small text-muted mb-0">Свежая зелень, мед, орехи, спелые томаты, свежий хлеб и лаваш.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-fire text-warning me-2"></i>Термообработка</h6>
+                                    <p class="small text-muted mb-0">Отлично ведет себя при запекании, жарке и плавлении.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <img src="{% static 'images/hero_cheese.jpg' %}" alt="Кулинарные советы" class="img-fluid rounded-4 shadow-sm" style="max-height: 250px; object-fit: cover;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: DELIVERY & PAYMENT -->
+            <div class="tab-pane fade" id="tab-delivery" role="tabpanel" aria-labelledby="nav-delivery-tab">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 bg-light border h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-truck text-warning me-2"></i>Доставка</h5>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-secondary small">
+                                <li><strong>По Омску:</strong> Бесплатная доставка при заказе от 1 500 ₽ спецтранспортом предприятия.</li>
+                                <li><strong>Самовывоз:</strong> г. Омск, ул. Зеленая, 16 (Пн-Пт: 8:00 - 17:00).</li>
+                                <li><strong>По России:</strong> Доставка в регионы транспортными компаниями с термобоксом и поддержанием температурного режима.</li>
+                                <li><strong>Сопроводительные документы:</strong> Электронные ВСД в системе ФГИС «Меркурий».</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 bg-light border h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-credit-card-2-front text-primary me-2"></i>Оплата</h5>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-secondary small">
+                                <li><strong>Для физических лиц:</strong> Наличными или банковской картой при получении, либо онлайн.</li>
+                                <li><strong>Для юридических лиц и ИП:</strong> Безналичный расчет по счету с предоставлением полного пакета документов (УПД, ТОРГ-12, счет-фактура).</li>
+                                <li><strong>Отсрочка платежа:</strong> Доступна для постоянных B2B партнеров и торговых сетей.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: REVIEWS -->
+            <div class="tab-pane fade" id="tab-reviews" role="tabpanel" aria-labelledby="nav-reviews-tab">
+                <!-- Header Summary Block -->
+                <div class="p-4 rounded-4 mb-4" style="background: linear-gradient(135deg, #fffaf0 0%, #fff7ed 100%); border: 1.5px solid #fed7aa;">
+                    <div class="row align-items-center g-4">
+                        <!-- Left: Big Score & Stars -->
+                        <div class="col-md-4 text-center border-end-md border-light-subtle">
+                            <div class="display-4 fw-bold text-dark mb-1" id="liveProductAvgRating">{{ average_rating|default:"4.9" }}</div>
+                            <div class="fs-4 text-warning mb-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                На основе <strong id="liveReviewsCountText">{{ total_reviews_display|default:product.reviews_count|default:"14" }}</strong> отзывов
+                            </p>
+                            <div class="small text-success fw-semibold mt-1">
+                                <i class="bi bi-check-circle-fill me-1"></i>98% покупателей рекомендуют этот товар
+                            </div>
+                        </div>
+
+                        <!-- Middle: Rating distribution progress bars -->
+                        <div class="col-md-5">
+                            <div class="d-flex flex-column gap-1">
+                                {% for item in rating_distribution %}
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <span class="text-muted text-nowrap" style="width: 32px;">{{ item.star }} <i class="bi bi-star-fill text-warning"></i></span>
+                                    <div class="progress flex-grow-1" style="height: 8px; background-color: #e2e8f0; border-radius: 4px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ item.percent }}%;" aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="text-muted text-end" style="width: 30px; font-size: 0.75rem;">{{ item.count }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Right: Action Button -->
+                        <div class="col-md-3 text-center text-md-end">
+                            <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold w-100 mb-2 shadow-sm" onclick="toggleProductReviewForm()">
+                                <i class="bi bi-pencil-square me-1"></i>Оставить отзыв
+                            </button>
+                            <div class="small text-muted" style="font-size: 0.75rem;">
+                                Поделитесь впечатлением о вкусе и качестве
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Form (Collapsible / Toggleable) -->
+                <div id="productReviewFormCollapse" class="d-none mb-4">
+                    <div class="card border-0 rounded-4 shadow-sm p-4" style="background: #ffffff; border: 2px solid #ff8400 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-pencil-square text-warning me-2"></i>Ваш отзыв о товаре «{{ product.title }}»
+                            </h5>
+                            <button type="button" class="btn-close" aria-label="Close" onclick="toggleProductReviewForm(false)"></button>
+                        </div>
+
+                        <form id="productReviewForm" onsubmit="handleProductReviewSubmit(event)">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                            <!-- Rating Star Picker -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark d-block mb-1">Ваша оценка *</label>
+                                <div class="d-flex align-items-center gap-2 text-warning fs-3" id="prodStarRatingSelect" style="cursor: pointer;">
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="1" onclick="setProductReviewRating(1)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="2" onclick="setProductReviewRating(2)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="3" onclick="setProductReviewRating(3)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="4" onclick="setProductReviewRating(4)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="5" onclick="setProductReviewRating(5)"></i>
+                                    <span class="small text-muted fw-normal ms-2" id="prodRatingScoreText">(5 из 5 — Отлично!)</span>
+                                </div>
+                                <input type="hidden" name="rating" id="prodReviewRatingInput" value="5">
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-bold text-dark">Ваше имя *</label>
+                                    <input type="text" name="author_name" class="form-control rounded-pill px-3 py-2" required 
+                                           value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}"
+                                           placeholder="Например: Екатерина В.">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-bold text-dark">Город *</label>
+                                    <input type="text" name="city" class="form-control rounded-pill px-3 py-2" value="г. Омск" placeholder="г. Омск">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Текст отзыва *</label>
+                                <textarea name="text" id="productReviewTextArea" rows="4" class="form-control rounded-3 p-3" required 
+                                          placeholder="Расскажите о вкусе, консистенции, аромате, как подавали (в нарезке, выпечке или к столу)..."></textarea>
+                            </div>
+
+                            <!-- Captcha if enabled -->
+                            {% render_captcha 'callback' %}
+
+                            <div id="productReviewAlert" class="alert d-none mb-3 py-2 small" role="alert"></div>
+
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <button type="submit" id="submitProductReviewBtn" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                                    <i class="bi bi-check2-circle me-1"></i> Опубликовать отзыв
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2" onclick="toggleProductReviewForm(false)">
+                                    Отмена
+                                </button>
+                                <span class="text-muted small ms-auto" style="font-size: 0.75rem;">
+                                    Отзыв будет сразу опубликован на сайте
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="row g-3" id="productReviewsContainer">
+                    {% for rev in product_reviews %}
+                    <div class="col-md-6 review-card-col">
+                        <div class="p-3 p-md-4 rounded-4 border bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" 
+                                             style="width: 36px; height: 36px; font-size: 0.9rem; flex-shrink: 0;">
+                                            {{ rev.author_name|slice:":1"|upper }}
+                                        </div>
+                                        <div>
+                                            <strong class="text-dark d-block" style="font-size: 0.95rem;">{{ rev.author_name }}</strong>
+                                            <span class="text-muted" style="font-size: 0.75rem;">{{ rev.city|default:"г. Омск" }} • {{ rev.created_at|date:"d.m.Y" }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= rev.rating %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="text-secondary small mb-0 mt-2" style="line-height: 1.6;">{{ rev.text }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5 rounded-4 bg-light border border-light-subtle" id="productReviewsEmptyState">
+                        <i class="bi bi-chat-heart text-warning display-5 d-block mb-3"></i>
+                        <h5 class="fw-bold text-dark mb-1">У этого товара пока нет отзывов</h5>
+                        <p class="text-muted small mb-3" style="max-width: 480px; margin: 0 auto;">
+                            Вы уже попробовали «{{ product.title }}»? Поделитесь своими впечатлениями и помогите другим покупателям сделать правильный выбор!
+                        </p>
+                        <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold" onclick="toggleProductReviewForm(true)">
+                            <i class="bi bi-pencil-square me-1"></i> Написать первый отзыв
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Social proof: general reviews if needed -->
+                {% if general_reviews %}
+                <div class="mt-5 pt-4 border-top">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Другие отзывы о продукции ТМ «Сибсыр»</h5>
+                            <span class="text-muted small">Мнения покупателей о наших сырах и масле</span>
+                        </div>
+                        <a href="{% url 'main:reviews' %}" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3">
+                            Все отзывы завода <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="row g-3">
+                        {% for g_rev in general_reviews %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-warning small">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= g_rev.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">{{ g_rev.created_at|date:"d.m.Y" }}</span>
+                                    </div>
+                                    {% if g_rev.product_mention %}
+                                    <div class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill mb-2 text-truncate d-inline-block" style="max-width: 100%; font-size: 0.7rem;">
+                                        {{ g_rev.product_mention }}
+                                    </div>
+                                    {% endif %}
+                                    <p class="text-secondary small mb-2" style="font-size: 0.8rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ g_rev.text }}
+                                    </p>
+                                </div>
+                                <div class="small fw-semibold text-dark">{{ g_rev.author_name }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 4. RELATED PRODUCTS / РЕКОМЕНДУЕМ ПОПРОБОВАТЬ -->
+    {% if related_products %}
+    <div class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <span class="badge bg-warning-subtle text-warning px-3 py-1 rounded-pill fw-bold mb-1">Вам также понравится</span>
+                <h3 class="fw-bold text-dark mb-0">Похожие товары из нашего каталога</h3>
+            </div>
+            <a href="{% url 'main:catalog' %}" class="btn btn-link text-warning fw-bold text-decoration-none">
+                Весь каталог <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            {% for rel in related_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card h-100 d-flex flex-column">
+                    {% if rel.effective_badge %}
+                    <div class="product-badge-float {% if rel.has_discount %}product-badge-sale{% endif %}">
+                        {% if rel.has_discount %}<i class="bi bi-fire me-1"></i>{% endif %}{{ rel.effective_badge }}
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'main:product_detail' slug=rel.slug %}" class="product-img-holder text-decoration-none">
+                        <img src="{{ rel.image_url }}" alt="{{ rel.title }}" loading="lazy">
+                    </a>
+                    <div class="product-body d-flex flex-column flex-grow-1">
+                        <span class="product-category-sub">{{ rel.category.name|default:"Сибсыр" }}</span>
+                        <h4 class="product-title" title="{{ rel.title }}">
+                            <a href="{% url 'main:product_detail' slug=rel.slug %}" class="text-decoration-none text-dark">
+                                {{ rel.title }}
+                            </a>
+                        </h4>
+                        
+                        <div class="product-footer mt-auto pt-2">
+                            <div>
+                                <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                <span class="product-price-val">{{ rel.effective_price_display }}</span>
+                                {% if rel.effective_wholesale_price_display %}
+                                    <span class="d-block small text-success fw-bold" style="font-size: 0.75rem;" title="Опт {{ rel.wholesale_min_qty|default:'' }}">Опт: {{ rel.effective_wholesale_price_display }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-card-cart" 
+                                        onclick="addToCart('{{ rel.title|escapejs }}', '{{ rel.effective_price_display|escapejs }}', '{{ rel.image_url|escapejs }}', {{ rel.effective_price_numeric|default:rel.price_numeric }})"
+                                        title="Добавить в корзину">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                                <a href="{% url 'main:product_detail' slug=rel.slug %}" class="btn btn-card-buy text-decoration-none" title="Подробнее">
+                                    <span>Детали</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 5. B2B WHOLESALE PROMO BANNER -->
+    <div class="p-4 p-md-5 rounded-4 shadow-sm border" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #fff;">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Для ресторанов, магазинов и HoReCa</span>
+                <h3 class="fw-bold text-white mb-2">Хотите закупать «{{ product.title }}» оптом по лучшей цене?</h3>
+                <p class="text-white-50 mb-0">
+                    Предлагаем выгодные условия для оптовиков: гибкая система скидок, стабильные графики поставок, полный документооборот (ЭДО, Меркурий) и отсрочка платежа.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <button class="btn btn-sib-orange px-4 py-3 fw-bold" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                    <i class="bi bi-telephone-outbound me-2"></i>Запросить оптовые цены
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- JAVASCRIPT FOR DETAIL PAGE -->
+<script>
+    const detailUnitPrice = {{ product.effective_price_numeric|default:product.price_numeric }};
+    const detailOldUnitPrice = {{ product.effective_old_price_numeric|default:0 }};
+    const detailBasePriceDisplay = '{{ product.effective_price_display|escapejs }}';
+
+    function updateDetailQty(delta) {
+        const input = document.getElementById('detailQtyInput');
+        if (!input) return;
+        let current = parseInt(input.value) || 1;
+        if (delta !== 0) {
+            current += delta;
+        }
+        if (current < 1) current = 1;
+        if (current > 999) current = 999;
+        input.value = current;
+
+        recalculateDetailPrice(current);
+    }
+
+    function recalculateDetailPrice(qty) {
+        const totalEl = document.getElementById('detailProductTotalPrice');
+        const oldTotalEl = document.getElementById('detailProductOldTotalPrice');
+        const calcRow = document.getElementById('detailCalcRow');
+        const calcFormula = document.getElementById('detailCalcFormula');
+        const btnText = document.getElementById('detailAddToCartText');
+
+        if (detailUnitPrice > 0) {
+            const total = detailUnitPrice * qty;
+            const formattedTotal = total.toLocaleString('ru-RU') + ' ₽';
+            if (totalEl) totalEl.textContent = formattedTotal;
+
+            if (oldTotalEl && detailOldUnitPrice > 0) {
+                const oldTotal = detailOldUnitPrice * qty;
+                oldTotalEl.textContent = oldTotal.toLocaleString('ru-RU') + ' ₽';
+            }
+
+            if (qty > 1) {
+                if (calcRow) calcRow.style.setProperty('display', 'flex', 'important');
+                if (calcFormula) calcFormula.textContent = `${detailUnitPrice.toLocaleString('ru-RU')} ₽ × ${qty} шт. = ${formattedTotal}`;
+                if (btnText) btnText.textContent = `В корзину • ${formattedTotal} (${qty} шт.)`;
+            } else {
+                if (calcRow) calcRow.style.setProperty('display', 'none', 'important');
+                if (btnText) btnText.textContent = `В корзину • ${detailBasePriceDisplay}`;
+            }
+        } else {
+            if (btnText) {
+                btnText.textContent = qty > 1 ? `В корзину (${qty} шт.)` : 'В корзину';
+            }
+        }
+    }
+
+    function addDetailToCart() {
+        const title = '{{ product.title|escapejs }}';
+        const price = '{{ product.effective_price_display|escapejs }}';
+        const img = '{{ product.image_url|escapejs }}';
+        const numPrice = {{ product.effective_price_numeric|default:product.price_numeric }};
+        const qty = parseInt(document.getElementById('detailQtyInput')?.value) || 1;
+
+        if (typeof addToCart === 'function') {
+            addToCart(title, price, img, numPrice, qty);
+        }
+
+        const btn = document.getElementById('detailAddToCartBtn');
+        if (btn) {
+            btn.classList.add('btn-success');
+            btn.classList.remove('btn-sib-orange');
+            const prevHtml = btn.innerHTML;
+            btn.innerHTML = `<i class="bi bi-check2-circle fs-5"></i><span>Добавлено (${qty} шт.)!</span>`;
+            setTimeout(() => {
+                btn.innerHTML = prevHtml;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-sib-orange');
+                recalculateDetailPrice(qty);
+            }, 1400);
+        }
+    }
+
+    function triggerDetailQuickOrder() {
+        const qty = parseInt(document.getElementById('detailQtyInput')?.value) || 1;
+        const title = '{{ product.title|escapejs }}' + (qty > 1 ? ` (${qty} шт.)` : '');
+        let price = '{{ product.effective_price_display|escapejs }}';
+        if (detailUnitPrice > 0 && qty > 1) {
+            price = (detailUnitPrice * qty).toLocaleString('ru-RU') + ' ₽';
+        }
+        if (typeof openQuickOrder === 'function') {
+            openQuickOrder(title, price);
+        }
+    }
+
+    function copyDirectProductUrl() {
+        const url = window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Ссылка на товар скопирована в буфер обмена!');
+            }).catch(() => {
+                copyFallback(url);
+            });
+        } else {
+            copyFallback(url);
+        }
+    }
+
+    function copyFallback(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showToast('Ссылка скопирована!');
+        } catch (err) {}
+        document.body.removeChild(textArea);
+    }
+
+    // --- REVIEWS LOGIC FOR PRODUCT DETAIL ---
+    function openReviewsTab(openForm = false) {
+        const tabBtn = document.getElementById('nav-reviews-tab');
+        if (tabBtn) {
+            tabBtn.click();
+            const tabPane = document.getElementById('tab-reviews');
+            if (tabPane) {
+                tabPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            if (openForm) {
+                setTimeout(() => {
+                    toggleProductReviewForm(true);
+                }, 250);
+            }
+        }
+    }
+
+    function toggleProductReviewForm(forceState) {
+        const formBox = document.getElementById('productReviewFormCollapse');
+        if (!formBox) return;
+        const shouldShow = typeof forceState === 'boolean' ? forceState : formBox.classList.contains('d-none');
+        if (shouldShow) {
+            formBox.classList.remove('d-none');
+            formBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const txtArea = document.getElementById('productReviewTextArea');
+            if (txtArea) txtArea.focus();
+        } else {
+            formBox.classList.add('d-none');
+        }
+    }
+
+    let prodCurrentRating = 5;
+    const prodRatingLabels = {
+        1: '(1 из 5 — Очень плохо)',
+        2: '(2 из 5 — Плохо)',
+        3: '(3 из 5 — Нормально)',
+        4: '(4 из 5 — Хорошо)',
+        5: '(5 из 5 — Отлично!)'
+    };
+
+    function setProductReviewRating(val) {
+        prodCurrentRating = val;
+        const input = document.getElementById('prodReviewRatingInput');
+        if (input) input.value = val;
+        const textLabel = document.getElementById('prodRatingScoreText');
+        if (textLabel) textLabel.textContent = prodRatingLabels[val] || '';
+        const stars = document.querySelectorAll('#prodStarRatingSelect .prod-star-picker');
+        stars.forEach(s => {
+            const r = parseInt(s.getAttribute('data-rating') || '0');
+            if (r <= val) {
+                s.className = 'bi bi-star-fill prod-star-picker text-warning';
+            } else {
+                s.className = 'bi bi-star prod-star-picker text-warning';
+            }
+        });
+    }
+
+    function handleProductReviewSubmit(e) {
+        e.preventDefault();
+        const form = document.getElementById('productReviewForm');
+        const alertBox = document.getElementById('productReviewAlert');
+        const btn = document.getElementById('submitProductReviewBtn');
+        if (!form || !btn) return;
+
+        btn.disabled = true;
+        const originalBtnHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span> Публикация...';
+
+        const formData = new FormData(form);
+
+        fetch("{% url 'main:create_review' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+            alertBox.classList.remove('d-none', 'alert-danger', 'alert-success');
+
+            if (data.success) {
+                alertBox.classList.add('alert-success');
+                alertBox.textContent = data.message || "Спасибо! Отзыв успешно опубликован.";
+
+                // Удаляем пустой плейсхолдер, если он был
+                const emptyState = document.getElementById('productReviewsEmptyState');
+                if (emptyState) emptyState.remove();
+
+                // Добавляем карточку отзыва наверх контейнера
+                const container = document.getElementById('productReviewsContainer');
+                let starsHtml = '';
+                for (let i = 1; i <= 5; i++) {
+                    starsHtml += i <= data.rating ? '<i class="bi bi-star-fill"></i>' : '<i class="bi bi-star"></i>';
+                }
+                const initial = (data.author_name || 'П').charAt(0).toUpperCase();
+
+                const cardHtml = `
+                <div class="col-md-6 review-card-col">
+                    <div class="p-3 p-md-4 rounded-4 border bg-white shadow-sm h-100 d-flex flex-column justify-content-between" style="border: 2px solid #ff8400 !important;">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" 
+                                         style="width: 36px; height: 36px; font-size: 0.9rem; flex-shrink: 0;">
+                                        ${initial}
+                                    </div>
+                                    <div>
+                                        <strong class="text-dark d-block" style="font-size: 0.95rem;">${data.author_name}</strong>
+                                        <span class="text-muted" style="font-size: 0.75rem;">${data.city || 'г. Омск'} • ${data.created_at}</span>
+                                    </div>
+                                </div>
+                                <div class="text-warning">
+                                    ${starsHtml}
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-0 mt-2" style="line-height: 1.6;">${data.text}</p>
+                        </div>
+                    </div>
+                </div>`;
+                if (container) {
+                    container.insertAdjacentHTML('afterbegin', cardHtml);
+                }
+
+                // Обновляем счетчики на странице
+                const topCounter = document.getElementById('productReviewsCounterTop');
+                if (topCounter) {
+                    topCounter.textContent = (parseInt(topCounter.textContent || '0') + 1);
+                }
+                const tabCounter = document.getElementById('detailReviewsTabCount');
+                if (tabCounter) {
+                    tabCounter.textContent = (parseInt(tabCounter.textContent || '0') + 1);
+                }
+                const liveCounter = document.getElementById('liveReviewsCountText');
+                if (liveCounter) {
+                    liveCounter.textContent = (parseInt(liveCounter.textContent || '0') + 1);
+                }
+                if (data.new_rating) {
+                    const liveAvg = document.getElementById('liveProductAvgRating');
+                    if (liveAvg) liveAvg.textContent = data.new_rating;
+                    const topRating = document.getElementById('topRatingValue');
+                    if (topRating) topRating.textContent = data.new_rating;
+                }
+
+                // Очищаем форму
+                const txt = document.getElementById('productReviewTextArea');
+                if (txt) txt.value = '';
+                setProductReviewRating(5);
+
+                setTimeout(() => {
+                    toggleProductReviewForm(false);
+                }, 3500);
+            } else {
+                alertBox.classList.add('alert-danger');
+                alertBox.textContent = data.error || "Произошла ошибка при отправке отзыва.";
+            }
+            if (typeof refreshCaptchaInWrapper === 'function') {
+                refreshCaptchaInWrapper(form.querySelector('.sib-captcha-wrapper'));
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+            alertBox.classList.remove('d-none', 'alert-success');
+            alertBox.classList.add('alert-danger');
+            alertBox.textContent = "Ошибка связи с сервером. Попробуйте еще раз.";
+            if (typeof refreshCaptchaInWrapper === 'function') {
+                refreshCaptchaInWrapper(form.querySelector('.sib-captcha-wrapper'));
+            }
+        });
+    }
+</script>
+{% endblock %}

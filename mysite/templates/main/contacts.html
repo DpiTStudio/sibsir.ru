@@ -1,0 +1,503 @@
+{% extends 'base.html' %}
+{% load static captcha_tags %}
+
+{% block title %}{{ page_title|default:"Контакты сыродельного предприятия ТМ «Сибсыр» в Омске" }}{% endblock %}
+
+{% block meta_description %}{{ page_description|default:"Контакты сыродельного предприятия ТМ «Сибсыр» (ИП Нахшкарян А.Л.) в Омске: адрес завода ул. Зеленая 16, телефон отдела сбыта 8(3812)43-35-36, email, банковские реквизиты, схема проезда." }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+
+{% block og_title %}{{ page_title }}{% endblock %}
+{% block og_description %}{{ page_description }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+
+{% block schema_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Контакты",
+      "item": "{{ canonical_url }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- 1. BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Контакты</li>
+        </ol>
+    </nav>
+
+    <!-- 2. HERO SECTION -->
+    <div class="p-4 p-md-5 rounded-4 mb-5 shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+        <div style="position: absolute; right: -40px; bottom: -50px; opacity: 0.06; font-size: 18rem; pointer-events: none; line-height: 1;">
+            <i class="bi bi-geo-alt-fill"></i>
+        </div>
+        <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" 
+                     style="background: rgba(255, 132, 0, 0.15); border: 1px solid rgba(255, 132, 0, 0.4); color: #ffaa33; font-size: 0.85rem; font-weight: 600;">
+                    <i class="bi bi-geo-alt"></i>
+                    <span>{{ site_settings.contacts_hero_badge|default:"Официальные контакты ТМ «Сибсыр» • Омск" }}</span>
+                </div>
+                <h1 class="display-6 fw-bold text-white mb-3 fs-2 fs-md-1">
+                    {{ site_settings.contacts_hero_title|default:"Контакты завода и отдела продаж «Сибсыр»" }}
+                </h1>
+                <p class="text-white-50 mb-4" style="line-height: 1.8; font-size: 1.05rem; max-width: 720px;">
+                    {{ site_settings.contacts_hero_subtitle|default:"Производственная площадка, центральный склад и офис компании расположены в Омске. Мы осуществляем прямые оптовые поставки сыров и молочной продукции по Сибири, Уралу и всем регионам РФ, а также работаем с розничными клиентами." }}
+                </p>
+
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    {% if site_settings.phone %}
+                    <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-telephone-fill me-1"></i> {{ site_settings.phone }}
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-telephone-outbound me-1"></i> Заказать обратный звонок
+                    </button>
+                    <a href="{% url 'main:delivery' %}" class="btn btn-outline-warning rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-truck me-1"></i> Условия доставки
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Contacts Box -->
+            <div class="col-lg-4">
+                <div class="p-4 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10">
+                    <h5 class="fw-bold text-white mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-history text-warning"></i> График работы
+                    </h5>
+                    <div class="d-flex flex-column gap-2 small text-white-50 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Отдел продаж:</span>
+                            <strong class="text-white">{{ site_settings.working_hours|default:"Пн-Пт: 8:00 - 17:00" }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Склад отгрузки:</span>
+                            <strong class="text-white">Пн-Пт: 8:30 - 16:30</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Суббота:</span>
+                            <strong class="text-white">8:00 - 14:00 (дежурный)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Воскресенье:</span>
+                            <strong class="text-warning">Выходной</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Заказы на сайте:</span>
+                            <strong class="text-success">24/7 (круглосуточно)</strong>
+                        </div>
+                    </div>
+                    <div class="border-top border-white border-opacity-10 pt-3">
+                        <div class="small text-white-50 mb-1">Электронная почта:</div>
+                        <a href="mailto:{{ site_settings.email|default:'sibs@list.ru' }}" class="text-warning text-decoration-none fw-bold fs-6">
+                            <i class="bi bi-envelope-fill me-1"></i> {{ site_settings.email|default:"sibs@list.ru" }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. DEPARTMENTS & CONTACTS CARDS -->
+    <div class="row g-4 mb-5">
+        {% for dep in departments %}
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 rounded-4 shadow-sm h-100 p-4 bg-white">
+                <div class="brand-icon-box mb-3" style="width: 48px; height: 48px; font-size: 1.3rem;">
+                    <i class="bi {{ dep.icon|default:'bi-building' }}"></i>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">{{ dep.name }}</h5>
+                <p class="text-muted small mb-3">{{ dep.description }}</p>
+                <div class="mt-auto">
+                    {% if dep.phone %}
+                    <div class="small fw-bold text-dark mb-1">
+                        <i class="bi bi-telephone text-warning me-1"></i> {{ dep.phone }}
+                    </div>
+                    {% endif %}
+                    {% if dep.email %}
+                    <div class="small text-muted mb-1">
+                        <i class="bi bi-envelope text-warning me-1"></i> {{ dep.email }}
+                    </div>
+                    {% endif %}
+                    {% if dep.extra_info %}
+                    <div class="small text-muted">
+                        <i class="bi bi-info-circle text-warning me-1"></i> {{ dep.extra_info }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted py-3">Контакты отделов обновляются...</div>
+        {% endfor %}
+    </div>
+
+    <!-- 4. REQUISITES & COPY -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+            <div>
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Для договоров и счетов</span>
+                <h2 class="fw-bold text-dark mb-0">Официальные реквизиты предприятия</h2>
+            </div>
+            <button class="btn btn-outline-dark rounded-pill px-3 py-2 fw-semibold" onclick="copyRequisites()" id="copyReqBtn">
+                <i class="bi bi-clipboard me-1"></i> <span>Скопировать все реквизиты</span>
+            </button>
+        </div>
+
+        <div class="row g-3 g-md-4" id="requisitesBlock">
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">Полное наименование:</div>
+                    <div class="fw-bold text-dark">{{ site_settings.brand_name|default:"ТМ «Сибсыр» ИП Нахшкарян А.Л." }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">ИНН:</div>
+                    <div class="fw-bold text-dark font-monospace fs-6">{{ site_settings.seller_inn|default:"550119874521" }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">ОГРНИП:</div>
+                    <div class="fw-bold text-dark font-monospace fs-6">{{ site_settings.seller_ogrn|default:"318554300045612" }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">Обслуживающий банк:</div>
+                    <div class="fw-bold text-dark">{{ site_settings.seller_bank|default:"Омское отделение №8634 ПАО Сбербанк г. Омск" }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">БИК банка:</div>
+                    <div class="fw-bold text-dark font-monospace fs-6">{{ site_settings.seller_bik|default:"045209673" }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">Код ОКПО:</div>
+                    <div class="fw-bold text-dark font-monospace fs-6">{{ site_settings.seller_okpo|default:"01928374" }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">Расчетный счет (р/с):</div>
+                    <div class="fw-bold text-dark font-monospace fs-6">{{ site_settings.seller_account|default:"40802810445000012345" }}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle h-100">
+                    <div class="small text-muted mb-1">Корреспондентский счет (к/с):</div>
+                    <div class="fw-bold text-dark font-monospace fs-6">{{ site_settings.seller_corr_account|default:"30101810900000000673" }}</div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="p-3 rounded-3 bg-light border border-light-subtle">
+                    <div class="small text-muted mb-1">Юридический и фактический адрес завода:</div>
+                    <div class="fw-bold text-dark">{{ site_settings.address|default:"644031, Россия, Омская область, г. Омск, ул. Зеленая, дом 16" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. INTERACTIVE MAP & HOW TO GET HERE -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white overflow-hidden">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-5">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Локация</span>
+                <h2 class="fw-bold text-dark mb-3">Как до нас добраться</h2>
+                <p class="text-muted" style="line-height: 1.8;">
+                    Сыродельный завод «Сибсыр» находится в черте города Омска с удобным асфальтированным подъездом для большегрузного транспорта, рефрижераторов и легковых автомобилей.
+                </p>
+
+                <div class="d-flex flex-column gap-3 mb-4">
+                    <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-light">
+                        <i class="bi bi-truck text-warning fs-3 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Для грузового транспорта</h6>
+                            <p class="text-muted small mb-0">{{ site_settings.pickup_instructions_truck|default:"Удобный съезд, широкая маневровая площадка перед пандусами отгрузки. Оформление пропусков на КПП." }}</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-start gap-3 p-3 rounded-3 bg-light">
+                        <i class="bi bi-car-front text-primary fs-3 mt-1"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-1">Для розничных покупателей</h6>
+                            <p class="text-muted small mb-0">{{ site_settings.pickup_instructions_car|default:"Бесплатная парковка для легковых автомобилей рядом с административным корпусом." }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-3" style="background: var(--primary-orange-light); border-left: 4px solid #ff8400;">
+                    <div class="fw-bold text-dark small mb-1">Точный навигационный адрес:</div>
+                    <div class="text-muted small">{{ site_settings.address|default:"г. Омск, ул. Зеленая, д. 16" }} • Координаты: {{ site_settings.pickup_coordinates|default:"54.9893, 73.3682" }}</div>
+                </div>
+            </div>
+
+            <!-- Map Iframe Embed -->
+            <div class="col-lg-7">
+                <div class="rounded-4 overflow-hidden border shadow-sm position-relative" style="height: 420px; background: #e2e8f0;">
+                    <iframe 
+                        src="{{ site_settings.yandex_map_iframe_url|default:'https://yandex.ru/map-widget/v1/?ll=73.3682%2C54.9893&z=15&pt=73.3682%2C54.9893~pm2wtm' }}" 
+                        width="100%" 
+                        height="100%" 
+                        frameborder="0" 
+                        allowfullscreen="true" 
+                        style="position: relative; border: 0;"
+                        title="Карта проезда к заводу ТМ Сибсыр">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. CONTACT FORM ON PAGE -->
+    <div class="card border-0 rounded-4 shadow-sm mb-5 p-4 p-md-5 bg-white">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Напишите нам</span>
+                <h2 class="fw-bold text-dark mb-3">Есть вопрос или предложение?</h2>
+                <p class="text-muted" style="line-height: 1.8;">
+                    Заполните форму, и специалисты отдела сбыта свяжутся с вами в течение 15 минут в рабочее время для консультации, расчета стоимости партии или отправки коммерческого предложения.
+                </p>
+
+                <div class="d-flex flex-column gap-3 mt-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="width: 38px; height: 38px; font-size: 1.1rem;">
+                            <i class="bi bi-clock-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="text-dark d-block">Быстрый ответ</strong>
+                            <span class="small text-muted">Среднее время ответа — 15 минут</span>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-icon-box" style="width: 38px; height: 38px; font-size: 1.1rem;">
+                            <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                        </div>
+                        <div>
+                            <strong class="text-dark d-block">Оптовый прайс-лист</strong>
+                            <span class="small text-muted">Специальные цены для дистрибьюторов и сетей</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <form id="pageContactForm" onsubmit="handlePageContactSubmit(event)" class="p-4 rounded-4 bg-light border border-light-subtle">
+                    {% csrf_token %}
+                    <input type="hidden" name="request_type" value="question">
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Ваше имя / Компания *</label>
+                        <input type="text" name="name" class="form-control rounded-pill px-3 py-2" required placeholder="Например: Иван (ООО «Сырный Мир»)">
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-dark">Телефон *</label>
+                            <input type="tel" name="phone" class="form-control rounded-pill px-3 py-2" required placeholder="+7 (___) ___-__-__">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-dark">E-mail</label>
+                            <input type="email" name="email" class="form-control rounded-pill px-3 py-2" placeholder="name@company.ru">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Ваш вопрос или сообщение</label>
+                        <textarea name="message" rows="3" class="form-control rounded-3 p-3" placeholder="Укажите интересующую продукцию, примерный объем партии или город доставки..."></textarea>
+                    </div>
+
+                    <!-- Captcha if enabled -->
+                    {% render_captcha 'callback' %}
+
+                    <div id="pageContactAlert" class="alert d-none mb-3 py-2 small" role="alert"></div>
+
+                    <button type="submit" id="pageContactBtn" class="btn btn-sib-orange w-100 rounded-pill py-2 fw-semibold">
+                        <i class="bi bi-send-fill me-1"></i> Отправить сообщение
+                    </button>
+                    <div class="text-center text-muted small mt-2" style="font-size: 0.75rem;">
+                        Нажимая кнопку, вы соглашаетесь на обработку персональных данных
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. ИНФОРМАЦИОННЫЙ ПУТЕВОДИТЕЛЬ (О КОМПАНИИ -> КОНТАКТЫ -> ДОСТАВКА И ОПЛАТА) -->
+    <div class="p-4 p-md-5 rounded-4 shadow-sm mb-4" 
+         style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 2px solid #fdba74;">
+        <div class="text-center mb-4">
+            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
+                <i class="bi bi-signpost-split-fill me-1"></i> Маршрут сотрудничества
+            </span>
+            <h2 class="fw-bold text-dark mb-2">О компании &rarr; Контакты &rarr; Доставка и оплата</h2>
+            <p class="text-muted small" style="max-width: 650px; margin: 0 auto;">
+                Свяжитесь с нами и переходите к оформлению доставки — специализированный транспорт доставит продукцию со строгим температурным контролем.
+            </p>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            <!-- Step 1: About -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-secondary text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                            Шаг 1 • О производстве
+                        </div>
+                        <h5 class="fw-bold text-dark mt-2 mb-2">
+                            <i class="bi bi-building text-warning me-2"></i>О компании «Сибсыр»
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            История завода с 1999 года, сертификация по ГОСТ, система ХАССП, отборное молоко и традиции сибирских мастеров.
+                        </p>
+                    </div>
+                    <a href="{% url 'main:about' %}" class="btn btn-outline-dark rounded-pill w-100 fw-semibold">
+                        <i class="bi bi-arrow-left ms-1"></i> <span>Узнать о производстве</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Step 2: Contacts (Current) -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-primary position-relative">
+                    <div class="badge bg-primary text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                        Шаг 2 • Текущая страница
+                    </div>
+                    <h5 class="fw-bold text-dark mt-2 mb-2">
+                        <i class="bi bi-geo-alt-fill text-primary me-2"></i>Контакты и реквизиты
+                    </h5>
+                    <p class="text-muted small mb-3">
+                        Омск, ул. Зеленая 16, телефоны отдела сбыта, логистики, полные банковские реквизиты ИП Нахшкарян А.Л. и карта проезда.
+                    </p>
+                    <span class="badge bg-light text-muted border">Вы находитесь здесь</span>
+                </div>
+            </div>
+
+            <!-- Step 3: Delivery -->
+            <div class="col-md-4">
+                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="badge bg-success text-white fw-bold rounded-pill mb-2 px-3 py-1">
+                            Шаг 3 • Получение партии
+                        </div>
+                        <h5 class="fw-bold text-dark mt-2 mb-2">
+                            <i class="bi bi-truck text-success me-2"></i>Доставка и оплата
+                        </h5>
+                        <p class="text-muted small mb-3">
+                            Рефрижераторные перевозки (+2...+4°C), самовывоз со склада, расчет с НДС, отсрочка платежа для сетей и оптовый прайс.
+                        </p>
+                    </div>
+                    <a href="{% url 'main:delivery' %}" class="btn btn-sib-orange rounded-pill w-100 fw-semibold">
+                        <span>Условия доставки и оплаты</span> <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Copy Requisites Script -->
+<script>
+function copyRequisites() {
+    const text = `Индивидуальный предприниматель Нахшкарян А.Л. / ТМ «Сибсыр»
+ИНН: {{ site_settings.seller_inn|default:"550119874521" }}
+ОГРНИП: {{ site_settings.seller_ogrn|default:"318554300045612" }}
+Банк: {{ site_settings.seller_bank|default:"Омское отделение №8634 ПАО Сбербанк г. Омск" }}
+БИК: {{ site_settings.seller_bik|default:"045209673" }}
+Р/с: {{ site_settings.seller_account|default:"40802810445000012345" }}
+К/с: {{ site_settings.seller_corr_account|default:"30101810900000000673" }}
+ОКПО: {{ site_settings.seller_okpo|default:"01928374" }}
+Адрес: 644031, г. Омск, ул. Зеленая, д. 16
+Телефон: {{ site_settings.phone }}
+E-mail: {{ site_settings.email }}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyReqBtn');
+        const oldHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check-lg text-success me-1"></i> <span class="text-success fw-bold">Реквизиты скопированы!</span>';
+        setTimeout(() => {
+            btn.innerHTML = oldHtml;
+        }, 2500);
+    }).catch(err => {
+        alert("Не удалось скопировать реквизиты: " + err);
+    });
+}
+
+// Handling Page Contact Form with AJAX
+function handlePageContactSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('pageContactBtn');
+    const alertBox = document.getElementById('pageContactAlert');
+    const formData = new FormData(form);
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Отправка...';
+
+    fetch("{% url 'main:create_callback' %}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Отправить сообщение';
+        alertBox.classList.remove('d-none', 'alert-danger', 'alert-success');
+
+        if (data.success) {
+            alertBox.classList.add('alert-success');
+            alertBox.textContent = data.message || "Спасибо! Ваше сообщение принято.";
+            form.reset();
+        } else {
+            alertBox.classList.add('alert-danger');
+            alertBox.textContent = data.error || "Произошла ошибка при отправке.";
+        }
+        if (typeof refreshCaptchaInWrapper === 'function') {
+            refreshCaptchaInWrapper(form.querySelector('.sib-captcha-wrapper'));
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-send-fill me-1"></i> Отправить сообщение';
+        alertBox.classList.remove('d-none', 'alert-success');
+        alertBox.classList.add('alert-danger');
+        alertBox.textContent = "Ошибка соединения с сервером. Попробуйте снова.";
+        if (typeof refreshCaptchaInWrapper === 'function') {
+            refreshCaptchaInWrapper(form.querySelector('.sib-captcha-wrapper'));
+        }
+    });
+}
+</script>
+{% endblock %}

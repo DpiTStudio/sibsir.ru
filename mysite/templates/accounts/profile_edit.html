@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование профиля — {{ profile.display_name }} | Сибсыр{% endblock %}
+
+{% block content %}
+<div class="account-edit-wrapper py-5" style="background: #f8fafc; min-height: 85vh;">
+    <div class="container">
+        
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="{% url 'main:index' %}" class="text-decoration-none text-muted">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-decoration-none text-muted">Личный кабинет</a></li>
+                <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">Редактирование профиля</li>
+            </ol>
+        </nav>
+
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-8">
+                
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                    <div class="p-4 border-bottom text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <h4 class="fw-bold mb-1">
+                                    {% if profile.is_legal %}Реквизиты организации и контакты{% else %}Редактирование контактных данных{% endif %}
+                                </h4>
+                                <p class="text-secondary small mb-0">Эти данные используются для автоматического заполнения заказов и оформления счетов</p>
+                            </div>
+                            <span class="badge rounded-pill {% if profile.is_legal %}bg-primary{% else %}bg-warning text-dark{% endif %} px-3 py-2">
+                                {% if profile.is_legal %}Юридическое лицо / ИП{% else %}Розничный покупатель{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5">
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger rounded-3 small py-2 px-3 mb-4">
+                            {% for error in form.non_field_errors %}
+                                <div><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'accounts:profile_edit' %}" novalidate>
+                            {% csrf_token %}
+
+                            {% if profile.is_legal %}
+                            <!-- Legal Fields -->
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                <i class="bi bi-building text-warning me-1"></i>Реквизиты юридического лица / ИП
+                            </h6>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">
+                                    {{ form.company_name.label }} <span class="text-danger">*</span>
+                                </label>
+                                {{ form.company_name }}
+                                {% if form.company_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.company_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.inn.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.inn }}
+                                    {% if form.inn.errors %}
+                                    <div class="text-danger small mt-1">{{ form.inn.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.kpp.label }}
+                                    </label>
+                                    {{ form.kpp }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.ogrn.label }}
+                                    </label>
+                                    {{ form.ogrn }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.legal_address.label }}
+                                    </label>
+                                    {{ form.legal_address }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.delivery_address.label }}
+                                    </label>
+                                    {{ form.delivery_address }}
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">
+                                <i class="bi bi-bank text-warning me-1"></i>Банковские реквизиты
+                            </h6>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-8">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.bank_name.label }}
+                                    </label>
+                                    {{ form.bank_name }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.bik.label }}
+                                    </label>
+                                    {{ form.bik }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.account_number.label }}
+                                    </label>
+                                    {{ form.account_number }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.corr_account.label }}
+                                    </label>
+                                    {{ form.corr_account }}
+                                </div>
+                            </div>
+
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">
+                                <i class="bi bi-person-lines-fill text-warning me-1"></i>Контактное лицо
+                            </h6>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.contact_person.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.contact_person }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.phone.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.phone }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.email.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% else %}
+                            <!-- Individual Fields -->
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.first_name.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.last_name.label }}
+                                    </label>
+                                    {{ form.last_name }}
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.email.label }} <span class="text-danger">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-dark">
+                                        {{ form.phone.label }}
+                                    </label>
+                                    {{ form.phone }}
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-dark">
+                                    {{ form.delivery_address.label }}
+                                </label>
+                                {{ form.delivery_address }}
+                                <div class="form-text small text-muted">Этот адрес будет предлагаться по умолчанию при каждом заказе в корзине.</div>
+                            </div>
+                            {% endif %}
+
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                                    Отмена
+                                </a>
+                                <button type="submit" class="btn btn-sib-orange rounded-pill px-5 py-2 fw-bold shadow-sm">
+                                    <i class="bi bi-check-lg me-1"></i>Сохранить изменения
+                                </button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

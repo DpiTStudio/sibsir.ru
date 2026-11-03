@@ -1,0 +1,329 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Статьи и база знаний о сыре — Сибсыр" }}{% endblock %}
+
+{% block meta_description %}{{ page_description }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords }}{% endblock %}
+{% block canonical_url %}{{ canonical_url }}{% endblock %}
+
+{% block og_title %}{{ page_title }}{% endblock %}
+{% block og_description %}{{ page_description }}{% endblock %}
+{% block og_url %}{{ canonical_url }}{% endblock %}
+
+{% block schema_extra %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Статьи и база знаний",
+      "item": "{{ canonical_url }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- 1. BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Статьи и полезные материалы</li>
+        </ol>
+    </nav>
+
+    <!-- 2. ARTICLES HERO & SEARCH HEADER -->
+    <div class="p-4 p-md-5 rounded-4 mb-4 shadow-sm" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.06; font-size: 15rem; pointer-events: none; line-height: 1;">
+            <i class="bi bi-journal-richtext"></i>
+        </div>
+        <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+            <div class="col-lg-7">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" style="background: rgba(255, 132, 0, 0.15); border: 1px solid rgba(255, 132, 0, 0.35); color: #ffaa33; font-size: 0.82rem; font-weight: 600;">
+                    <i class="bi bi-book-half"></i>
+                    <span>База знаний • Секреты сыроделия</span>
+                </div>
+                <h1 class="display-6 fw-bold text-white mb-2">Статьи и полезные материалы о сыре</h1>
+                <p class="text-white-50 mb-3" style="font-size: 1.05rem; max-width: 620px;">
+                    Советы сибирских сыроделов, гид по видам и сортам сыра, кулинарные идеи, тонкости правильного хранения и строгие стандарты качества ГОСТ.
+                </p>
+                <div class="d-flex flex-wrap align-items-center gap-3 text-white-50 small">
+                    <div><i class="bi bi-journal-check text-warning me-1"></i> <strong>{{ total_count }}</strong> публикаций</div>
+                    <div><i class="bi bi-people text-info me-1"></i> Опыт мастеров-технологов «Сибсыр»</div>
+                    <div><i class="bi bi-check2-circle text-success me-1"></i> Проверенная и практическая информация</div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="bg-white p-3 p-md-4 rounded-4 shadow-lg text-dark">
+                    <form method="get" action="{% url 'main:articles' %}" id="articlesSearchForm">
+                        <label for="articlesSearchInput" class="form-label small fw-bold text-muted mb-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-search text-warning me-1"></i>Поиск среди статей</span>
+                            <span class="badge bg-light text-dark border">{{ total_count }} материалов</span>
+                        </label>
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 14px;"></i>
+                            <input type="text" 
+                                   name="q"
+                                   id="articlesSearchInput" 
+                                   value="{{ query }}"
+                                   class="form-control form-control-lg pe-5" 
+                                   style="padding-left: 2.6rem; font-size: 0.95rem; border-radius: 14px; border: 1.5px solid #e2e8f0;" 
+                                   placeholder="Плавленый сыр, моцарелла, нарезка..." 
+                                   oninput="filterArticlesLive(this.value)"
+                                   title="Поиск статьи">
+                            {% if query %}
+                                <a href="{% url 'main:articles' %}" 
+                                   class="btn btn-sm btn-link text-muted position-absolute top-50 translate-middle-y end-0 me-2" 
+                                   title="Сбросить поиск">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="text-muted small" style="font-size: 0.78rem;">
+                                <i class="bi bi-lightning-charge me-1"></i>Мгновенная фильтрация по тексту
+                            </span>
+                            <button type="submit" class="btn btn-sm btn-sib-orange py-1 px-3" style="font-size: 0.8rem;">
+                                Найти
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. TOPIC FILTERS & STATS BAR -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div class="d-flex flex-wrap gap-2" id="topicFilterButtons">
+            <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 py-2 active-topic-btn" onclick="filterByTopic('all', this)">
+                <i class="bi bi-grid-fill me-1"></i>Все статьи
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 bg-white" onclick="filterByTopic('плавленый', this)">
+                <i class="bi bi-egg-fried me-1"></i>Плавленые сыры
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 bg-white" onclick="filterByTopic('моцарелла', this)">
+                <i class="bi bi-pie-chart me-1"></i>Моцарелла & Сулугуни
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 bg-white" onclick="filterByTopic('кулинар', this)">
+                <i class="bi bi-fire me-1"></i>Кулинария & Блюда
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 bg-white" onclick="filterByTopic('производ', this)">
+                <i class="bi bi-gear-wide-connected me-1"></i>Производство & Факты
+            </button>
+        </div>
+
+        <div class="text-muted small">
+            Показано: <span id="visibleArticlesCount" class="fw-bold text-dark">{{ total_count }}</span> из {{ all_articles_count }}
+        </div>
+    </div>
+
+    <!-- 4. ARTICLES GRID -->
+    {% if articles %}
+        <div class="row g-3 g-md-4" id="articlesGrid">
+            {% for art in articles %}
+                <div class="col-md-6 col-lg-4 article-item-col" 
+                     data-title="{{ art.title|lower }}" 
+                     data-snippet="{{ art.snippet|lower }}"
+                     data-slug="{{ art.slug }}">
+                    <div class="article-card shadow-sm h-100 d-flex flex-column border">
+                        <a href="{% url 'main:article_detail' art.slug %}" class="article-img-wrap text-decoration-none position-relative d-block">
+                            <img src="{{ art.image_url }}" alt="{{ art.title }}" loading="lazy">
+                            <span class="position-absolute top-0 start-0 m-3 badge bg-dark bg-opacity-75 text-white px-2 py-1 rounded-pill" style="font-size: 0.75rem; backdrop-filter: blur(4px);">
+                                <i class="bi bi-clock-history me-1"></i>Полезно
+                            </span>
+                        </a>
+                        <div class="article-body d-flex flex-column flex-grow-1 p-3 p-md-4">
+                            <div class="article-date-row d-flex align-items-center justify-content-between text-muted small mb-2">
+                                <div class="d-flex align-items-center gap-1">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span>{{ art.date_str }}</span>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <i class="bi bi-eye"></i>
+                                    <span>{{ art.views_count }}</span>
+                                </div>
+                            </div>
+                            
+                            <h2 class="article-title mb-2 fs-5">
+                                <a href="{% url 'main:article_detail' art.slug %}" class="text-dark text-decoration-none article-title-link">
+                                    {{ art.title }}
+                                </a>
+                            </h2>
+                            
+                            <p class="article-snippet text-muted small flex-grow-1 mb-3" style="line-height: 1.6;">
+                                {{ art.snippet }}
+                            </p>
+
+                            <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-auto">
+                                <a href="{% url 'main:article_detail' art.slug %}" class="btn btn-sm btn-sib-orange rounded-pill px-3 py-1">
+                                    <span>Читать статью</span>
+                                    <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-light rounded-pill px-2 py-1 text-muted border-0" 
+                                        onclick="openArticleModal('{{ art.slug }}')"
+                                        title="Быстрый предпросмотр">
+                                    <i class="bi bi-arrows-angle-expand me-1"></i><span class="small">Превью</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- EMPTY STATE -->
+        <div class="text-center py-5 bg-white rounded-4 border shadow-sm p-4 my-4">
+            <i class="bi bi-search text-warning" style="font-size: 3.5rem;"></i>
+            <h3 class="fw-bold text-dark mt-3 mb-2">Статьи не найдены</h3>
+            <p class="text-muted mx-auto mb-4" style="max-width: 480px;">
+                По вашему запросу «{{ query }}» ничего не найдено. Попробуйте изменить ключевые слова или сбросить фильтр.
+            </p>
+            <a href="{% url 'main:articles' %}" class="btn btn-sib-orange px-4 py-2 rounded-pill">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Показать все статьи
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- NO LIVE MATCHES (Hidden by default) -->
+    <div id="noLiveMatchesAlert" class="text-center py-5 bg-white rounded-4 border shadow-sm p-4 my-4 d-none">
+        <i class="bi bi-journal-x text-warning" style="font-size: 3.5rem;"></i>
+        <h3 class="fw-bold text-dark mt-3 mb-2">Ничего не найдено</h3>
+        <p class="text-muted mx-auto mb-3" style="max-width: 480px;">
+            По введенному тексту нет подходящих статей.
+        </p>
+        <button type="button" class="btn btn-outline-warning rounded-pill px-4" onclick="document.getElementById('articlesSearchInput').value=''; filterArticlesLive('');">
+            Сбросить фильтр
+        </button>
+    </div>
+
+    <!-- 5. BOTTOM CTA BANNER -->
+    <div class="mt-5 p-4 p-md-5 rounded-4 shadow-sm text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-left: 6px solid #f59e0b;">
+        <div class="row align-items-center g-4">
+            <div class="col-lg-8">
+                <span class="badge bg-warning text-dark px-3 py-1 rounded-pill mb-2 fw-bold">Сотрудничество с «Сибсыр»</span>
+                <h3 class="fw-bold text-white mb-2">Хотите предложить сыр высочайшего качества вашим клиентам?</h3>
+                <p class="text-white-50 mb-0" style="max-width: 650px;">
+                    Мы поставляем натуральные сыры и молочную продукцию в рестораны, пиццерии, пекарни и торговые сети по всей России. Прямые поставки от завода без посредников.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex flex-column flex-sm-row justify-content-lg-end gap-2">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-outline-light rounded-pill px-3 py-2">
+                        <i class="bi bi-grid-3x3-gap-fill me-1"></i>В каталог
+                    </a>
+                    <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-telephone-outbound me-1"></i>Заказать звонок
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- LIVE FILTER SCRIPT -->
+<script>
+    function filterArticlesLive(query) {
+        const q = (query || '').toLowerCase().trim();
+        const items = document.querySelectorAll('.article-item-col');
+        let visibleCount = 0;
+
+        items.forEach(item => {
+            const title = item.getAttribute('data-title') || '';
+            const snippet = item.getAttribute('data-snippet') || '';
+            if (!q || title.includes(q) || snippet.includes(q)) {
+                item.classList.remove('d-none');
+                visibleCount++;
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+
+        const countEl = document.getElementById('visibleArticlesCount');
+        if (countEl) countEl.textContent = visibleCount;
+
+        const noMatches = document.getElementById('noLiveMatchesAlert');
+        const grid = document.getElementById('articlesGrid');
+        if (noMatches && grid) {
+            if (visibleCount === 0 && items.length > 0) {
+                noMatches.classList.remove('d-none');
+                grid.classList.add('d-none');
+            } else {
+                noMatches.classList.add('d-none');
+                grid.classList.remove('d-none');
+            }
+        }
+    }
+
+    function filterByTopic(topicKeyword, btn) {
+        // Highlight active button
+        const buttons = document.querySelectorAll('#topicFilterButtons button');
+        buttons.forEach(b => {
+            b.className = 'btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 bg-white';
+        });
+        if (btn) {
+            btn.className = 'btn btn-sm btn-dark rounded-pill px-3 py-2 active-topic-btn';
+        }
+
+        const input = document.getElementById('articlesSearchInput');
+        if (topicKeyword === 'all') {
+            if (input) input.value = '';
+            filterArticlesLive('');
+        } else {
+            if (input) input.value = topicKeyword;
+            filterArticlesLive(topicKeyword);
+        }
+    }
+</script>
+
+<style>
+    .article-title-link {
+        transition: color 0.2s ease;
+    }
+    .article-title-link:hover {
+        color: #f59e0b !important;
+    }
+    .article-card {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        border-radius: 20px;
+    }
+    .article-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08) !important;
+    }
+    .article-img-wrap {
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        height: 200px;
+        overflow: hidden;
+    }
+    .article-img-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .article-card:hover .article-img-wrap img {
+        transform: scale(1.06);
+    }
+</style>
+{% endblock %}

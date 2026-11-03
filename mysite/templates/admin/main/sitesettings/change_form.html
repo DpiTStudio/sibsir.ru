@@ -1,0 +1,1586 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* ==========================================================================
+   Стили страницы настроек сайта ТМ «Сибсыр»
+   ========================================================================== */
+
+/* Верхняя карточка-хедер страницы настроек */
+.sib-settings-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);
+}
+
+.sib-settings-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sib-settings-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(255, 132, 0, 0.15);
+  border: 1px solid rgba(255, 132, 0, 0.4);
+  color: #ff8400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.55rem;
+  flex-shrink: 0;
+}
+
+.sib-settings-header-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sib-settings-header-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  max-width: 620px;
+  line-height: 1.35;
+}
+
+.sib-settings-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sib-header-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+.sib-header-badge.badge-active {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+}
+
+.sib-header-badge.badge-inactive {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.sib-btn-save-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: #10b981;
+  color: #ffffff !important;
+  border: 1px solid #059669;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+
+.sib-btn-save-header:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.45);
+}
+
+.sib-btn-view-site {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: #ff8400;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(255, 132, 0, 0.35);
+}
+
+.sib-btn-view-site:hover {
+  background: #e07400;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 132, 0, 0.45);
+}
+
+/* Навигационные вкладки (Tabs Navigation) */
+.sib-tabs-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: var(--admin-shadow-sm);
+  scrollbar-width: thin;
+}
+
+.sib-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.sib-tab-btn i {
+  font-size: 0.95rem;
+}
+
+.sib-tab-btn:hover {
+  background: var(--admin-card-hover);
+  color: var(--admin-text-title);
+}
+
+.sib-tab-btn.active {
+  background: #ff8400;
+  color: #ffffff;
+  border-color: #ff8400;
+  box-shadow: 0 2px 6px rgba(255, 132, 0, 0.3);
+}
+
+.sib-tab-btn-all {
+  margin-left: auto;
+  border-left: 1px solid var(--admin-border-color);
+  border-radius: 0 6px 6px 0;
+  padding-left: 14px;
+}
+
+/* Карточки секций fieldset */
+fieldset.sib-settings-card {
+  margin-bottom: 16px !important;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+fieldset.sib-settings-card.tab-hidden {
+  display: none !important;
+}
+
+/* Стили превью логотипа */
+.sib-brand-preview-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sib-logo-trans-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background-color: #ffffff;
+  background-image: 
+    linear-gradient(45deg, #f1f5f9 25%, transparent 25%), 
+    linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), 
+    linear-gradient(45deg, transparent 75%, #f1f5f9 75%), 
+    linear-gradient(-45deg, transparent 75%, #f1f5f9 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  min-width: 140px;
+  min-height: 52px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.sib-logo-img-tag {
+  max-height: 48px;
+  max-width: 160px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.sib-preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sib-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sib-badge-green {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sib-preview-link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0284c7;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.sib-preview-link:hover {
+  text-decoration: underline;
+}
+
+.sib-preview-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--admin-card-header);
+  border: 1px dashed var(--admin-border-color);
+  border-radius: 6px;
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+}
+
+.sib-preview-empty i {
+  font-size: 1.1rem;
+  color: #94a3b8;
+}
+
+/* Макет вкладки браузера для превью фавикона */
+.sib-browser-tab-preview {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sib-tab-frame {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+  max-width: 240px;
+}
+
+html[data-theme="dark"] .sib-tab-frame,
+body.theme-dark .sib-tab-frame {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.sib-tab-fav-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.sib-tab-title-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.sib-tab-x {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  cursor: default;
+  margin-left: auto;
+}
+
+.sib-tab-status-note {
+  font-size: 0.72rem;
+  color: var(--admin-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Превью баннера Hero */
+.sib-hero-preview-container {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sib-hero-preview-box {
+  width: 240px;
+  height: 130px;
+  border-radius: 8px;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--admin-border-color);
+}
+
+.sib-hero-preview-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2) 0%, rgba(15, 23, 42, 0.8) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.sib-hero-pill-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #ffedd5;
+  background: rgba(255, 132, 0, 0.85);
+  padding: 1px 6px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sib-hero-title-mock {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.sib-hero-status-note {
+  font-size: 0.72rem;
+  color: var(--admin-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Интерактивный живой виджет предпросмотра баннера */
+.sib-hero-interactive-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 10px;
+  padding: 16px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.sib-hero-interactive-header {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--admin-text-title);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sib-hero-interactive-header i {
+  color: #ff8400;
+}
+
+.sib-live-hero-canvas {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  min-height: 200px;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  align-items: center;
+  padding: 24px 30px;
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
+}
+
+.sib-live-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 580px;
+}
+
+.sib-live-badge {
+  display: inline-block;
+  background: rgba(255, 132, 0, 0.95);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 0.02em;
+}
+
+.sib-live-title {
+  color: #ffffff;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.sib-live-subtitle {
+  color: #e2e8f0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  margin: 0 0 14px 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.sib-live-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ff8400;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 8px 18px;
+  border-radius: 8px;
+  border: none;
+  cursor: default;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Карточка информации о реквизитах */
+.sib-requisites-hint-box {
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sib-requisites-hint-text {
+  font-size: 0.8rem;
+  color: var(--admin-text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sib-requisites-hint-text i {
+  font-size: 1.1rem;
+  color: #0284c7;
+}
+
+.sib-btn-copy-req {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--admin-text-main);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.sib-btn-copy-req:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* Информационный гид по капче */
+.sib-captcha-guide {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
+
+.sib-captcha-guide-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--admin-text-title);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sib-captcha-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.sib-captcha-type-card {
+  background: var(--admin-card-header);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.sib-captcha-type-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: rgba(255, 132, 0, 0.12);
+  color: #ff8400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.sib-captcha-type-body h5 {
+  margin: 0 0 3px 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--admin-text-title);
+}
+
+.sib-captcha-type-body p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--admin-text-muted);
+  line-height: 1.35;
+}
+
+/* Стили чекбоксов в табе Безопасность — аккуратная 2-колоночная сетка карточек с выравниванием влево */
+.tab-pane-security .form-row {
+  border-bottom: none !important;
+  padding: 6px 0 !important;
+}
+
+.tab-pane-security .form-row.form-multiline {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+.tab-pane-security .form-row:not(.form-multiline) {
+  display: block !important;
+}
+
+.tab-pane-security .form-row:not(.form-multiline) > .flex-container {
+  display: block !important;
+  width: 100% !important;
+}
+
+.tab-pane-security .fieldBox,
+.tab-pane-security .checkbox-row,
+.tab-pane-security .flex-container.checkbox-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+  background: var(--admin-card-header) !important;
+  border: 1px solid var(--admin-border-subtle) !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  gap: 4px !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+.tab-pane-security .checkbox-row:hover {
+  border-color: var(--admin-primary-border) !important;
+  background: var(--admin-card-hover) !important;
+}
+
+.tab-pane-security .checkbox-row .checkbox,
+.tab-pane-security .flex-container div.checkbox {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  text-align: left !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.tab-pane-security .checkbox-row .checkbox input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  accent-color: #ff8400 !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+.tab-pane-security .checkbox-row .checkbox label,
+.tab-pane-security .checkbox-row label.vCheckboxLabel {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
+  font-size: 0.84rem !important;
+  color: var(--admin-text-main) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  flex: none !important;
+}
+
+.tab-pane-security .checkbox-row .help {
+  margin: 4px 0 0 28px !important;
+  font-size: 0.74rem !important;
+  color: var(--admin-text-muted) !important;
+  text-align: left !important;
+  line-height: 1.35 !important;
+  width: calc(100% - 28px) !important;
+}
+
+@media (max-width: 768px) {
+  .tab-pane-security .form-row.form-multiline {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* На странице SiteSettings отключаем липкое перекрытие submit-row поверх полей */
+.app-main.model-sitesettings .submit-row {
+  position: static !important;
+  margin-top: 24px !important;
+  margin-bottom: 24px !important;
+  background: var(--admin-card-bg) !important;
+  border: 1px solid var(--admin-border-color) !important;
+  border-radius: 10px !important;
+  padding: 12px 18px !important;
+  box-shadow: var(--admin-shadow-sm) !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.submit-row input[name="_save"] {
+  background: #10b981 !important;
+  border-color: #059669 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  padding: 8px 18px !important;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35) !important;
+}
+
+.submit-row input[name="_save"]:hover {
+  background: #059669 !important;
+  transform: translateY(-1px);
+}
+
+.submit-row input[name="_continue"] {
+  background: #ff8400 !important;
+  border-color: #ea580c !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  padding: 8px 16px !important;
+}
+
+.submit-row input[name="_continue"]:hover {
+  background: #e07400 !important;
+  transform: translateY(-1px);
+}
+
+/* ==========================================================================
+   Стили панели инструментов SEO и поисковой оптимизации
+   ========================================================================== */
+.sib-seo-dashboard-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.sib-seo-banner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  margin-bottom: 16px;
+}
+
+.sib-seo-header-title-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sib-seo-icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.sib-seo-banner-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--admin-text-title);
+  margin: 0;
+}
+
+.sib-seo-banner-desc {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  margin: 2px 0 0 0;
+}
+
+.sib-seo-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sib-btn-seo-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sib-btn-seo-primary {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.sib-btn-seo-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.sib-btn-seo-secondary {
+  background: var(--admin-card-header);
+  border-color: var(--admin-border-color);
+  color: var(--admin-text-main) !important;
+}
+
+.sib-btn-seo-secondary:hover {
+  background: var(--admin-border-subtle);
+  border-color: var(--admin-border-color);
+}
+
+/* Сетка быстрых ссылок на SEO разделы */
+.sib-seo-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sib-seo-link-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--admin-card-header);
+  border: 1px solid var(--admin-border-subtle);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.sib-seo-link-card:hover {
+  border-color: #ff8400;
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.sib-seo-link-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 132, 0, 0.12);
+  color: #ff8400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.sib-seo-link-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--admin-text-title);
+  margin: 0;
+}
+
+.sib-seo-link-subtitle {
+  font-size: 0.73rem;
+  color: var(--admin-text-muted);
+  margin: 2px 0 0 0;
+}
+
+/* Живой сниппет поисковой выдачи SERP (Google / Яндекс) */
+.sib-serp-preview-box {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px 20px;
+  max-width: 720px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="dark"] .sib-serp-preview-box,
+body.theme-dark .sib-serp-preview-box {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.sib-serp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sib-serp-engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sib-serp-url-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #202124;
+  margin-bottom: 4px;
+}
+
+html[data-theme="dark"] .sib-serp-url-row,
+body.theme-dark .sib-serp-url-row {
+  color: #94a3b8;
+}
+
+.sib-serp-favicon {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.sib-serp-site-name {
+  font-size: 0.85rem;
+  color: #202124;
+  font-weight: 600;
+}
+
+html[data-theme="dark"] .sib-serp-site-name,
+body.theme-dark .sib-serp-site-name {
+  color: #e2e8f0;
+}
+
+.sib-serp-breadcrumb {
+  font-size: 0.75rem;
+  color: #5f6368;
+}
+
+html[data-theme="dark"] .sib-serp-breadcrumb,
+body.theme-dark .sib-serp-breadcrumb {
+  color: #64748b;
+}
+
+.sib-serp-title {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: #1a0dab;
+  line-height: 1.3;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+
+html[data-theme="dark"] .sib-serp-title,
+body.theme-dark .sib-serp-title {
+  color: #8ab4f8;
+}
+
+.sib-serp-title:hover {
+  text-decoration: underline;
+}
+
+.sib-serp-snippet {
+  font-size: 0.86rem;
+  color: #4d5156;
+  line-height: 1.45;
+  margin: 0;
+}
+
+html[data-theme="dark"] .sib-serp-snippet,
+body.theme-dark .sib-serp-snippet {
+  color: #cbd5e1;
+}
+
+.sib-serp-meta-badges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--admin-border-subtle);
+  font-size: 0.76rem;
+}
+
+.sib-char-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sib-char-ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sib-char-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.sib-char-bad {
+  background: #fee2e2;
+  color: #991b1b;
+}
+</style>
+{% endblock %}
+
+{% block form_top %}
+<!-- Информационный хедер панели настроек -->
+<div class="sib-settings-header">
+  <div class="sib-settings-header-left">
+    <div class="sib-settings-icon-badge">
+      <i class="bi bi-sliders2-vertical"></i>
+    </div>
+    <div>
+      <h2 class="sib-settings-header-title">
+        Настройки сайта, брендинга и реквизитов
+      </h2>
+      <p class="sib-settings-header-subtitle">
+        Централизованный пункт управления параметрами торговой марки «Сибсыр»: логотип, фавикон, витрина, контакты, официальные реквизиты продавца для накладных и антиспам-защита.
+      </p>
+    </div>
+  </div>
+
+  <div class="sib-settings-header-actions">
+    <div class="sib-header-badge" title="Краткое название бренда">
+      <i class="bi bi-tag-fill" style="color: #ff8400;"></i>
+      <span>{{ original.brand_short_name|default:"Сибсыр" }}</span>
+    </div>
+
+    <div class="sib-header-badge {% if original.captcha_enabled %}badge-active{% else %}badge-inactive{% endif %}" title="Глобальный статус капчи">
+      <i class="bi {% if original.captcha_enabled %}bi-shield-check{% else %}bi-shield-x{% endif %}"></i>
+      <span>Капча: {% if original.captcha_enabled %}Включена ({{ original.get_captcha_type_display }}){% else %}Отключена{% endif %}</span>
+    </div>
+
+    <button type="button" class="sib-btn-save-header" id="btn-save-top" title="Сохранить настройки (Ctrl+S)">
+      <i class="bi bi-floppy-fill"></i>
+      <span>Сохранить настройки</span>
+    </button>
+
+    <a href="/" target="_blank" class="sib-btn-view-site" title="Открыть главную страницу сайта в новой вкладке">
+      <i class="bi bi-box-arrow-up-right"></i>
+      <span>Витрина сайта</span>
+    </a>
+  </div>
+</div>
+
+<!-- Навигационные вкладки настроек -->
+<nav class="sib-tabs-nav" aria-label="Разделы настроек">
+  <button type="button" class="sib-tab-btn active" data-tab="tab-pane-branding" id="btn-tab-branding">
+    <i class="bi bi-palette2"></i>
+    <span>1. Брендинг</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-hero" id="btn-tab-hero">
+    <i class="bi bi-image-alt"></i>
+    <span>2. Главный экран</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-catalog" id="btn-tab-catalog">
+    <i class="bi bi-grid-3x3-gap-fill"></i>
+    <span>3. Каталог</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-about" id="btn-tab-about">
+    <i class="bi bi-building"></i>
+    <span>4. О компании</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-delivery" id="btn-tab-delivery">
+    <i class="bi bi-truck"></i>
+    <span>5. Доставка и оплата</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-contacts" id="btn-tab-contacts">
+    <i class="bi bi-telephone-outbound"></i>
+    <span>6. Контакты и карта</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-requisites" id="btn-tab-requisites">
+    <i class="bi bi-bank"></i>
+    <span>7. Реквизиты</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-reviews" id="btn-tab-reviews">
+    <i class="bi bi-chat-heart"></i>
+    <span>8. Отзывы</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-security" id="btn-tab-security">
+    <i class="bi bi-shield-check"></i>
+    <span>9. Защита и капча</span>
+  </button>
+  <button type="button" class="sib-tab-btn" data-tab="tab-pane-seo" id="btn-tab-seo">
+    <i class="bi bi-graph-up-arrow"></i>
+    <span>10. SEO и продвижение</span>
+  </button>
+  <button type="button" class="sib-tab-btn sib-tab-btn-all" data-tab="all" id="btn-tab-all" title="Показать все разделы на одной странице">
+    <i class="bi bi-grid-fill"></i>
+    <span>Все разделы</span>
+  </button>
+</nav>
+
+{{ block.super }}
+{% endblock %}
+
+{% block after_field_sets %}
+<!-- Дополнительные интерактивные виджеты -->
+
+<!-- Виджет интерактивного живого баннера в табе Hero -->
+<div id="sib-hero-live-preview-widget" class="sib-hero-interactive-card tab-pane-hero">
+  <div class="sib-hero-interactive-header">
+    <i class="bi bi-broadcast-pin"></i>
+    <span>Интерактивный предпросмотр первого экрана главной страницы (обновляется на лету)</span>
+  </div>
+  <div class="sib-live-hero-canvas" id="sib-live-canvas" style="background-image: url('{% if original.hero_image %}{{ original.hero_image.url }}{% else %}/static/images/hero_cheese.jpg{% endif %}');">
+    <div class="sib-live-hero-content">
+      <span class="sib-live-badge" id="live-badge-text">{{ original.hero_badge_text|default:"Собственное производство • 100% натуральное молоко" }}</span>
+      <h3 class="sib-live-title" id="live-title-text">{{ original.hero_title|default:"Здесь делают сыр" }}</h3>
+      <p class="sib-live-subtitle" id="live-subtitle-text">{{ original.hero_subtitle|default:"Компания «СибСыр» уже более 25 лет поставляет натуральные сыры..." }}</p>
+      <div class="sib-live-cta">
+        <span id="live-cta-text">{{ original.cta_button_text|default:"Перейти в каталог" }}</span>
+        <i class="bi bi-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Виджет быстрого копирования реквизитов в табе Реквизиты -->
+<div id="sib-req-copy-widget" class="sib-requisites-hint-box tab-pane-requisites">
+  <div class="sib-requisites-hint-text">
+    <i class="bi bi-info-circle-fill"></i>
+    <span><strong>Автоматическая подстановка:</strong> Данные реквизиты автоматически включаются в счета на оплату, накладные ТОРГ-12 и акты приема-передачи.</span>
+  </div>
+  <button type="button" id="btn-copy-requisites" class="sib-btn-copy-req">
+    <i class="bi bi-clipboard"></i>
+    <span id="copy-btn-label">Скопировать реквизиты текстом</span>
+  </button>
+</div>
+
+<!-- Виджет быстрого перехода к соцсетям в табе Контакты -->
+<div id="sib-social-hint-widget" class="sib-requisites-hint-box tab-pane-contacts" style="background: linear-gradient(135deg, rgba(255, 132, 0, 0.08), rgba(2, 132, 199, 0.08)); border: 1px solid rgba(255, 132, 0, 0.25); border-radius: 10px; padding: 12px 18px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+  <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255, 132, 0, 0.15); color: #ff8400; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+      <i class="bi bi-share-fill"></i>
+    </div>
+    <div>
+      <div style="font-weight: 700; color: #0f172a; font-size: 13px;">Социальные сети фабрики (иконки в футере сайта)</div>
+      <div style="color: #64748b; font-size: 12px;">Управляйте ссылками на ВКонтакте, Одноклассники, Instagram, Facebook, LinkedIn, иконками и порядком их отображения.</div>
+    </div>
+  </div>
+  <a href="{% url 'admin:main_sociallink_changelist' %}" target="_blank" class="sib-btn-copy-req" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: #ff8400; color: #fff; border-radius: 6px; font-weight: 600; font-size: 12px; border: none;">
+    <i class="bi bi-sliders"></i>
+    <span>Управление соцсетями &rarr;</span>
+  </a>
+</div>
+
+<!-- Виджет гида по капче в табе Безопасность -->
+<div id="sib-captcha-guide-widget" class="sib-captcha-guide tab-pane-security">
+  <div class="sib-captcha-guide-title">
+    <i class="bi bi-lightbulb-fill" style="color: #ff8400;"></i>
+    <span>Справочник режимов проверки капчи</span>
+  </div>
+  <div class="sib-captcha-cards-grid">
+    <div class="sib-captcha-type-card">
+      <div class="sib-captcha-type-icon">
+        <i class="bi bi-calculator"></i>
+      </div>
+      <div class="sib-captcha-type-body">
+        <h5>Математический пример (14 + 7 = ?)</h5>
+        <p>Идеально для 95% покупателей. Легко решается на смартфонах без опечаток. Максимальная конверсия розничных и оптовых заказов при надежной защите от ботов.</p>
+      </div>
+    </div>
+    <div class="sib-captcha-type-card">
+      <div class="sib-captcha-type-icon">
+        <i class="bi bi-file-image"></i>
+      </div>
+      <div class="sib-captcha-type-body">
+        <h5>Графический код (Картинка с искажением)</h5>
+        <p>Классический буквенно-цифровой код с шумом и линиями. Рекомендуется при подозрительных массовых атаках и спам-рассылках на формы сайта.</p>
+      </div>
+    </div>
+  </div>
+<!-- Виджет панели инструментов SEO и поисковой оптимизации -->
+<div id="sib-seo-dashboard-widget" class="sib-seo-dashboard-card tab-pane-seo" style="display: none;">
+  <div class="sib-seo-banner-header">
+    <div class="sib-seo-header-title-box">
+      <div class="sib-seo-icon-badge">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+      <div>
+        <h4 class="sib-seo-banner-title">Инструменты поискового продвижения (SEO)</h4>
+        <p class="sib-seo-banner-desc">
+          Комплексное управление поисковой оптимизацией, автоматическая генерация мета-тегов, живой предпросмотр сниппета в Google/Яндекс и ссылки на служебные файлы.
+        </p>
+      </div>
+    </div>
+    <div class="sib-seo-actions-row">
+      <button type="button" id="btn-fill-default-seo" class="sib-btn-seo-action sib-btn-seo-primary" title="Заполнить пустые поля SEO рекомендуемыми шаблонами">
+        <i class="bi bi-magic"></i>
+        <span>Авто-заполнение тегов по умолчанию</span>
+      </button>
+      <a href="/sitemap.xml" target="_blank" class="sib-btn-seo-action sib-btn-seo-secondary" title="Открыть XML-карту сайта в новой вкладке">
+        <i class="bi bi-diagram-3"></i>
+        <span>Карта sitemap.xml</span>
+      </a>
+      <a href="/robots.txt" target="_blank" class="sib-btn-seo-action sib-btn-seo-secondary" title="Открыть robots.txt в новой вкладке">
+        <i class="bi bi-robot"></i>
+        <span>Файл robots.txt</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Быстрые ссылки на массовую оптимизацию каталога, категорий и блога -->
+  <div class="sib-seo-links-grid">
+    <a href="{% url 'admin:shop_product_changelist' %}" target="_blank" class="sib-seo-link-card">
+      <div class="sib-seo-link-icon"><i class="bi bi-box-seam"></i></div>
+      <div>
+        <div class="sib-seo-link-title">SEO товаров каталога</div>
+        <div class="sib-seo-link-subtitle">Массовая генерация тегов для товаров</div>
+      </div>
+    </a>
+    <a href="{% url 'admin:shop_category_changelist' %}" target="_blank" class="sib-seo-link-card">
+      <div class="sib-seo-link-icon"><i class="bi bi-tags"></i></div>
+      <div>
+        <div class="sib-seo-link-title">SEO категорий сыров</div>
+        <div class="sib-seo-link-subtitle">Поисковые описания и статьи разделов</div>
+      </div>
+    </a>
+    <a href="{% url 'admin:articles_article_changelist' %}" target="_blank" class="sib-seo-link-card">
+      <div class="sib-seo-link-icon"><i class="bi bi-journal-text"></i></div>
+      <div>
+        <div class="sib-seo-link-title">SEO статей и блога</div>
+        <div class="sib-seo-link-subtitle">Продвижение контента и базы знаний</div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Живой предпросмотр сниппета в поисковиках (SERP Preview) -->
+  <div class="sib-serp-preview-box">
+    <div class="sib-serp-header">
+      <div class="sib-serp-engine-badge">
+        <i class="bi bi-search"></i>
+        <span>Предпросмотр поискового сниппета (Яндекс / Google)</span>
+      </div>
+      <div class="text-muted small" style="font-size: 0.72rem;">Главная страница сайта</div>
+    </div>
+
+    <div class="sib-serp-url-row">
+      <img src="{% if original.favicon %}{{ original.favicon.url }}{% else %}/static/images/favicon.ico{% endif %}" alt="Favicon" class="sib-serp-favicon">
+      <span class="sib-serp-site-name">{{ original.brand_short_name|default:"Сибсыр" }}</span>
+      <span class="sib-serp-breadcrumb">› Главная</span>
+    </div>
+
+    <div class="sib-serp-title" id="serp-live-title" title="Нажмите для перехода на сайт">
+      {{ original.seo_home_title|default:"Сибсыр — Производство натуральных сыров в Омске | ИП Нахшкарян А.Л." }}
+    </div>
+
+    <p class="sib-serp-snippet" id="serp-live-description">
+      {{ original.seo_home_description|default:"Сыродельный завод «Сибсыр» в Омске. Собственное производство натуральных рассольных, мягких и полутвердых сыров, сливочного масла ГОСТ..." }}
+    </p>
+
+    <div class="sib-serp-meta-badges">
+      <span>Заголовок Title: <strong id="serp-title-count">0</strong> симв. <span id="serp-title-badge" class="sib-char-badge sib-char-ok">Оптимально</span></span>
+      <span>Описание Description: <strong id="serp-desc-count">0</strong> симв. <span id="serp-desc-badge" class="sib-char-badge sib-char-ok">Оптимально</span></span>
+    </div>
+  </div>
+</div>
+
+{{ block.super }}
+
+<!-- Скрипт переключения табов, сохранения состояния, горячих клавиш и живого предпросмотра -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const tabButtons = document.querySelectorAll(".sib-tab-btn");
+  const fieldsets = document.querySelectorAll("fieldset.sib-settings-card");
+  const heroLiveWidget = document.getElementById("sib-hero-live-preview-widget");
+  const reqCopyWidget = document.getElementById("sib-req-copy-widget");
+  const captchaGuideWidget = document.getElementById("sib-captcha-guide-widget");
+  const topSaveBtn = document.getElementById("btn-save-top");
+
+  // Клик по кнопке "Сохранить" в верхнем хедере
+  if (topSaveBtn) {
+    topSaveBtn.addEventListener("click", function() {
+      const form = document.getElementById("sitesettings_form");
+      const defaultSave = form ? form.querySelector('input[name="_save"]') : null;
+      if (defaultSave) {
+        defaultSave.click();
+      } else if (form) {
+        form.submit();
+      }
+    });
+  }
+
+  // Горячая клавиша Ctrl+S / Cmd+S для сохранения
+  document.addEventListener("keydown", function(e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "ы" || e.key === "S")) {
+      e.preventDefault();
+      const form = document.getElementById("sitesettings_form");
+      const defaultSave = form ? form.querySelector('input[name="_save"]') : null;
+      if (defaultSave) {
+        defaultSave.click();
+      }
+    }
+  });
+
+  // Функция переключения активной вкладки
+  function switchTab(targetTab) {
+    tabButtons.forEach(btn => {
+      btn.classList.toggle("active", btn.getAttribute("data-tab") === targetTab);
+    });
+
+    fieldsets.forEach(fieldset => {
+      if (targetTab === "all") {
+        fieldset.classList.remove("tab-hidden");
+      } else {
+        fieldset.classList.toggle("tab-hidden", !fieldset.classList.contains(targetTab));
+      }
+    });
+
+    // Управление видимостью вспомогательных виджетов
+    if (heroLiveWidget) {
+      heroLiveWidget.style.display = (targetTab === "tab-pane-hero" || targetTab === "all") ? "block" : "none";
+    }
+    if (reqCopyWidget) {
+      reqCopyWidget.style.display = (targetTab === "tab-pane-requisites" || targetTab === "all") ? "flex" : "none";
+    }
+    if (captchaGuideWidget) {
+      captchaGuideWidget.style.display = (targetTab === "tab-pane-security" || targetTab === "all") ? "block" : "none";
+    }
+    const socialWidget = document.getElementById("sib-social-hint-widget");
+    if (socialWidget) {
+      socialWidget.style.display = (targetTab === "tab-pane-contacts" || targetTab === "all") ? "flex" : "none";
+    }
+    const seoWidget = document.getElementById("sib-seo-dashboard-widget");
+    if (seoWidget) {
+      seoWidget.style.display = (targetTab === "tab-pane-seo" || targetTab === "all") ? "block" : "none";
+    }
+
+    // Оповещение редактора TinyMCE об изменении видимости вкладки
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 50);
+
+    try {
+      sessionStorage.setItem("sib_sitesettings_active_tab", targetTab);
+      window.location.hash = targetTab.replace("tab-pane-", "");
+    } catch(e) {}
+  }
+
+  // Навешиваем клики на кнопки табов
+  tabButtons.forEach(btn => {
+    btn.addEventListener("click", function() {
+      const target = this.getAttribute("data-tab");
+      switchTab(target);
+    });
+  });
+
+  // Восстановление активного таба из URL hash или sessionStorage
+  let initialTab = "tab-pane-branding";
+  const hash = window.location.hash.replace("#", "");
+  if (hash) {
+    const matchingBtn = document.querySelector(`.sib-tab-btn[data-tab="tab-pane-${hash}"]`) || document.querySelector(`.sib-tab-btn[data-tab="${hash}"]`);
+    if (matchingBtn) {
+      initialTab = matchingBtn.getAttribute("data-tab");
+    }
+  } else {
+    const savedTab = sessionStorage.getItem("sib_sitesettings_active_tab");
+    if (savedTab) {
+      initialTab = savedTab;
+    }
+  }
+
+  // Проверка: если в форме есть ошибки валидации, открыть вкладку с ошибкой
+  const firstErrorFieldset = document.querySelector("fieldset.sib-settings-card.errors, fieldset.sib-settings-card:has(.errors)");
+  if (firstErrorFieldset) {
+    const matchedClass = Array.from(firstErrorFieldset.classList).find(c => c.startsWith("tab-pane-"));
+    if (matchedClass) {
+      initialTab = matchedClass;
+    }
+  }
+
+  switchTab(initialTab);
+
+  // Живая синхронизация полей баннера Hero с живым превью
+  const inputTitle = document.getElementById("id_hero_title");
+  const inputSubtitle = document.getElementById("id_hero_subtitle");
+  const inputBadge = document.getElementById("id_hero_badge_text");
+  const inputCta = document.getElementById("id_cta_button_text");
+
+  const liveTitle = document.getElementById("live-title-text");
+  const liveSubtitle = document.getElementById("live-subtitle-text");
+  const liveBadge = document.getElementById("live-badge-text");
+  const liveCta = document.getElementById("live-cta-text");
+
+  if (inputTitle && liveTitle) {
+    inputTitle.addEventListener("input", () => liveTitle.textContent = inputTitle.value || "Здесь делают сыр");
+  }
+  if (inputSubtitle && liveSubtitle) {
+    inputSubtitle.addEventListener("input", () => liveSubtitle.textContent = inputSubtitle.value || "Компания «СибСыр»...");
+  }
+  if (inputBadge && liveBadge) {
+    inputBadge.addEventListener("input", () => liveBadge.textContent = inputBadge.value || "Собственное производство");
+  }
+  if (inputCta && liveCta) {
+    inputCta.addEventListener("input", () => liveCta.textContent = inputCta.value || "Перейти в каталог");
+  }
+
+  // Копирование реквизитов продавца в буфер
+  const copyBtn = document.getElementById("btn-copy-requisites");
+  const copyLabel = document.getElementById("copy-btn-label");
+  if (copyBtn) {
+    copyBtn.addEventListener("click", function() {
+      const getVal = (id) => (document.getElementById(id) ? document.getElementById(id).value.trim() : "");
+      const brand = getVal("id_brand_name") || "ТМ «Сибсыр» ИП Нахшкарян А.Л.";
+      const inn = getVal("id_seller_inn");
+      const ogrn = getVal("id_seller_ogrn");
+      const okpo = getVal("id_seller_okpo");
+      const bank = getVal("id_seller_bank");
+      const bik = getVal("id_seller_bik");
+      const acc = getVal("id_seller_account");
+      const corr = getVal("id_seller_corr_account");
+      const director = getVal("id_seller_director");
+
+      const text = `${brand}
+ИНН: ${inn}
+ОГРНИП: ${ogrn}
+ОКПО: ${okpo}
+Банк: ${bank}
+БИК: ${bik}
+Р/счет: ${acc}
+К/счет: ${corr}
+Руководитель: ${director}`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        copyLabel.textContent = "✓ Реквизиты скопированы!";
+        copyBtn.style.background = "#dcfce7";
+        copyBtn.style.color = "#166534";
+        setTimeout(() => {
+          copyLabel.textContent = "Скопировать реквизиты текстом";
+          copyBtn.style.background = "";
+          copyBtn.style.color = "";
+        }, 2500);
+      }).catch(err => {
+        alert("Не удалось скопировать в буфер: " + err);
+      });
+    });
+  }
+
+  // Live SERP Preview and Character counters
+  const homeTitleInput = document.getElementById("id_seo_home_title");
+  const homeDescInput = document.getElementById("id_seo_home_description");
+  const serpLiveTitle = document.getElementById("serp-live-title");
+  const serpLiveDesc = document.getElementById("serp-live-description");
+  const serpTitleCount = document.getElementById("serp-title-count");
+  const serpDescCount = document.getElementById("serp-desc-count");
+  const serpTitleBadge = document.getElementById("serp-title-badge");
+  const serpDescBadge = document.getElementById("serp-desc-badge");
+
+  function updateSerpCounters() {
+    const titleVal = homeTitleInput ? homeTitleInput.value.trim() : "";
+    const descVal = homeDescInput ? homeDescInput.value.trim() : "";
+
+    if (serpLiveTitle) {
+      serpLiveTitle.textContent = titleVal || "Сибсыр — Производство натуральных сыров в Омске | ИП Нахшкарян А.Л.";
+    }
+    if (serpLiveDesc) {
+      serpLiveDesc.textContent = descVal || "Сыродельный завод «Сибсыр» в Омске. Собственное производство натуральных рассольных, мягких и полутвердых сыров, сливочного масла ГОСТ...";
+    }
+
+    const tLen = titleVal.length;
+    if (serpTitleCount) serpTitleCount.textContent = tLen;
+    if (serpTitleBadge) {
+      if (tLen >= 45 && tLen <= 70) {
+        serpTitleBadge.className = "sib-char-badge sib-char-ok";
+        serpTitleBadge.textContent = "Идеально (50-65)";
+      } else if (tLen > 70) {
+        serpTitleBadge.className = "sib-char-badge sib-char-warn";
+        serpTitleBadge.textContent = "Длинный (обрежется)";
+      } else {
+        serpTitleBadge.className = "sib-char-badge sib-char-warn";
+        serpTitleBadge.textContent = "Короткий";
+      }
+    }
+
+    const dLen = descVal.length;
+    if (serpDescCount) serpDescCount.textContent = dLen;
+    if (serpDescBadge) {
+      if (dLen >= 130 && dLen <= 180) {
+        serpDescBadge.className = "sib-char-badge sib-char-ok";
+        serpDescBadge.textContent = "Идеально (140-170)";
+      } else if (dLen > 180) {
+        serpDescBadge.className = "sib-char-badge sib-char-warn";
+        serpDescBadge.textContent = "Длинный (обрежется)";
+      } else {
+        serpDescBadge.className = "sib-char-badge sib-char-warn";
+        serpDescBadge.textContent = "Короткий";
+      }
+    }
+  }
+
+  if (homeTitleInput) homeTitleInput.addEventListener("input", updateSerpCounters);
+  if (homeDescInput) homeDescInput.addEventListener("input", updateSerpCounters);
+  updateSerpCounters();
+
+  // Автоматическое заполнение рекомендуемых SEO тегов
+  const fillDefaultSeoBtn = document.getElementById("btn-fill-default-seo");
+  if (fillDefaultSeoBtn) {
+    fillDefaultSeoBtn.addEventListener("click", function() {
+      const defaults = {
+        "id_seo_title_template": "{title} — Сибсыр | Производство сыров в Омске",
+        "id_seo_default_description": "Натуральные сыры, сливочное масло ГОСТ и кисломолочная продукция от сыродельного завода «Сибсыр» в Омске. Опт и розница, доставка.",
+        "id_seo_default_keywords": "сыр омск, сибсыр, сулугуни, брынза, адыгейский сыр, масло сливочное гост, оптом сыр",
+        "id_seo_home_title": "Сибсыр — Производство натуральных сыров в Омске | ИП Нахшкарян А.Л.",
+        "id_seo_home_description": "Сыродельный завод «Сибсыр» в Омске. Собственное производство натуральных рассольных, мягких и полутвердых сыров, сливочного масла ГОСТ. Оптовые и розничные поставки.",
+        "id_seo_home_keywords": "сибсыр, сыр омск, производство сыра, сулугуни омск, адыгейский сыр омск, сыроварня омск, купить сыр оптом",
+        "id_seo_catalog_title": "Каталог натуральных сыров и молочной продукции — Сибсыр Омск",
+        "id_seo_catalog_description": "Полный каталог сыров ТМ «Сибсыр»: сулугуни, брынза, чечил, адыгейский, сливочное масло ГОСТ, тан и айран. Прямые поставки с завода в Омске.",
+        "id_seo_catalog_keywords": "каталог сыров, сыры омск каталог, сулугуни купить, брынза купить, масло сливочное гост",
+        "id_seo_categories_title": "Все категории продукции ТМ «Сибсыр» — Сыродельный завод Омск",
+        "id_seo_categories_description": "Категории продукции: рассольные и мягкие сыры, сливочное масло, кисломолочные напитки и плавленые продукты завода «Сибсыр».",
+        "id_seo_categories_keywords": "категории сыров, рассольные сыры, мягкие сыры, тан айран, масло сливочное",
+        "id_seo_about_title": "О заводе ТМ «Сибсыр» — 25 лет традиций сибирского сыроделия | Омск",
+        "id_seo_about_description": "История и производство завода «Сибсыр» (ИП Нахшкарян А.Л.) в Омске. Натуральное цельное молоко, контроль ХАССП и ФГИС «Меркурий».",
+        "id_seo_about_keywords": "о компании сибсыр, сыродельный завод омск, нахшкарян, производство сыра омск",
+        "id_seo_delivery_title": "Доставка и оплата продукции ТМ «Сибсыр» — Собственные авторефрижераторы",
+        "id_seo_delivery_description": "Условия доставки и оплаты сыров и молочной продукции по Омску и регионам РФ. Контроль температуры +2...+4°C, самовывоз с завода.",
+        "id_seo_delivery_keywords": "доставка сыра омск, оптовые поставки сыра, рефрижератор доставка продуктов",
+        "id_seo_contacts_title": "Контакты сыродельного предприятия ТМ «Сибсыр» в Омске — Адрес, телефон, реквизиты",
+        "id_seo_contacts_description": "Контакты завода «Сибсыр»: г. Омск, ул. Зеленая 16. Отдел сбыта 8(3812)43-35-36, оптовый отдел, схема проезда и реквизиты компании.",
+        "id_seo_contacts_keywords": "контакты сибсыр, адрес сибсыр омск, телефон отдела продаж сыра",
+        "id_seo_reviews_title": "Отзывы клиентов и партнеров о продукции ТМ «Сибсыр»",
+        "id_seo_reviews_description": "Честные отзывы покупателей и торговых партнеров о сырах, масле и сервисе завода «Сибсыр». Высокие оценки качества и свежести.",
+        "id_seo_reviews_keywords": "сибсыр отзывы, отзывы о сыре сибсыр, сыр омск отзывы",
+        "id_seo_articles_title": "База знаний и статьи о сыроделии — Блог экспертов «Сибсыр»",
+        "id_seo_articles_description": "Полезные статьи о сортах сыра, правилах выбора, хранении и кулинарных рецептах от мастеров-технологов ТМ «Сибсыр».",
+        "id_seo_articles_keywords": "статьи о сыре, польза сыра, как хранить сыр, рецепты с сулугуни"
+      };
+
+      let filledCount = 0;
+      for (const [id, val] of Object.entries(defaults)) {
+        const input = document.getElementById(id);
+        if (input && (!input.value || input.value.trim() === "")) {
+          input.value = val;
+          filledCount++;
+        }
+      }
+
+      updateSerpCounters();
+      if (filledCount > 0) {
+        alert(`⚡ Автоматически заполнено полей: ${filledCount}. Не забудьте нажать «Сохранить настройки»!`);
+      } else {
+        if (confirm("Все SEO-поля уже заполнены. Перезаписать их стандартными рекомендуемыми значениями?")) {
+          for (const [id, val] of Object.entries(defaults)) {
+            const input = document.getElementById(id);
+            if (input) input.value = val;
+          }
+          updateSerpCounters();
+          alert("⚡ Все SEO-поля успешно обновлены рекомендуемыми шаблонами. Нажмите «Сохранить настройки»!");
+        }
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

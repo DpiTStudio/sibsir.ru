@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}История покупок и заказов — {{ profile.display_name }} | Сибсыр{% endblock %}
+{% block meta_description %}Полная история покупок ремесленных сыров, статус доставки, электронные чеки, счета и накладные ТОРГ-12.{% endblock %}
+
+{% block content %}
+<div class="account-orders-wrapper py-5" style="background: #f8fafc; min-height: 85vh;">
+    <div class="container">
+        
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="{% url 'main:index' %}" class="text-decoration-none text-muted">Главная</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-decoration-none text-muted">Личный кабинет</a></li>
+                <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">История покупок</li>
+            </ol>
+        </nav>
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-bag-check-fill text-warning"></i>
+                    <span>История покупок и заказов</span>
+                </h2>
+                <p class="text-muted small mb-0">Всего покупок: <strong class="text-dark">{{ total_orders_count }}</strong> на общую сумму <strong class="text-dark">{{ profile.get_total_spent }} ₽</strong></p>
+            </div>
+            <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-plus-circle"></i>
+                <span>Новый заказ в каталоге</span>
+            </a>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 mb-4 bg-white">
+            <div class="row g-3 align-items-center">
+                <!-- Status Pills -->
+                <div class="col-12 col-md-7">
+                    <div class="nav nav-pills gap-1" id="orderFilterPills">
+                        <a href="{% url 'accounts:orders' %}?status=all" class="nav-link rounded-pill py-2 px-3 small fw-semibold {% if status_filter == 'all' %}active bg-warning text-dark shadow-sm{% else %}text-muted{% endif %}">
+                            Все ({{ total_orders_count }})
+                        </a>
+                        <a href="{% url 'accounts:orders' %}?status=active" class="nav-link rounded-pill py-2 px-3 small fw-semibold {% if status_filter == 'active' %}active bg-info text-dark shadow-sm{% else %}text-muted{% endif %}">
+                            Активные / В обработке
+                        </a>
+                        <a href="{% url 'accounts:orders' %}?status=completed" class="nav-link rounded-pill py-2 px-3 small fw-semibold {% if status_filter == 'completed' %}active bg-success text-white shadow-sm{% else %}text-muted{% endif %}">
+                            Выполненные
+                        </a>
+                        <a href="{% url 'accounts:orders' %}?status=cancelled" class="nav-link rounded-pill py-2 px-3 small fw-semibold {% if status_filter == 'cancelled' %}active bg-danger text-white shadow-sm{% else %}text-muted{% endif %}">
+                            Отмененные
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Search form -->
+                <div class="col-12 col-md-5">
+                    <form method="GET" action="{% url 'accounts:orders' %}">
+                        {% if status_filter != 'all' %}
+                        <input type="hidden" name="status" value="{{ status_filter }}">
+                        {% endif %}
+                        <div class="input-group">
+                            <input type="text" name="q" value="{{ query }}" class="form-control rounded-start-pill px-3 small" placeholder="Поиск по номеру заказа или товару...">
+                            <button class="btn btn-outline-secondary rounded-end-pill px-3" type="submit">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if orders %}
+        <div class="d-flex flex-column gap-4">
+            {% for order in orders %}
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <!-- Order Header -->
+                <div class="p-3 px-md-4 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2" style="background: #f8fafc;">
+                    <div class="d-flex flex-wrap align-items-center gap-3">
+                        <span class="fs-5 fw-bold text-dark">
+                            Заказ #{{ order.id }}
+                        </span>
+                        <span class="text-muted small">
+                            от {{ order.created_at|date:"d E Y в H:i" }}
+                        </span>
+                        {% if order.status == 'new' %}
+                            <span class="badge rounded-pill bg-primary px-3 py-1">Новый</span>
+                        {% elif order.status == 'processing' %}
+                            <span class="badge rounded-pill bg-info text-dark px-3 py-1">В обработке</span>
+                        {% elif order.status == 'confirmed' %}
+                            <span class="badge rounded-pill bg-warning text-dark px-3 py-1">Подтвержден</span>
+                        {% elif order.status == 'shipped' %}
+                            <span class="badge rounded-pill bg-primary px-3 py-1">Отгружен / В пути</span>
+                        {% elif order.status == 'completed' %}
+                            <span class="badge rounded-pill bg-success px-3 py-1">Выполнен</span>
+                        {% elif order.status == 'cancelled' %}
+                            <span class="badge rounded-pill bg-danger px-3 py-1">Отменен</span>
+                        {% endif %}
+
+                        {% if order.is_paid %}
+                            <span class="badge rounded-pill bg-success-subtle text-success px-2 py-1 small">
+                                <i class="bi bi-check2-circle me-1"></i>Оплачен
+                            </span>
+                        {% else %}
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary px-2 py-1 small">
+                                Ожидает оплаты
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="text-end">
+                        <div class="fs-5 fw-bold" style="color: #ff8400;">{{ order.total_price }} ₽</div>
+                    </div>
+                </div>
+
+                <!-- Order Body: Items list -->
+                <div class="card-body p-3 p-md-4">
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-8">
+                            <h6 class="small fw-bold text-muted text-uppercase mb-3">Состав заказа ({{ order.get_items_count }} поз.)</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <tbody class="small">
+                                        {% for item in order.get_order_items %}
+                                        <tr>
+                                            <td class="ps-0" style="width: 40px;">
+                                                <div class="rounded-circle d-flex align-items-center justify-content-center text-warning" style="width: 32px; height: 32px; background: #fff8f1;">
+                                                    <i class="bi bi-box-seam"></i>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="fw-semibold text-dark">{{ item.title }}</div>
+                                            </td>
+                                            <td class="text-center text-muted">
+                                                {{ item.quantity }} {{ item.unit|default:"шт." }}
+                                            </td>
+                                            <td class="text-end text-muted">
+                                                {{ item.price }} ₽
+                                            </td>
+                                            <td class="text-end fw-bold text-dark pe-0">
+                                                {{ item.total }} ₽
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {% if order.delivery_address %}
+                            <div class="mt-3 pt-3 border-top small text-muted d-flex align-items-start gap-2">
+                                <i class="bi bi-geo-alt-fill text-danger mt-1"></i>
+                                <div>
+                                    <span class="fw-semibold text-dark">Адрес доставки:</span> {{ order.delivery_address }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if order.comment %}
+                            <div class="mt-2 small text-muted d-flex align-items-start gap-2">
+                                <i class="bi bi-chat-left-dots text-primary mt-1"></i>
+                                <div>
+                                    <span class="fw-semibold text-dark">Комментарий:</span> {{ order.comment }}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Order Summary & Document Actions -->
+                        <div class="col-12 col-lg-4 border-start-lg ps-lg-4">
+                            <div class="p-3 rounded-4 mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">Стоимость:</span>
+                                    <span class="fw-semibold text-dark">{{ order.subtotal_price|default:order.total_price }} ₽</span>
+                                </div>
+                                {% if order.discount_amount > 0 %}
+                                <div class="d-flex justify-content-between small mb-1 text-success">
+                                    <span>Скидка{% if order.promocode_code %} ({{ order.promocode_code }}){% endif %}:</span>
+                                    <span class="fw-bold">-{{ order.discount_amount }} ₽</span>
+                                </div>
+                                {% endif %}
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span class="text-muted">Способ оплаты:</span>
+                                    <span class="fw-semibold text-dark">{{ order.get_payment_method_display }}</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold text-dark">Итого:</span>
+                                    <span class="fs-5 fw-bold" style="color: #ff8400;">{{ order.total_price }} ₽</span>
+                                </div>
+                            </div>
+
+                            <!-- Document Downloads -->
+                            <div class="d-flex flex-column gap-2">
+                                <span class="small fw-bold text-muted mb-1">
+                                    <i class="bi bi-printer text-warning me-1"></i>Документы к заказу:
+                                </span>
+
+                                {% if order.is_legal or profile.is_legal %}
+                                <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='bill' %}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill py-2 text-start d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-file-earmark-text me-2"></i>Счет на оплату</span>
+                                    <i class="bi bi-arrow-up-right small"></i>
+                                </a>
+                                <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='torg12' %}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill py-2 text-start d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-file-earmark-spreadsheet me-2"></i>Товарная накладная (ТОРГ-12)</span>
+                                    <i class="bi bi-arrow-up-right small"></i>
+                                </a>
+                                <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='waybill' %}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill py-2 text-start d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-truck me-2"></i>Транспортная накладная</span>
+                                    <i class="bi bi-arrow-up-right small"></i>
+                                </a>
+                                {% endif %}
+
+                                <a href="{% url 'shop:order_token_doc' token=order.order_token doc_type='receipt' %}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill py-2 text-start d-flex align-items-center justify-content-between">
+                                    <span><i class="bi bi-receipt me-2"></i>Электронный товарный чек</span>
+                                    <i class="bi bi-printer small"></i>
+                                </a>
+
+                                <a href="{% url 'accounts:order_detail' order.id %}" class="btn btn-sm btn-dark rounded-pill py-2 mt-2 fw-semibold text-center">
+                                    <i class="bi bi-eye me-1"></i>Карточка заказа подробно
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center bg-white">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-muted mx-auto mb-3" style="width: 72px; height: 72px;">
+                <i class="bi bi-search fs-2"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">Заказы не найдены</h5>
+            <p class="text-muted small mb-4">
+                {% if query %}
+                По запросу «{{ query }}» ничего не найдено. Попробуйте изменить параметры поиска.
+                {% else %}
+                В выбранной категории пока нет заказов.
+                {% endif %}
+            </p>
+            <div>
+                <a href="{% url 'accounts:orders' %}" class="btn btn-outline-secondary rounded-pill px-4 py-2 me-2 small">
+                    Сбросить фильтры
+                </a>
+                <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-bold small">
+                    В каталог продукции
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,463 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Поиск: {% if query %}{{ query }}{% else %}Каталог продукции{% endif %} — {{ site_settings.brand_short_name|default:"Сибсыр" }}{% endblock %}
+
+{% block content %}
+<div class="search-page-wrapper py-4 py-lg-5">
+    <div class="container">
+
+        <!-- 1. BREADCRUMBS -->
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+                <li class="breadcrumb-item"><a href="{% url 'main:index' %}" class="text-decoration-none text-muted"><i class="bi bi-house-door me-1"></i>Главная</a></li>
+                <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Поиск по сайту и каталогу</li>
+            </ol>
+        </nav>
+
+        <!-- 2. SEARCH HEADER & FORM -->
+        <div class="search-hero-box p-4 p-md-5 rounded-4 mb-4 mb-lg-5 shadow-sm">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold text-uppercase mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">
+                        <i class="bi bi-search me-1"></i> Единый поиск
+                    </span>
+                    <h1 class="h2 fw-bold text-dark mb-2">Поиск по каталогу и сайту «Сибсыр»</h1>
+                    <p class="text-muted mb-4">Быстрый поиск среди всех сортов сыра, фасовок, сливочного масла, кисломолочной продукции и статей о производстве</p>
+                    
+                    <!-- Search Input Group -->
+                    <form action="{% url 'main:search' %}" method="GET" class="search-page-form position-relative">
+                        <div class="input-group input-group-lg search-input-group shadow-sm rounded-pill overflow-hidden border">
+                            <span class="input-group-text bg-white border-0 ps-3 ps-md-4 text-warning">
+                                <i class="bi bi-search fs-5"></i>
+                            </span>
+                            <input type="text" 
+                                   name="q" 
+                                   id="searchPageInput"
+                                   value="{{ query }}" 
+                                   class="form-control border-0 px-2 py-3 fs-6" 
+                                   placeholder="Введите название сыра, жирность, фасовку или статью..." 
+                                   autocomplete="off"
+                                   autofocus>
+                            {% if query %}
+                            <button type="button" class="btn bg-white border-0 text-muted px-2" onclick="clearSearchPageInput()" title="Очистить">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-sib-orange px-4 fw-bold" type="submit">
+                                <span>Найти</span>
+                                <i class="bi bi-arrow-right ms-1 d-none d-sm-inline"></i>
+                            </button>
+                        </div>
+
+                        <!-- Preserve Filters on search submit -->
+                        {% if selected_category %}
+                            <input type="hidden" name="category" value="{{ selected_category }}">
+                        {% endif %}
+                        {% if sort_by and sort_by != 'relevance' %}
+                            <input type="hidden" name="sort" value="{{ sort_by }}">
+                        {% endif %}
+                        {% if active_tab and active_tab != 'all' %}
+                            <input type="hidden" name="tab" value="{{ active_tab }}">
+                        {% endif %}
+                    </form>
+
+                    <!-- Popular Query Chips -->
+                    <div class="d-flex flex-wrap align-items-center gap-2 mt-3 pt-1">
+                        <span class="small text-muted fw-semibold me-1">Популярные запросы:</span>
+                        {% for tag in popular_queries %}
+                            <a href="{% url 'main:search' %}?q={{ tag|urlencode }}" 
+                               class="search-tag-chip {% if query|lower == tag|lower %}active{% endif %}">
+                                {{ tag }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="col-lg-4 d-none d-lg-block text-center">
+                    <div class="search-promo-card p-4 rounded-4 bg-white border border-warning-subtle text-center shadow-sm">
+                        <div class="search-promo-icon mb-2">
+                            <i class="bi bi-patch-check-fill text-warning fs-1"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">Собственное производство</h6>
+                        <p class="text-muted small mb-0">Более 45 видов натуральных сыров и молочной продукции в наличии с доставкой по Омску и РФ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if query %}
+            <!-- 3. SEARCH RESULTS BAR & TABS -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 pb-2 border-bottom">
+                <div>
+                    <h2 class="h5 fw-bold text-dark mb-1">
+                        Результаты по запросу: <span class="text-warning-emphasis">«{{ query }}»</span>
+                    </h2>
+                    <p class="text-muted small mb-0">
+                        Найдено: <strong>{{ total_count }}</strong> 
+                        {% if total_count == 1 %}результат{% elif total_count >= 2 and total_count <= 4 %}результата{% else %}результатов{% endif %}
+                        (товаров: {{ products_count }}, категорий: {{ categories_count }}, статей: {{ articles_count }})
+                    </p>
+                </div>
+
+                <!-- Sort & Category Filter Controls -->
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <!-- Category Filter Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-funnel me-1"></i>
+                            {% if selected_category_obj %}
+                                {{ selected_category_obj.name }}
+                            {% else %}
+                                Все категории
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-4 p-2" style="min-width: 220px;">
+                            <li>
+                                <a class="dropdown-item rounded-3 py-2 small {% if not selected_category %}active fw-bold{% endif %}" 
+                                   href="{% url 'main:search' %}?q={{ query|urlencode }}&sort={{ sort_by }}&tab={{ active_tab }}">
+                                    Все категории
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider my-1"></li>
+                            {% for cat in all_categories %}
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 small {% if selected_category == cat.slug %}active fw-bold{% endif %}" 
+                                       href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ cat.slug }}&sort={{ sort_by }}&tab={{ active_tab }}">
+                                        {{ cat.name }}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Sort Dropdown -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm rounded-pill dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-sort-down me-1"></i>
+                            {% if sort_by == 'price_asc' %}
+                                Сначала дешевле
+                            {% elif sort_by == 'price_desc' %}
+                                Сначала дороже
+                            {% elif sort_by == 'name_asc' %}
+                                По названию (А-Я)
+                            {% elif sort_by == 'name_desc' %}
+                                По названию (Я-А)
+                            {% else %}
+                                По релевантности
+                            {% endif %}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-4 p-2" style="min-width: 200px;">
+                            <li>
+                                <a class="dropdown-item rounded-3 py-2 small {% if sort_by == 'relevance' %}active fw-bold{% endif %}" 
+                                   href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&tab={{ active_tab }}&sort=relevance">
+                                    По релевантности
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item rounded-3 py-2 small {% if sort_by == 'price_asc' %}active fw-bold{% endif %}" 
+                                   href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&tab={{ active_tab }}&sort=price_asc">
+                                    Сначала дешевле
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item rounded-3 py-2 small {% if sort_by == 'price_desc' %}active fw-bold{% endif %}" 
+                                   href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&tab={{ active_tab }}&sort=price_desc">
+                                    Сначала дороже
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item rounded-3 py-2 small {% if sort_by == 'name_asc' %}active fw-bold{% endif %}" 
+                                   href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&tab={{ active_tab }}&sort=name_asc">
+                                    По названию (А-Я)
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. NAVIGATION TABS: ALL / PRODUCTS / CATEGORIES / ARTICLES -->
+            <ul class="nav nav-pills search-tabs mb-4 gap-2">
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-3 py-2 {% if active_tab == 'all' %}active{% endif %}" 
+                       href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&sort={{ sort_by }}&tab=all">
+                        <i class="bi bi-grid-fill me-1"></i> Все результаты 
+                        <span class="badge bg-light text-dark rounded-pill ms-1">{{ total_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-3 py-2 {% if active_tab == 'products' %}active{% endif %}" 
+                       href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&sort={{ sort_by }}&tab=products">
+                        <i class="bi bi-bag-check-fill me-1"></i> Товары 
+                        <span class="badge bg-light text-dark rounded-pill ms-1">{{ products_count }}</span>
+                    </a>
+                </li>
+                {% if categories_count > 0 %}
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-3 py-2 {% if active_tab == 'categories' %}active{% endif %}" 
+                       href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&sort={{ sort_by }}&tab=categories">
+                        <i class="bi bi-tag-fill me-1"></i> Категории 
+                        <span class="badge bg-light text-dark rounded-pill ms-1">{{ categories_count }}</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% if articles_count > 0 %}
+                <li class="nav-item">
+                    <a class="nav-link rounded-pill px-3 py-2 {% if active_tab == 'articles' %}active{% endif %}" 
+                       href="{% url 'main:search' %}?q={{ query|urlencode }}&category={{ selected_category }}&sort={{ sort_by }}&tab=articles">
+                        <i class="bi bi-journal-text me-1"></i> Статьи 
+                        <span class="badge bg-light text-dark rounded-pill ms-1">{{ articles_count }}</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- 5. NO RESULTS STATE -->
+            {% if total_count == 0 %}
+                <div class="search-empty-card p-5 text-center rounded-4 bg-white border shadow-sm my-4">
+                    <div class="empty-icon-wrap mb-3">
+                        <i class="bi bi-search text-warning" style="font-size: 3.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-2">По запросу «{{ query }}» ничего не найдено</h3>
+                    <p class="text-muted mx-auto mb-4" style="max-width: 540px;">
+                        Мы проверили каталог продукции, категории и статьи, но совпадений не обнаружено. 
+                        Попробуйте сократить запрос, проверить правильность написания или выбрать нужную категорию.
+                    </p>
+                    <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                        {% for tag in popular_queries %}
+                            <a href="{% url 'main:search' %}?q={{ tag|urlencode }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                                {{ tag }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange px-4 py-2">
+                        <i class="bi bi-grid-fill me-1"></i> Перейти в полный каталог
+                    </a>
+                </div>
+            {% endif %}
+
+            <!-- 6. CATEGORIES RESULTS (If tab == all or categories) -->
+            {% if categories and active_tab == 'all' or active_tab == 'categories' %}
+                {% if categories_count > 0 %}
+                <div class="search-category-section mb-5">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h3 class="h5 fw-bold text-dark mb-0">
+                            <i class="bi bi-tag text-warning me-2"></i>Категории каталога ({{ categories_count }})
+                        </h3>
+                    </div>
+                    <div class="row g-3">
+                        {% for cat in categories %}
+                            <div class="col-sm-6 col-md-4 col-lg-3">
+                                <a href="{% url 'main:search' %}?category={{ cat.slug }}" class="search-cat-card p-3 rounded-4 bg-white border text-decoration-none d-flex align-items-center gap-3 transition">
+                                    <div class="cat-icon-badge">
+                                        <i class="bi {{ cat.icon|default:'bi-grid-fill' }}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-dark mb-1">{{ cat.name }}</h6>
+                                        <span class="small text-muted">{{ cat.products.count }} товаров</span>
+                                    </div>
+                                    <i class="bi bi-chevron-right ms-auto text-muted small"></i>
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- 7. PRODUCTS GRID RESULTS (If tab == all or products) -->
+            {% if products and active_tab == 'all' or active_tab == 'products' %}
+                {% if products_count > 0 %}
+                <div class="search-products-section mb-5">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h3 class="h5 fw-bold text-dark mb-0">
+                            <i class="bi bi-bag-check text-warning me-2"></i>Товары каталога ({{ products_count }})
+                        </h3>
+                        <span class="text-muted small">Добавьте в корзину или оформите быстрый заказ</span>
+                    </div>
+
+                    <div class="row g-3 g-md-4">
+                        {% for prod in products %}
+                            <div class="col-sm-6 col-md-4 col-lg-3">
+                                <div class="product-card h-100 d-flex flex-column">
+                                    {% if prod.effective_badge %}
+                                        <div class="product-badge-float {% if prod.has_discount %}product-badge-sale{% endif %}">
+                                            {% if prod.has_discount %}<i class="bi bi-fire me-1"></i>{% endif %}{{ prod.effective_badge }}
+                                        </div>
+                                    {% endif %}
+                                    <a href="{% url 'main:product_detail' slug=prod.slug %}" class="product-img-holder text-decoration-none">
+                                        <img src="{{ prod.image_url }}" alt="{{ prod.title }}" loading="lazy">
+                                    </a>
+                                    <div class="product-body d-flex flex-column flex-grow-1">
+                                        <span class="product-category-sub">{{ prod.category.name|default:"Сибсыр" }}</span>
+                                        <h3 class="product-title" title="{{ prod.title }}">
+                                            <a href="{% url 'main:product_detail' slug=prod.slug %}">
+                                                {{ prod.title }}
+                                            </a>
+                                        </h3>
+                                        
+                                        <!-- Product Specs -->
+                                        <div class="product-specs-list mt-auto">
+                                            {% if prod.fat_content %}
+                                                <div class="product-spec-row">
+                                                    <span>Жирность (м.д.ж.):</span>
+                                                    <strong>{{ prod.fat_content }}</strong>
+                                                </div>
+                                            {% endif %}
+                                            {% if prod.unit_weight %}
+                                                <div class="product-spec-row">
+                                                    <span>Фасовка:</span>
+                                                    <strong>{{ prod.unit_weight }}</strong>
+                                                </div>
+                                            {% endif %}
+                                            {% if prod.package_type %}
+                                                <div class="product-spec-row">
+                                                    <span>Упаковка:</span>
+                                                    <strong>{{ prod.package_type }}</strong>
+                                                </div>
+                                            {% endif %}
+                                            {% if prod.shelf_life %}
+                                                <div class="product-spec-row">
+                                                    <span>Срок годности:</span>
+                                                    <strong>{{ prod.shelf_life }}</strong>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="product-footer mt-3">
+                                            <div>
+                                                <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                                {% if prod.has_discount and prod.effective_old_price_numeric > 0 %}
+                                                    <div class="d-flex align-items-baseline gap-2">
+                                                        <span class="product-price-val text-danger fw-bold">{{ prod.effective_price_display }}</span>
+                                                        <span class="product-price-old">{{ prod.effective_old_price_numeric }} ₽</span>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="product-price-val">{{ prod.effective_price_display }}</span>
+                                                {% endif %}
+                                                {% if prod.effective_wholesale_price_display %}
+                                                    <div class="mt-1" title="Оптовая цена {{ prod.wholesale_min_qty|default:'оптом' }}">
+                                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem; font-weight: 600;">
+                                                            <i class="bi bi-box-seam me-1"></i>Опт: {{ prod.effective_wholesale_price_display }}
+                                                        </span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="d-flex align-items-center gap-1">
+                                                <button type="button" class="btn btn-card-share" 
+                                                        onclick="openShareModal('{{ prod.title|escapejs }}', '{% url 'main:product_detail' slug=prod.slug %}', '{{ prod.description|default:prod.full_description|truncatewords:15|escapejs }}')"
+                                                        title="Поделиться в мессенджерах">
+                                                    <i class="bi bi-share"></i>
+                                                </button>
+                                                <button class="btn btn-card-cart" 
+                                                        onclick="addToCart('{{ prod.title|escapejs }}', '{{ prod.effective_price_display|escapejs }}', '{{ prod.image_url|escapejs }}', {{ prod.effective_price_numeric|default:prod.price_numeric }})"
+                                                        title="Добавить в корзину">
+                                                    <i class="bi bi-cart-plus"></i>
+                                                </button>
+                                                <a href="{% url 'main:product_detail' slug=prod.slug %}" class="btn btn-card-detail" title="Подробнее">
+                                                    <span>Детали</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+            <!-- 8. ARTICLES RESULTS (If tab == all or articles) -->
+            {% if articles and active_tab == 'all' or active_tab == 'articles' %}
+                {% if articles_count > 0 %}
+                <div class="search-articles-section mb-5">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h3 class="h5 fw-bold text-dark mb-0">
+                            <i class="bi bi-journal-richtext text-warning me-2"></i>Статьи и полезные материалы ({{ articles_count }})
+                        </h3>
+                    </div>
+                    <div class="row g-3 g-md-4">
+                        {% for art in articles %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="article-card h-100 d-flex flex-column">
+                                    <div class="article-img-wrap">
+                                        <img src="{{ art.image_url }}" alt="{{ art.title }}" loading="lazy">
+                                    </div>
+                                    <div class="article-body d-flex flex-column flex-grow-1">
+                                        <div class="article-date-row">
+                                            <i class="bi bi-calendar3"></i>
+                                            <span>{{ art.date_str }}</span>
+                                            <span class="mx-1">•</span>
+                                            <i class="bi bi-eye"></i>
+                                            <span>{{ art.views_count }} просмотров</span>
+                                        </div>
+                                        <h3 class="article-title">
+                                            <a href="{% url 'main:article_detail' art.slug %}" class="text-dark text-decoration-none">
+                                                {{ art.title }}
+                                            </a>
+                                        </h3>
+                                        <p class="article-snippet flex-grow-1">{{ art.snippet }}</p>
+                                        <div class="d-flex align-items-center justify-content-between mt-auto pt-2">
+                                            <a href="{% url 'main:article_detail' art.slug %}" class="btn-read-article">
+                                                <span>Читать статью</span>
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-light rounded-pill px-2 py-0 text-muted border-0" 
+                                                    onclick="openArticleModal('{{ art.slug }}')" 
+                                                    title="Быстрый предпросмотр">
+                                                <i class="bi bi-arrows-angle-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            {% endif %}
+
+        {% else %}
+            <!-- Initial State without query -->
+            <div class="search-start-box p-5 text-center rounded-4 bg-white border shadow-sm">
+                <i class="bi bi-compass text-warning" style="font-size: 3.5rem;"></i>
+                <h3 class="fw-bold text-dark mt-3 mb-2">Начните поиск по каталогу «Сибсыр»</h3>
+                <p class="text-muted mx-auto mb-4" style="max-width: 500px;">
+                    Введите наименование сыра, сорт, массовую долю жира (например, «45%» или «82.5%») или выберите популярный запрос ниже.
+                </p>
+                <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+                    {% for tag in popular_queries %}
+                        <a href="{% url 'main:search' %}?q={{ tag|urlencode }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold">
+                            <i class="bi bi-search me-1 small"></i> {{ tag }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <div class="mt-4 pt-3 border-top">
+                    <span class="small text-muted d-block mb-2">Или перейдите к основным категориям:</span>
+                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                        {% for cat in all_categories %}
+                            <a href="{% url 'main:search' %}?category={{ cat.slug }}" class="badge bg-light text-secondary text-decoration-none px-3 py-2 rounded-pill border">
+                                {{ cat.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<script>
+    function clearSearchPageInput() {
+        const inp = document.getElementById('searchPageInput');
+        if (inp) {
+            inp.value = '';
+            inp.focus();
+        }
+    }
+</script>
+{% endblock %}

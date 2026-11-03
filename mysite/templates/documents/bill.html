@@ -1,0 +1,297 @@
+{% extends "documents/base_doc.html" %}
+
+{% block doc_title %}Счет на оплату № {{ order.id }} — «Сибсыр»{% endblock %}
+
+{% block extra_head %}
+<style>
+    .bill-sheet {
+        background: #ffffff;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: #0f172a;
+        line-height: 1.4;
+    }
+
+    .bill-bank-sample {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 11px;
+    }
+
+    .bill-bank-sample td {
+        border: 1px solid #000;
+        padding: 5px 8px;
+        vertical-align: top;
+    }
+
+    .bill-bank-sample .lbl {
+        font-size: 9px;
+        color: #555;
+    }
+
+    .bill-title {
+        font-size: 18px;
+        font-weight: 800;
+        margin: 20px 0 15px 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #000;
+    }
+
+    .bill-party-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 12px;
+    }
+
+    .bill-party-table td {
+        padding: 4px 0;
+        vertical-align: top;
+    }
+
+    .bill-party-table td.lbl {
+        width: 120px;
+        font-weight: bold;
+        color: #475569;
+    }
+
+    .bill-items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 15px;
+        font-size: 12px;
+    }
+
+    .bill-items-table th, .bill-items-table td {
+        border: 1px solid #000;
+        padding: 6px 8px;
+    }
+
+    .bill-items-table th {
+        background: #f1f5f9;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .bill-items-table td.num {
+        text-align: right;
+    }
+
+    .bill-items-table td.center {
+        text-align: center;
+    }
+
+    .bill-totals-table {
+        width: 350px;
+        margin-left: auto;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .bill-totals-table td {
+        padding: 4px 8px;
+    }
+
+    .bill-totals-table td.val {
+        text-align: right;
+        font-weight: bold;
+    }
+
+    .bill-words {
+        margin: 15px 0 25px 0;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .bill-signatures {
+        margin-top: 35px;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 12px;
+    }
+
+    .bill-sig-line {
+        display: inline-block;
+        border-bottom: 1px solid #000;
+        width: 160px;
+        margin: 0 6px;
+    }
+
+    @media print {
+        .bill-items-table th {
+            background: #eee !important;
+            -webkit-print-color-adjust: exact;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="doc-wrapper">
+    <div class="bill-sheet">
+
+        <!-- PAYMENT SAMPLE BANK GRID -->
+        <div style="font-size: 10px; color: #555; margin-bottom: 4px;">Внимание! Оплата данного счета означает согласие с условиями поставки товара.</div>
+        <table class="bill-bank-sample">
+            <tr>
+                <td colspan="2" style="width: 55%; height: 45px;">
+                    <div>{{ site_settings.seller_bank|default:"ПАО СБЕРБАНК г. Омск" }}</div>
+                    <span class="lbl">Банк получателя</span>
+                </td>
+                <td style="width: 15%;">
+                    <div>БИК</div>
+                    <div>Сч. №</div>
+                </td>
+                <td style="width: 30%;">
+                    <div><strong>{{ site_settings.seller_bik|default:"045209673" }}</strong></div>
+                    <div><strong>{{ site_settings.seller_corr_account|default:"30101810900000000673" }}</strong></div>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 25%;">
+                    <div>ИНН {{ site_settings.seller_inn|default:"550119874521" }}</div>
+                </td>
+                <td style="width: 30%;">
+                    <div>КПП —</div>
+                </td>
+                <td rowspan="2">
+                    <div>Сч. №</div>
+                </td>
+                <td rowspan="2">
+                    <div><strong>{{ site_settings.seller_account|default:"40802810445000012345" }}</strong></div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="height: 40px;">
+                    <div><strong>{{ site_settings.brand_name }}</strong></div>
+                    <span class="lbl">Получатель</span>
+                </td>
+            </tr>
+        </table>
+
+        <!-- INVOICE TITLE -->
+        <div class="bill-title">
+            Счет на оплату № {{ order.id }} от {{ order.created_at|date:"d F Y" }} г.
+        </div>
+
+        <!-- PARTIES -->
+        <table class="bill-party-table">
+            <tr>
+                <td class="lbl">Поставщик:</td>
+                <td>
+                    <strong>{{ site_settings.brand_name }}</strong>, ИНН {{ site_settings.seller_inn|default:"550119874521" }}, ОГРНИП {{ site_settings.seller_ogrn|default:"318554300045612" }}, {{ site_settings.address }}, тел.: {{ site_settings.phone }}
+                </td>
+            </tr>
+            <tr>
+                <td class="lbl">Покупатель:</td>
+                <td>
+                    <strong>{% if order.is_legal and order.company_name %}{{ order.company_name }}{% else %}{{ order.name }}{% endif %}</strong>{% if order.inn %}, ИНН: {{ order.inn }}{% if order.kpp %}, КПП: {{ order.kpp }}{% endif %}{% endif %}{% if order.legal_address %}, Юр. адрес: {{ order.legal_address }}{% elif order.delivery_address %}, Адрес: {{ order.delivery_address }}{% endif %}, тел.: {{ order.phone }}
+                </td>
+            </tr>
+            <tr>
+                <td class="lbl">Основание:</td>
+                <td>Заказ № {{ order.id }} от {{ order.created_at|date:"d.m.Y" }} г.</td>
+            </tr>
+        </table>
+
+        <!-- ITEMS TABLE -->
+        <table class="bill-items-table">
+            <thead>
+                <tr>
+                    <th style="width: 35px;">№</th>
+                    <th>Товары (работы, услуги)</th>
+                    <th style="width: 60px;">Кол-во</th>
+                    <th style="width: 50px;">Ед.</th>
+                    <th style="width: 100px;">Цена, руб.</th>
+                    <th style="width: 110px;">Сумма, руб.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="center">{{ forloop.counter }}</td>
+                    <td><strong>{{ item.title }}</strong></td>
+                    <td class="center fw-bold">{{ item.quantity }}</td>
+                    <td class="center">{{ item.unit|default:"шт." }}</td>
+                    <td class="num">{{ item.price|floatformat:2 }}</td>
+                    <td class="num" style="font-weight: bold;">{{ item.total|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td class="center">1</td>
+                    <td><strong>{{ order.product_choice|default:"Сырная продукция ТМ «Сибсыр»" }}</strong></td>
+                    <td class="center">1</td>
+                    <td class="center">шт.</td>
+                    <td class="num">{{ order.total_price|floatformat:2 }}</td>
+                    <td class="num" style="font-weight: bold;">{{ order.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- TOTALS TABLE -->
+        <table class="bill-totals-table">
+            {% if order.discount_amount > 0 %}
+            <tr>
+                <td>Сумма без скидки:</td>
+                <td class="val">{{ order.subtotal_price|floatformat:2 }} руб.</td>
+            </tr>
+            <tr style="color: #15803d; font-weight: bold;">
+                <td>Скидка {% if order.promocode_code %}по промокоду ({{ order.promocode_code }}){% else %}по акции{% endif %}:</td>
+                <td class="val">-{{ order.discount_amount|floatformat:2 }} руб.</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Итого:</td>
+                <td class="val">{{ total_amount|floatformat:2 }} руб.</td>
+            </tr>
+            <tr>
+                <td>В том числе НДС:</td>
+                <td class="val">Без НДС</td>
+            </tr>
+            <tr style="font-size: 15px; border-top: 1px solid #000;">
+                <td><strong>Всего к оплате:</strong></td>
+                <td class="val" style="color: #ff8400;">{{ total_amount|floatformat:2 }} руб.</td>
+            </tr>
+        </table>
+
+        <!-- SUM IN WORDS -->
+        <div class="bill-words">
+            <div>Всего наименований <strong>{{ items_count }}</strong>, на сумму <strong>{{ total_amount|floatformat:2 }} руб.</strong></div>
+            <div style="margin-top: 3px;">
+                <strong>Сумма прописью:</strong> {{ total_in_words }}
+            </div>
+        </div>
+
+        <!-- SIGNATURES & STAMP -->
+        <div class="bill-signatures">
+            <div style="line-height: 2.2;">
+                <div>
+                    <strong>Руководитель / ИП:</strong>
+                    <span class="bill-sig-line"></span> / {{ site_settings.seller_director|default:"Нахшкарян А.Л." }}
+                </div>
+                <div>
+                    <strong>Бухгалтер:</strong>
+                    <span class="bill-sig-line"></span> / {{ site_settings.seller_accountant|default:"Нахшкарян А.Л." }}
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>М.П.</strong>
+                </div>
+            </div>
+
+            <div class="official-stamp">
+                <div class="stamp-title">ИП НАХШКАРЯН А.Л.</div>
+                <div class="stamp-sub">ИНН {{ site_settings.seller_inn|default:"550119874521" }}</div>
+                <div class="stamp-center">ДЛЯ СЧЕТОВ</div>
+                <div class="stamp-title">ТМ «СИБСЫР»</div>
+                <div class="stamp-sub">г. Омск</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

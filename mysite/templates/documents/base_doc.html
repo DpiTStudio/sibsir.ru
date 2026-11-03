@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block doc_title %}Печать документа — «Сибсыр»{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --primary: #ff8400;
+            --primary-dark: #d96f00;
+            --dark: #1e293b;
+            --gray-light: #f8fafc;
+            --gray-border: #cbd5e1;
+            --gray-text: #64748b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-size: 13px;
+            line-height: 1.4;
+            padding-bottom: 50px;
+        }
+
+        /* --- SCREEN TOOLBAR --- */
+        .doc-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: #ffffff;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+        }
+
+        .doc-toolbar .brand-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .doc-toolbar .brand-badge {
+            background: linear-gradient(135deg, #ff8400, #ff5100);
+            color: #ffffff;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .doc-toolbar .doc-switcher {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .doc-switcher a {
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .doc-switcher a:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        .doc-switcher a.active {
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            font-weight: 700;
+        }
+
+        .doc-switcher a.active i {
+            color: var(--primary);
+        }
+
+        .doc-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #ff8400, #e06d00);
+            color: #ffffff;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(255, 132, 0, 0.3);
+        }
+
+        .btn-print:hover {
+            background: linear-gradient(135deg, #e06d00, #c45a00);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(255, 132, 0, 0.4);
+        }
+
+        .btn-back {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-back:hover {
+            background: #f8fafc;
+            color: #0f172a;
+            border-color: #94a3b8;
+        }
+
+        /* --- DOCUMENT SHEET CONTAINER --- */
+        .doc-wrapper {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+        }
+
+        .doc-wrapper.doc-narrow {
+            max-width: 580px;
+            padding: 30px;
+        }
+
+        .doc-wrapper.doc-wide {
+            max-width: 1100px;
+            padding: 25px 30px;
+        }
+
+        /* --- STAMP & SIGNATURE --- */
+        .official-stamp {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 140px;
+            height: 140px;
+            border: 3px double #1d4ed8;
+            border-radius: 50%;
+            color: #1d4ed8;
+            font-family: 'Roboto Mono', monospace;
+            text-align: center;
+            padding: 8px;
+            user-select: none;
+            opacity: 0.85;
+            transform: rotate(-7deg);
+            background: rgba(239, 246, 255, 0.3);
+        }
+
+        .official-stamp .stamp-title {
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .official-stamp .stamp-center {
+            font-size: 13px;
+            font-weight: 900;
+            margin: 4px 0;
+            border-top: 1px solid #1d4ed8;
+            border-bottom: 1px solid #1d4ed8;
+            padding: 2px 0;
+            width: 90%;
+            letter-spacing: 1px;
+        }
+
+        .official-stamp .stamp-sub {
+            font-size: 8px;
+            font-weight: 600;
+        }
+
+        /* --- PRINT MEDIA RULES --- */
+        @media print {
+            body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                padding: 0 !important;
+                font-size: 10pt !important;
+            }
+
+            .doc-toolbar {
+                display: none !important;
+            }
+
+            .doc-wrapper {
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 12mm 10mm 12mm 10mm;
+            }
+
+            .page-break-after {
+                page-break-after: always;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    <!-- TOOLBAR (Hidden in Print) -->
+    <div class="doc-toolbar no-print">
+        <div class="brand-info">
+            {% if site_settings.logo %}
+            <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.brand_short_name }}" style="max-height: 34px; max-width: 120px; object-fit: contain; border-radius: 4px;">
+            {% else %}
+            <span class="brand-badge">{{ site_settings.brand_short_name|default:"Сибсыр" }}</span>
+            {% endif %}
+            <div>
+                <strong style="font-size: 14px; color: #0f172a;">Заказ #{{ order.id }}</strong>
+                <span style="color: #64748b; font-size: 12px; margin-left: 8px;">
+                    {% if order.is_legal %}
+                        <span style="background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Юр. лицо / ИП</span>
+                        {{ order.company_name }}
+                    {% else %}
+                        <span style="background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-weight: 600;">Физ. лицо</span>
+                        {{ order.name }}
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Document View Switcher -->
+        <div class="doc-switcher">
+            <a href="{% url 'shop:order_receipt' order_id=order.id %}{% if token %}?token={{ token }}{% endif %}" class="{% if current_doc == 'receipt' %}active{% endif %}" title="Товарный / кассовый чек">
+                <i class="bi bi-receipt"></i> Товарный чек
+            </a>
+            <a href="{% url 'shop:order_waybill' order_id=order.id %}{% if token %}?token={{ token }}{% endif %}" class="{% if current_doc == 'waybill' %}active{% endif %}" title="Расходная накладная">
+                <i class="bi bi-file-earmark-text"></i> Накладная
+            </a>
+            <a href="{% url 'shop:order_torg12' order_id=order.id %}{% if token %}?token={{ token }}{% endif %}" class="{% if current_doc == 'torg12' %}active{% endif %}" title="Унифицированная форма ТОРГ-12 для юрлиц">
+                <i class="bi bi-building"></i> ТОРГ-12 (юрлица)
+            </a>
+            <a href="{% url 'shop:order_bill' order_id=order.id %}{% if token %}?token={{ token }}{% endif %}" class="{% if current_doc == 'bill' %}active{% endif %}" title="Счет на безналичную оплату">
+                <i class="bi bi-credit-card-2-front"></i> Счет на оплату
+            </a>
+        </div>
+
+        <!-- Print & Back Actions -->
+        <div class="doc-actions">
+            {% if request.user.is_staff %}
+                <a href="/admin/shop/order/{{ order.id }}/change/" class="btn-back">
+                    <i class="bi bi-sliders"></i> В админку
+                </a>
+            {% else %}
+                <a href="/" class="btn-back">
+                    <i class="bi bi-house"></i> На главную
+                </a>
+            {% endif %}
+            <button onclick="window.print()" class="btn-print">
+                <i class="bi bi-printer-fill"></i> Распечатать документ
+            </button>
+        </div>
+    </div>
+
+    <!-- DOCUMENT CONTENT -->
+    {% block content %}{% endblock %}
+
+</body>
+</html>

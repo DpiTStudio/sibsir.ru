@@ -1,0 +1,425 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Вопрос-ответ о сыре и молочной продукции | ТМ «Сибсыр»" }}{% endblock %}
+
+{% block meta_description %}{{ page_description|default:"Часто задаваемые вопросы о сыре и молочной продукции от производителя «Сибсыр» (Омск). Производство, классификация, хранение, выбор и особенности сыров." }}{% endblock %}
+{% block meta_keywords %}{{ page_keywords|default:"вопросы и ответы о сыре, faq сыр, как хранить сыр дома, производство сыра, сорта сыра, сибсыр" }}{% endblock %}
+{% block canonical_url %}{{ site_base_url }}{% url 'main:faq' %}{% endblock %}
+
+{% block og_title %}{{ page_title }}{% endblock %}
+{% block og_description %}{{ page_description }}{% endblock %}
+{% block og_url %}{{ site_base_url }}{% url 'main:faq' %}{% endblock %}
+
+{% block schema_extra %}
+<!-- Schema.org BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Главная",
+      "item": "{{ site_base_url }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Вопрос-ответ",
+      "item": "{{ site_base_url }}{% url 'main:faq' %}"
+    }
+  ]
+}
+</script>
+
+<!-- Schema.org FAQPage for Google & Yandex Rich Snippets -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for item in faq_items %}
+    {
+      "@type": "Question",
+      "name": "{{ item.question|escapejs }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ item.answer|striptags|escapejs }}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+    <!-- 1. BREADCRUMBS -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+            <li class="breadcrumb-item">
+                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                    <i class="bi bi-house-door me-1"></i>Главная
+                </a>
+            </li>
+            <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Вопрос-ответ</li>
+        </ol>
+    </nav>
+
+    <!-- 2. HERO SECTION -->
+    <div class="p-4 p-md-5 rounded-4 mb-5 shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+        <div style="position: absolute; right: -30px; bottom: -40px; opacity: 0.07; font-size: 16rem; pointer-events: none; line-height: 1;">
+            <i class="bi bi-question-circle"></i>
+        </div>
+        <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3" 
+                     style="background: rgba(255, 132, 0, 0.15); border: 1px solid rgba(255, 132, 0, 0.4); color: #ffaa33; font-size: 0.85rem; font-weight: 600;">
+                    <i class="bi bi-patch-question"></i>
+                    <span>База знаний • Ответы экспертов и технологов завода</span>
+                </div>
+                <h1 class="display-6 fw-bold text-white mb-3 fs-2 fs-md-1">
+                    Вопрос-ответ о сыре и молочной продукции
+                </h1>
+                <p class="text-white-50 mb-4" style="line-height: 1.8; font-size: 1.05rem; max-width: 720px;">
+                    Собрали для вас подробные ответы на самые популярные вопросы покупателей и партнеров: секреты правильного сыроделия, ГОСТы, правила домашнего хранения, сорта и удивительные факты.
+                </p>
+
+                <!-- Search Input in Hero -->
+                <div class="bg-white p-2 rounded-pill shadow-lg d-flex align-items-center" style="max-width: 580px;">
+                    <i class="bi bi-search text-muted ms-3 me-2 fs-5"></i>
+                    <input type="text" id="faqSearchInput" class="form-control border-0 shadow-none bg-transparent" 
+                           placeholder="Найти ответ на вопрос (например, хранить, колбасный, аллергия)..." 
+                           value="{{ search_query }}">
+                    {% if search_query %}
+                    <a href="{% url 'main:faq' %}" class="btn btn-sm btn-light rounded-pill px-3 me-1 text-muted" title="Сбросить">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                    {% endif %}
+                    <button class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold d-none d-sm-inline-block" type="button" id="faqSearchBtn">
+                        Искать
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats badges -->
+            <div class="col-lg-4 d-none d-lg-block">
+                <div class="p-4 rounded-4" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px);">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-center flex-shrink-0" style="width: 48px; height: 48px; background: rgba(255, 132, 0, 0.2); color: #ff8400; font-size: 1.4rem; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-chat-left-dots-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-white mb-0">{{ total_questions }}</div>
+                            <div class="text-white-50 small">Ответов на частые вопросы</div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-center flex-shrink-0" style="width: 48px; height: 48px; background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-size: 1.4rem; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-bookmark-star-fill"></i>
+                        </div>
+                        <div>
+                            <div class="fs-4 fw-bold text-white mb-0">{{ categories|length }}</div>
+                            <div class="text-white-50 small">Тематических категорий</div>
+                        </div>
+                    </div>
+                    <div class="pt-2 border-top border-secondary border-opacity-25 text-white-50 small">
+                        <i class="bi bi-shield-check text-success me-1"></i> Информация проверена технологами ТМ «Сибсыр»
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. CATEGORY FILTER TABS -->
+    <div class="mb-4">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+            <h2 class="h4 fw-bold text-dark mb-0">Категории вопросов</h2>
+            <div class="text-muted small">
+                Всего вопросов: <span class="fw-bold text-dark">{{ total_questions }}</span>
+            </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 pb-2" id="faqCategoryPills">
+            <a href="{% url 'main:faq' %}" 
+               class="btn {% if not selected_category_slug %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary bg-white text-dark{% endif %} rounded-pill px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 category-pill" 
+               data-category="all" 
+               style="font-size: 0.92rem;">
+                <i class="bi bi-grid-fill"></i>
+                <span>Все вопросы</span>
+                <span class="badge {% if not selected_category_slug %}bg-dark text-white{% else %}bg-light text-muted border{% endif %} rounded-pill">{{ total_questions }}</span>
+            </a>
+            {% for cat in categories %}
+            <a href="{% url 'main:faq' %}?category={{ cat.slug }}" 
+               class="btn {% if selected_category_slug == cat.slug %}btn-warning text-dark fw-bold{% else %}btn-outline-secondary bg-white text-dark{% endif %} rounded-pill px-3 py-2 shadow-sm d-inline-flex align-items-center gap-2 category-pill" 
+               data-category="{{ cat.slug }}" 
+               style="font-size: 0.92rem;">
+                <span>{{ cat.name }}</span>
+                <span class="badge {% if selected_category_slug == cat.slug %}bg-dark text-white{% else %}bg-light text-muted border{% endif %} rounded-pill">{{ cat.active_items_count }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- 4. FAQ ACCORDION LIST -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div id="faqAccordionContainer">
+                {% if not faq_items %}
+                <div class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white">
+                    <div class="text-warning display-4 mb-3"><i class="bi bi-search"></i></div>
+                    <h3 class="h5 fw-bold text-dark mb-2">По вашему запросу ничего не найдено</h3>
+                    <p class="text-muted mb-4">Попробуйте изменить формулировку или сбросьте параметры поиска</p>
+                    <div>
+                        <a href="{% url 'main:faq' %}" class="btn btn-sib-orange rounded-pill px-4">
+                            Показать все вопросы
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% regroup faq_items by category as category_list %}
+
+                {% for cat_group in category_list %}
+                <div class="faq-category-section mb-5" data-category-slug="{{ cat_group.grouper.slug }}">
+                    <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                        <span class="p-2 rounded-circle bg-warning bg-opacity-25 text-warning-emphasis d-inline-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                            <i class="bi bi-tag-fill"></i>
+                        </span>
+                        <h3 class="h5 fw-bold text-dark mb-0">{{ cat_group.grouper.name }}</h3>
+                        <span class="badge bg-light text-muted border rounded-pill ms-auto">{{ cat_group.list|length }}</span>
+                    </div>
+
+                    <div class="accordion accordion-flush bg-white rounded-4 shadow-sm border border-light-subtle overflow-hidden" id="accordionCat{{ forloop.counter }}">
+                        {% for item in cat_group.list %}
+                        <div class="accordion-item faq-item-row" data-question="{{ item.question|lower }}" data-answer="{{ item.answer|lower }}">
+                            <h2 class="accordion-header" id="heading{{ item.id }}">
+                                <button class="accordion-button collapsed fw-bold text-dark py-3 px-4 shadow-none" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapse{{ item.id }}" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapse{{ item.id }}" 
+                                        style="font-size: 1rem; line-height: 1.5;">
+                                    <span class="me-2 text-warning fw-bold">Q:</span>
+                                    <span>{{ item.question }}</span>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ item.id }}" 
+                                 class="accordion-collapse collapse" 
+                                 aria-labelledby="heading{{ item.id }}" 
+                                 data-bs-parent="#accordionCat{{ forloop.parentloop.counter }}">
+                                <div class="accordion-body px-4 py-3 text-secondary" style="line-height: 1.8; font-size: 0.97rem; background-color: #fbfbfc;">
+                                    <div class="d-flex align-items-start gap-2">
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1 rounded me-1 mt-1">Ответ:</span>
+                                        <div>
+                                            {{ item.answer|linebreaksbr }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- No Results alert dynamically updated by client search -->
+                <div id="noResultsClient" class="card border-0 rounded-4 shadow-sm p-5 text-center bg-white d-none">
+                    <div class="text-warning display-4 mb-3"><i class="bi bi-question-diamond"></i></div>
+                    <h3 class="h5 fw-bold text-dark mb-2">Ничего не найдено по запросу</h3>
+                    <p class="text-muted mb-4">Попробуйте ввести другое ключевое слово или ознакомьтесь со всеми вопросами</p>
+                    <div>
+                        <button type="button" class="btn btn-sib-orange rounded-pill px-4" onclick="resetFaqSearch()">
+                            Сбросить поиск
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. SIDEBAR: ASK A QUESTION / CONTACTS / USEFUL LINKS -->
+        <div class="col-lg-4">
+            <div class="position-sticky" style="top: 100px;">
+
+                <!-- Card 1: Ask a Question CTA -->
+                <div class="card border-0 rounded-4 shadow-sm p-4 mb-4 text-white position-relative overflow-hidden" 
+                     style="background: linear-gradient(135deg, #ff8400 0%, #e06d00 100%);">
+                    <div style="position: absolute; right: -20px; bottom: -20px; opacity: 0.15; font-size: 8rem; pointer-events: none;">
+                        <i class="bi bi-question-circle"></i>
+                    </div>
+                    <div class="position-relative" style="z-index: 2;">
+                        <span class="badge bg-white text-dark rounded-pill px-3 py-1 fw-bold mb-3 shadow-sm">
+                            <i class="bi bi-headset me-1 text-warning"></i>Служба поддержки
+                        </span>
+                        <h4 class="fw-bold mb-2">Не нашли ответ?</h4>
+                        <p class="small text-white-50 mb-4" style="line-height: 1.6;">
+                            Задайте интересующий вас вопрос технологам или специалистам отдела продаж завода «Сибсыр». Мы свяжемся с вами в течение рабочего дня.
+                        </p>
+                        <button type="button" class="btn btn-white text-dark bg-white fw-bold rounded-pill w-100 py-2 shadow-sm" 
+                                data-bs-toggle="modal" data-bs-target="#callbackModal">
+                            <i class="bi bi-pencil-square me-1 text-warning"></i> Задать свой вопрос
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card 2: Quick Links & Catalog -->
+                <div class="card border-0 rounded-4 shadow-sm p-4 mb-4 bg-white">
+                    <h5 class="fw-bold text-dark mb-3">Полезные разделы</h5>
+                    <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                        <li>
+                            <a href="{% url 'main:catalog' %}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark hover-bg-light">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-grid text-warning"></i>
+                                    <span>Каталог продукции</span>
+                                </span>
+                                <i class="bi bi-chevron-right text-muted small"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'main:delivery' %}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark hover-bg-light">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-truck text-warning"></i>
+                                    <span>Условия доставки и оплаты</span>
+                                </span>
+                                <i class="bi bi-chevron-right text-muted small"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'main:about' %}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark hover-bg-light">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-building text-warning"></i>
+                                    <span>О заводе и производстве</span>
+                                </span>
+                                <i class="bi bi-chevron-right text-muted small"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'main:articles' %}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark hover-bg-light">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-journal-text text-warning"></i>
+                                    <span>Статьи и рецепты</span>
+                                </span>
+                                <i class="bi bi-chevron-right text-muted small"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'main:contacts' %}" class="d-flex align-items-center justify-content-between p-2 rounded-3 text-decoration-none text-dark hover-bg-light">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-telephone text-warning"></i>
+                                    <span>Контакты и реквизиты</span>
+                                </span>
+                                <i class="bi bi-chevron-right text-muted small"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Card 3: Quality Guarantee -->
+                <div class="card border-0 rounded-4 shadow-sm p-4 bg-white" style="border-left: 4px solid #ff8400 !important;">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <i class="bi bi-shield-check text-success fs-3"></i>
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">Гарантия качества</h6>
+                            <small class="text-muted">Стандарты ГОСТ и ХАССП</small>
+                        </div>
+                    </div>
+                    <p class="small text-muted mb-0" style="line-height: 1.6;">
+                        Вся продукция «Сибсыр» сертифицирована, проходит строгий лабораторный контроль и регистрируется в системе «Честный ЗНАК» и «Меркурий».
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Client-side instant filter script -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('faqSearchInput');
+    const searchBtn = document.getElementById('faqSearchBtn');
+    const itemRows = document.querySelectorAll('.faq-item-row');
+    const categorySections = document.querySelectorAll('.faq-category-section');
+    const noResults = document.getElementById('noResultsClient');
+
+    function performClientFilter() {
+        const query = (searchInput.value || '').trim().toLowerCase();
+        let totalVisible = 0;
+
+        categorySections.forEach(function (sec) {
+            let sectionVisibleCount = 0;
+            const items = sec.querySelectorAll('.faq-item-row');
+
+            items.forEach(function (row) {
+                const qText = row.getAttribute('data-question') || '';
+                const aText = row.getAttribute('data-answer') || '';
+
+                if (!query || qText.includes(query) || aText.includes(query)) {
+                    row.style.display = '';
+                    sectionVisibleCount++;
+                    totalVisible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            if (sectionVisibleCount === 0) {
+                sec.style.display = 'none';
+            } else {
+                sec.style.display = '';
+            }
+        });
+
+        if (totalVisible === 0) {
+            if (noResults) noResults.classList.remove('d-none');
+        } else {
+            if (noResults) noResults.classList.add('d-none');
+        }
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', performClientFilter);
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                performClientFilter();
+            }
+        });
+    }
+
+    if (searchBtn) {
+        searchBtn.addEventListener('click', performClientFilter);
+    }
+});
+
+function resetFaqSearch() {
+    const input = document.getElementById('faqSearchInput');
+    if (input) {
+        input.value = '';
+        input.dispatchEvent(new Event('input'));
+    }
+}
+</script>
+
+<style>
+.hover-bg-light:hover {
+    background-color: #f8fafc;
+    color: #ff8400 !important;
+}
+.accordion-button:not(.collapsed) {
+    color: #ff8400 !important;
+    background-color: #fff9f2 !important;
+}
+.accordion-button:focus {
+    box-shadow: none !important;
+    border-color: rgba(255, 132, 0, 0.25) !important;
+}
+</style>
+{% endblock %}
+

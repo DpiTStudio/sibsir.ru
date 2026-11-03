@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static captcha_tags %}
+
+{% block title %}Регистрация покупателя и юрлица — Сыроварня «Сибсыр»{% endblock %}
+{% block meta_description %}Регистрация в интернет-магазине сыроварни Сибсыр. Личные кабинеты для розничных покупателей и юридических лиц с историей заказов и документами.{% endblock %}
+
+{% block content %}
+<div class="account-auth-section py-5" style="background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%); min-height: 85vh;">
+    <div class="container py-lg-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                
+                <!-- Breadcrumbs -->
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb mb-0 small">
+                        <li class="breadcrumb-item"><a href="{% url 'main:index' %}" class="text-decoration-none text-muted">Главная</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'accounts:login' %}" class="text-decoration-none text-muted">Личный кабинет</a></li>
+                        <li class="breadcrumb-item active text-warning fw-semibold" aria-current="page">Регистрация</li>
+                    </ol>
+                </nav>
+
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden" style="border: 1px solid rgba(0,0,0,0.06);">
+                    <!-- Header -->
+                    <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+                        <div class="mb-3 d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 64px; height: 64px; background: rgba(255, 132, 0, 0.15); border: 2px solid #ff8400; color: #ff8400; font-size: 1.75rem;">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        <h3 class="fw-bold mb-1">Создание аккаунта</h3>
+                        <p class="text-secondary small mb-0">Выберите подходящий тип учетной записи</p>
+                    </div>
+
+                    <!-- Type Switcher Pills -->
+                    <div class="bg-light p-3 border-bottom">
+                        <div class="nav nav-pills nav-fill gap-2" id="accountTypePills" role="tablist">
+                            <button class="nav-link py-3 rounded-pill fw-bold {% if account_type != 'legal' %}active shadow-sm{% endif %}" id="pills-individual-tab" data-bs-toggle="pill" data-bs-target="#pills-individual" type="button" role="tab" style="font-size: 0.95rem;">
+                                <i class="bi bi-person me-2"></i>Обычный покупатель (Физ. лицо)
+                            </button>
+                            <button class="nav-link py-3 rounded-pill fw-bold {% if account_type == 'legal' %}active shadow-sm{% endif %}" id="pills-legal-tab" data-bs-toggle="pill" data-bs-target="#pills-legal" type="button" role="tab" style="font-size: 0.95rem;">
+                                <i class="bi bi-building me-2"></i>Юридическое лицо / ИП (B2B)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 p-md-5 bg-white">
+
+                        {% if messages %}
+                        <div class="mb-4">
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags|default:'info' }} rounded-3 small py-2 px-3 mb-2" role="alert">
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="tab-content" id="accountTypePillsContent">
+
+                            <!-- ================= TAB 1: INDIVIDUAL ================= -->
+                            <div class="tab-pane fade {% if account_type != 'legal' %}show active{% endif %}" id="pills-individual" role="tabpanel">
+                                <div class="mb-4 p-3 rounded-3" style="background: #fff8f1; border-left: 4px solid #ff8400;">
+                                    <div class="fw-bold text-dark mb-1">
+                                        <i class="bi bi-stars text-warning me-1"></i>Личный кабинет розничного покупателя
+                                    </div>
+                                    <div class="small text-muted">
+                                        Сохранение истории всех ваших заказов, быстрый заказ без повторного ввода адреса и доступ к электронным товарным чекам.
+                                    </div>
+                                </div>
+
+                                {% if indiv_form.non_field_errors %}
+                                <div class="alert alert-danger rounded-3 small py-2 px-3 mb-4">
+                                    {% for error in indiv_form.non_field_errors %}
+                                        <div><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <form method="POST" action="{% url 'accounts:register' %}" novalidate>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="account_type" value="individual">
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ indiv_form.first_name.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ indiv_form.first_name }}
+                                            {% if indiv_form.first_name.errors %}
+                                            <div class="text-danger small mt-1">{{ indiv_form.first_name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ indiv_form.last_name.label }}
+                                            </label>
+                                            {{ indiv_form.last_name }}
+                                            {% if indiv_form.last_name.errors %}
+                                            <div class="text-danger small mt-1">{{ indiv_form.last_name.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ indiv_form.email.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ indiv_form.email }}
+                                            {% if indiv_form.email.errors %}
+                                            <div class="text-danger small mt-1">{{ indiv_form.email.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ indiv_form.phone.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ indiv_form.phone }}
+                                            {% if indiv_form.phone.errors %}
+                                            <div class="text-danger small mt-1">{{ indiv_form.phone.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">
+                                            {{ indiv_form.delivery_address.label }}
+                                        </label>
+                                        {{ indiv_form.delivery_address }}
+                                        <div class="form-text small text-muted">Адрес доставки будет автоматически подставляться при следующих заказах.</div>
+                                    </div>
+
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ indiv_form.password.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ indiv_form.password }}
+                                            {% if indiv_form.password.errors %}
+                                            <div class="text-danger small mt-1">{{ indiv_form.password.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ indiv_form.password_confirm.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ indiv_form.password_confirm }}
+                                            {% if indiv_form.password_confirm.errors %}
+                                            <div class="text-danger small mt-1">{{ indiv_form.password_confirm.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% render_captcha 'register' form=indiv_form %}
+
+                                    <button type="submit" class="btn btn-sib-orange w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="font-size: 1rem;">
+                                        <i class="bi bi-check2-circle fs-5"></i>
+                                        <span>Зарегистрироваться как покупатель</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- ================= TAB 2: LEGAL ENTITY ================= -->
+                            <div class="tab-pane fade {% if account_type == 'legal' %}show active{% endif %}" id="pills-legal" role="tabpanel">
+                                <div class="mb-4 p-3 rounded-3" style="background: #f0f7ff; border-left: 4px solid #2563eb;">
+                                    <div class="fw-bold text-dark mb-1">
+                                        <i class="bi bi-briefcase-fill text-primary me-1"></i>B2B кабинет для организаций и ИП
+                                    </div>
+                                    <div class="small text-muted">
+                                        Полная история закупок сыров оптом и в розницу, автоматическое формирование счетов на оплату, товарных накладных ТОРГ-12 и закрывающих документов.
+                                    </div>
+                                </div>
+
+                                {% if legal_form.non_field_errors %}
+                                <div class="alert alert-danger rounded-3 small py-2 px-3 mb-4">
+                                    {% for error in legal_form.non_field_errors %}
+                                        <div><i class="bi bi-exclamation-triangle-fill me-1"></i>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+
+                                <form method="POST" action="{% url 'accounts:register' %}" novalidate>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="account_type" value="legal">
+
+                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                        <i class="bi bi-building text-warning me-1"></i>Реквизиты организации
+                                    </h6>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">
+                                            {{ legal_form.company_name.label }} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ legal_form.company_name }}
+                                        {% if legal_form.company_name.errors %}
+                                        <div class="text-danger small mt-1">{{ legal_form.company_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.inn.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ legal_form.inn }}
+                                            {% if legal_form.inn.errors %}
+                                            <div class="text-danger small mt-1">{{ legal_form.inn.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.kpp.label }}
+                                            </label>
+                                            {{ legal_form.kpp }}
+                                            {% if legal_form.kpp.errors %}
+                                            <div class="text-danger small mt-1">{{ legal_form.kpp.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.ogrn.label }}
+                                            </label>
+                                            {{ legal_form.ogrn }}
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.legal_address.label }}
+                                            </label>
+                                            {{ legal_form.legal_address }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.delivery_address.label }}
+                                            </label>
+                                            {{ legal_form.delivery_address }}
+                                        </div>
+                                    </div>
+
+                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">
+                                        <i class="bi bi-bank text-warning me-1"></i>Банковские реквизиты (для счетов и накладных)
+                                    </h6>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-8">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.bank_name.label }}
+                                            </label>
+                                            {{ legal_form.bank_name }}
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.bik.label }}
+                                            </label>
+                                            {{ legal_form.bik }}
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.account_number.label }}
+                                            </label>
+                                            {{ legal_form.account_number }}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.corr_account.label }}
+                                            </label>
+                                            {{ legal_form.corr_account }}
+                                        </div>
+                                    </div>
+
+                                    <h6 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">
+                                        <i class="bi bi-person-lines-fill text-warning me-1"></i>Контактное лицо и доступ
+                                    </h6>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.contact_person.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ legal_form.contact_person }}
+                                            {% if legal_form.contact_person.errors %}
+                                            <div class="text-danger small mt-1">{{ legal_form.contact_person.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.phone.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ legal_form.phone }}
+                                            {% if legal_form.phone.errors %}
+                                            <div class="text-danger small mt-1">{{ legal_form.phone.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-dark">
+                                            {{ legal_form.email.label }} <span class="text-danger">*</span>
+                                        </label>
+                                        {{ legal_form.email }}
+                                        {% if legal_form.email.errors %}
+                                        <div class="text-danger small mt-1">{{ legal_form.email.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.password.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ legal_form.password }}
+                                            {% if legal_form.password.errors %}
+                                            <div class="text-danger small mt-1">{{ legal_form.password.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label small fw-bold text-dark">
+                                                {{ legal_form.password_confirm.label }} <span class="text-danger">*</span>
+                                            </label>
+                                            {{ legal_form.password_confirm }}
+                                            {% if legal_form.password_confirm.errors %}
+                                            <div class="text-danger small mt-1">{{ legal_form.password_confirm.errors.0 }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    {% render_captcha 'register' form=legal_form %}
+
+                                    <button type="submit" class="btn btn-primary w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); border: none; font-size: 1rem;">
+                                        <i class="bi bi-briefcase fs-5"></i>
+                                        <span>Зарегистрировать организацию / ИП</span>
+                                    </button>
+                                </form>
+                            </div>
+
+                        </div>
+
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <span class="small text-muted">Уже есть аккаунт?</span>
+                            <a href="{% url 'accounts:login' %}" class="small fw-bold text-warning text-decoration-none ms-1">
+                                Войти в личный кабинет →
+                            </a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,441 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* ==========================================================================
+   Стили формы редактирования динамических страниц и SEO ТМ «Сибсыр»
+   ========================================================================== */
+
+/* Верхняя карточка страницы */
+.sib-page-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.15);
+}
+
+.sib-page-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sib-page-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(255, 132, 0, 0.15);
+  border: 1px solid rgba(255, 132, 0, 0.4);
+  color: #ff8400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.55rem;
+  flex-shrink: 0;
+}
+
+.sib-page-header-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sib-page-header-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.sib-page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sib-btn-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.sib-btn-site {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.sib-btn-site:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.sib-btn-autoseo {
+  background: #ff8400;
+  color: #ffffff;
+}
+
+.sib-btn-autoseo:hover {
+  background: #e07400;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(255, 132, 0, 0.35);
+}
+
+/* Табы навигации по разделам страницы */
+.sib-page-tabs {
+  display: flex;
+  gap: 6px;
+  background: #f1f5f9;
+  padding: 6px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+}
+
+.sib-tab-btn {
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.sib-tab-btn:hover {
+  color: #1e293b;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.sib-tab-btn.active {
+  color: #ff8400;
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Карточки разделов fieldset */
+.sib-page-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+.sib-page-card h2 {
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 12px !important;
+  background: none !important;
+}
+
+/* Toast уведомление */
+#sibToast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  font-size: 13px;
+  font-weight: 600;
+  display: none;
+  z-index: 99999;
+  border-left: 4px solid #ff8400;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sib-page-header">
+    <div class="sib-page-header-left">
+        <div class="sib-page-icon-badge">
+            <i class="bi bi-file-earmark-richtext"></i>
+        </div>
+        <div>
+            <h1 class="sib-page-header-title">
+                {{ original.title|default:"Новая динамическая страница" }}
+                {% if original.is_published %}
+                <span style="background: #10b981; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Опубликована</span>
+                {% else %}
+                <span style="background: #ef4444; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Черновик</span>
+                {% endif %}
+            </h1>
+            <p class="sib-page-header-subtitle">
+                Управление контентом, визуальным редактором TinyMCE, сниппетами для поиска и инструментами продвижения
+            </p>
+        </div>
+    </div>
+    <div class="sib-page-header-actions">
+        {% if original.pk %}
+        <a href="{{ original.get_absolute_url }}" target="_blank" class="sib-btn-action sib-btn-site" title="Открыть страницу на витрине сайта">
+            <i class="bi bi-box-arrow-up-right"></i> Посмотреть на сайте
+        </a>
+        {% endif %}
+        <button type="button" class="sib-btn-action sib-btn-autoseo" id="btnHeaderAutoSeo" title="Автоматически сформировать Title, Description, Keywords и OpenGraph">
+            <i class="bi bi-lightning-charge-fill"></i> Сгенерировать SEO
+        </button>
+    </div>
+</div>
+
+<!-- Панель вкладок -->
+<div class="sib-page-tabs">
+    <button type="button" class="sib-tab-btn active" data-target="tab-pane-content">
+        <i class="bi bi-pencil-square"></i> Контент и текст
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="tab-pane-layout">
+        <i class="bi bi-layout-text-window-reverse"></i> Макет и меню
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="tab-pane-seo">
+        <i class="bi bi-google"></i> Поисковое SEO
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="tab-pane-og">
+        <i class="bi bi-share"></i> Соцсети (Open Graph)
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="tab-pane-sitemap">
+        <i class="bi bi-diagram-3"></i> Карта сайта
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="tab-pane-tech">
+        <i class="bi bi-code-slash"></i> Schema.org и Скрипты
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="tab-pane-publish">
+        <i class="bi bi-clock-history"></i> Публикация
+    </button>
+    <button type="button" class="sib-tab-btn" data-target="all">
+        <i class="bi bi-view-stacked"></i> Все разделы
+    </button>
+</div>
+
+<div id="sibToast"></div>
+
+{{ block.super }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // --- 1. Логика переключения табов ---
+    const tabBtns = document.querySelectorAll(".sib-tab-btn");
+    const fieldsets = document.querySelectorAll(".sib-page-card");
+
+    function switchTab(targetClass) {
+        tabBtns.forEach(b => b.classList.remove("active"));
+        const activeBtn = document.querySelector(`.sib-tab-btn[data-target="${targetClass}"]`);
+        if (activeBtn) activeBtn.classList.add("active");
+
+        fieldsets.forEach(fs => {
+            if (targetClass === "all" || fs.classList.contains(targetClass)) {
+                fs.style.display = "";
+            } else {
+                fs.style.display = "none";
+            }
+        });
+    }
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener("click", function() {
+            switchTab(this.getAttribute("data-target"));
+        });
+    });
+
+    // По умолчанию открываем первую вкладку
+    switchTab("tab-pane-content");
+
+    // --- 2. Живое обновление поискового сниппета (Google / Яндекс) ---
+    const titleInput = document.getElementById("id_title");
+    const metaTitleInput = document.getElementById("id_meta_title");
+    const subtitleInput = document.getElementById("id_subtitle");
+    const metaDescInput = document.getElementById("id_meta_description");
+    const slugInput = document.getElementById("id_slug");
+    const ogTitleInput = document.getElementById("id_og_title");
+    const ogDescInput = document.getElementById("id_og_description");
+    const focusKwInput = document.getElementById("id_focus_keyword");
+
+    const livePreviewTitle = document.getElementById("livePreviewTitle");
+    const livePreviewDesc = document.getElementById("livePreviewDesc");
+    const livePreviewUrl = document.getElementById("livePreviewUrl");
+    const titleCountEl = document.getElementById("titleCount");
+    const descCountEl = document.getElementById("descCount");
+    const titleCounterBadge = document.getElementById("titleCounterBadge");
+    const descCounterBadge = document.getElementById("descCounterBadge");
+
+    const liveOgTitle = document.getElementById("liveOgTitle");
+    const liveOgDesc = document.getElementById("liveOgDesc");
+
+    function updateLivePreview() {
+        const titleVal = (metaTitleInput && metaTitleInput.value.trim()) || (titleInput && titleInput.value.trim()) || "Заголовок страницы появится здесь...";
+        const descVal = (metaDescInput && metaDescInput.value.trim()) || (subtitleInput && subtitleInput.value.trim()) || "Здесь будет отображаться описание сниппета для поисковых систем Яндекс и Google (Meta Description)...";
+        const slugVal = (slugInput && slugInput.value.trim()) || "...";
+
+        if (livePreviewTitle) livePreviewTitle.textContent = titleVal;
+        if (livePreviewDesc) livePreviewDesc.textContent = descVal;
+        if (livePreviewUrl) livePreviewUrl.textContent = `https://sibsir.ru › pages › ${slugVal}`;
+
+        // Счётчик Title
+        const tLen = metaTitleInput ? metaTitleInput.value.trim().length : 0;
+        if (titleCountEl) titleCountEl.textContent = tLen;
+        if (titleCounterBadge) {
+            if (tLen >= 45 && tLen <= 65) {
+                titleCounterBadge.style.background = "#dcfce7";
+                titleCounterBadge.style.color = "#166534";
+            } else if (tLen > 65) {
+                titleCounterBadge.style.background = "#fee2e2";
+                titleCounterBadge.style.color = "#991b1b";
+            } else if (tLen > 0) {
+                titleCounterBadge.style.background = "#fef3c7";
+                titleCounterBadge.style.color = "#92400e";
+            } else {
+                titleCounterBadge.style.background = "#f1f5f9";
+                titleCounterBadge.style.color = "#64748b";
+            }
+        }
+
+        // Счётчик Description
+        const dLen = metaDescInput ? metaDescInput.value.trim().length : 0;
+        if (descCountEl) descCountEl.textContent = dLen;
+        if (descCounterBadge) {
+            if (dLen >= 140 && dLen <= 180) {
+                descCounterBadge.style.background = "#dcfce7";
+                descCounterBadge.style.color = "#166534";
+            } else if (dLen > 180) {
+                descCounterBadge.style.background = "#fee2e2";
+                descCounterBadge.style.color = "#991b1b";
+            } else if (dLen > 0) {
+                descCounterBadge.style.background = "#fef3c7";
+                descCounterBadge.style.color = "#92400e";
+            } else {
+                descCounterBadge.style.background = "#f1f5f9";
+                descCounterBadge.style.color = "#64748b";
+            }
+        }
+
+        // Open Graph
+        const ogTitleVal = (ogTitleInput && ogTitleInput.value.trim()) || titleVal;
+        const ogDescVal = (ogDescInput && ogDescInput.value.trim()) || descVal;
+        if (liveOgTitle) liveOgTitle.textContent = ogTitleVal;
+        if (liveOgDesc) liveOgDesc.textContent = ogDescVal;
+    }
+
+    [titleInput, metaTitleInput, subtitleInput, metaDescInput, slugInput, ogTitleInput, ogDescInput].forEach(inp => {
+        if (inp) {
+            inp.addEventListener("input", updateLivePreview);
+            inp.addEventListener("change", updateLivePreview);
+        }
+    });
+
+    updateLivePreview();
+
+    // --- 3. Автозаполнение SEO через AJAX эндпоинт ---
+    function showToast(msg, isSuccess = true) {
+        const toast = document.getElementById("sibToast");
+        if (!toast) return;
+        toast.textContent = msg;
+        toast.style.borderLeftColor = isSuccess ? "#10b981" : "#ef4444";
+        toast.style.display = "block";
+        setTimeout(() => { toast.style.display = "none"; }, 4000);
+    }
+
+    function triggerAutoSeo() {
+        const titleVal = titleInput ? titleInput.value.trim() : "";
+        if (!titleVal) {
+            alert("Пожалуйста, сначала укажите «Заголовок страницы (H1)»!");
+            if (titleInput) titleInput.focus();
+            return;
+        }
+
+        const subtitleVal = subtitleInput ? subtitleInput.value.trim() : "";
+        const focusKwVal = focusKwInput ? focusKwInput.value.trim() : "";
+
+        // Получаем контент из TinyMCE если доступен
+        let contentVal = "";
+        try {
+            if (window.tinymce && window.tinymce.get("id_content")) {
+                contentVal = window.tinymce.get("id_content").getContent({ format: 'text' });
+            } else if (document.getElementById("id_content")) {
+                contentVal = document.getElementById("id_content").value;
+            }
+        } catch(e) {
+            contentVal = "";
+        }
+
+        // CSRF Token
+        const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]')?.value;
+
+        const formData = new FormData();
+        formData.append("title", titleVal);
+        formData.append("subtitle", subtitleVal);
+        formData.append("content", contentVal);
+        formData.append("focus_keyword", focusKwVal);
+
+        // Отправка запроса на auto-seo/
+        fetch("auto-seo/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken,
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                if (metaTitleInput) metaTitleInput.value = data.meta_title || "";
+                if (metaDescInput) metaDescInput.value = data.meta_description || "";
+                const kwInput = document.getElementById("id_meta_keywords");
+                if (kwInput) kwInput.value = data.meta_keywords || "";
+                if (ogTitleInput) ogTitleInput.value = data.og_title || "";
+                if (ogDescInput) ogDescInput.value = data.og_description || "";
+
+                updateLivePreview();
+                showToast("⚡ SEO-теги успешно сгенерированы и заполнены!");
+                switchTab("tab-pane-seo");
+            } else {
+                showToast("Ошибка: " + (data.message || "Не удалось сгенерировать SEO"), false);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showToast("Ошибка соединения при генерации SEO", false);
+        });
+    }
+
+    const btnHeader = document.getElementById("btnHeaderAutoSeo");
+    if (btnHeader) btnHeader.addEventListener("click", triggerAutoSeo);
+
+    const btnForm = document.getElementById("btnAutoSeoInForm");
+    if (btnForm) btnForm.addEventListener("click", triggerAutoSeo);
+});
+</script>
+{% endblock %}
