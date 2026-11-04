@@ -7,10 +7,10 @@ django-tinymce==5.0.0
 idna==3.20
 mysqlclient==2.3.0
 pillow==13.0.0
-PyMySQL==1.2.3
 requests==2.34.2
 soupsieve==3.0.4
 sqlparse==0.6.0
 typing_extensions==4.16.0
 tzdata==2026.5
 urllib3==2.8.0
+PyMySQL==1.1.1
