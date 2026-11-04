@@ -1142,6 +1142,24 @@ class Order(models.Model):
     def get_items_count_in_words(self):
         return count_items_in_words(self.get_items_count())
 
+    @property
+    def clean_phone(self):
+        if not self.phone:
+            return ""
+        return "".join(c for c in self.phone if c.isdigit() or c == "+")
+
+    @property
+    def formatted_total_price(self):
+        return f"{self.total_price:,.2f} ₽".replace(",", " ")
+
+    @property
+    def formatted_subtotal_price(self):
+        return f"{self.subtotal_price:,.2f} ₽".replace(",", " ")
+
+    @property
+    def formatted_discount_amount(self):
+        return f"{self.discount_amount:,.2f} ₽".replace(",", " ")
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(

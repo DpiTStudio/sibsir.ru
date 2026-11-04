@@ -450,9 +450,6 @@ class OrderAdmin(admin.ModelAdmin):
     raw_id_fields = ("user", "promocode")
 
     fieldsets = (
-        ("Документы и быстрая печать", {
-            "fields": ("document_links_preview",)
-        }),
         ("Статус и параметры заказа", {
             "fields": (
                 ("status", "customer_type"),
@@ -688,13 +685,6 @@ class OrderAdmin(admin.ModelAdmin):
         waybill_url = reverse("shop:order_waybill", args=[obj.id])
         torg12_url = reverse("shop:order_torg12", args=[obj.id])
         bill_url = reverse("shop:order_bill", args=[obj.id])
-
-        total_fmt = f"{obj.total_price:,.2f} ₽".replace(",", " ")
-        subtotal_fmt = f"{obj.subtotal_price:,.2f} ₽".replace(",", " ")
-        discount_fmt = f"{obj.discount_amount:,.2f} ₽".replace(",", " ") if obj.discount_amount > 0 else ""
-
-        client_type = "Юридическое лицо / ИП" if obj.is_legal else "Физическое лицо"
-        client_name = obj.customer_display_title
 
         status_name = obj.get_status_display()
         pay_status = "Оплачен" if obj.is_paid else f"Ожидает оплаты ({obj.get_payment_method_display()})"

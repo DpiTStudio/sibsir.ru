@@ -1,0 +1,916 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls static admin_modify %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+/* ==========================================================================
+   Премиальное оформление формы заказа ТМ «Сибсыр»
+   ========================================================================== */
+
+/* 1. Главный баннер заказа (Hero Card) */
+.order-hero-banner {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 14px;
+  padding: 18px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.order-hero-banner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff8400 0%, #ea580c 50%, #38bdf8 100%);
+}
+
+.order-hero-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.order-hero-info {
+  flex: 1 1 500px;
+  min-width: 280px;
+}
+
+.order-hero-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.order-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: rgba(255, 132, 0, 0.12);
+  border: 1px solid rgba(255, 132, 0, 0.3);
+  color: #ff8400;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.order-hero-title {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--admin-text-title);
+  letter-spacing: -0.01em;
+}
+
+.order-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* Статусы заказа */
+.badge-status-new {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.badge-status-processing {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+}
+.badge-status-confirmed {
+  background: rgba(139, 92, 246, 0.15);
+  color: #7c3aed;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+}
+.badge-status-shipped {
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+.badge-status-completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.badge-status-cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* Оплата */
+.badge-pay-paid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.badge-pay-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+/* Тип клиента */
+.badge-client-legal {
+  background: rgba(99, 102, 241, 0.15);
+  color: #4f46e5;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+}
+.badge-client-individual {
+  background: rgba(16, 185, 129, 0.15);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+/* Данные покупателя в шапке */
+.order-hero-details-grid {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+  margin-top: 6px;
+}
+
+.order-hero-detail-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-hero-detail-item i {
+  color: var(--admin-primary);
+  font-size: 0.95rem;
+}
+
+.order-hero-detail-item strong {
+  color: var(--admin-text-title);
+  font-weight: 600;
+}
+
+.order-hero-detail-item a {
+  color: var(--admin-primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.15s ease;
+}
+
+.order-hero-detail-item a:hover {
+  text-decoration: underline;
+  color: var(--admin-primary-hover);
+}
+
+/* Финансовый блок справа */
+.order-hero-finance {
+  text-align: right;
+  flex-shrink: 0;
+  background: var(--admin-card-header);
+  border: 1px solid var(--admin-border-color);
+  padding: 10px 18px;
+  border-radius: 10px;
+  min-width: 200px;
+  box-sizing: border-box;
+}
+
+.order-hero-finance-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--admin-text-muted);
+}
+
+.order-hero-finance-val {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #ff8400;
+  line-height: 1.2;
+  margin: 3px 0 2px 0;
+}
+
+.order-hero-finance-discount {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.order-hero-finance-count {
+  font-size: 11px;
+  color: var(--admin-text-muted);
+  margin-top: 3px;
+}
+
+/* 2. Панель быстрой печати документов */
+.order-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.order-hero-actions-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--admin-text-muted);
+}
+
+.order-hero-docs-list {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.order-doc-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 13px !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  border-radius: 6px !important;
+  line-height: 1.3 !important;
+  text-decoration: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer !important;
+  box-sizing: border-box !important;
+}
+
+.order-doc-btn i {
+  font-size: 12.5px !important;
+  line-height: 1 !important;
+}
+
+.order-doc-btn:hover {
+  text-decoration: none !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Цвета кнопок документов */
+.order-doc-btn.btn-receipt {
+  background: #fff7ed !important;
+  color: #c2410c !important;
+  border: 1px solid #fed7aa !important;
+}
+.order-doc-btn.btn-receipt:hover {
+  background: #ffedd5 !important;
+  color: #9a3412 !important;
+  border-color: #fb923c !important;
+}
+
+.order-doc-btn.btn-waybill {
+  background: #f0f9ff !important;
+  color: #0284c7 !important;
+  border: 1px solid #bae6fd !important;
+}
+.order-doc-btn.btn-waybill:hover {
+  background: #e0f2fe !important;
+  color: #0369a1 !important;
+  border-color: #38bdf8 !important;
+}
+
+.order-doc-btn.btn-torg12 {
+  background: #f5f3ff !important;
+  color: #7c3aed !important;
+  border: 1px solid #ddd6fe !important;
+}
+.order-doc-btn.btn-torg12:hover {
+  background: #ede9fe !important;
+  color: #6d28d9 !important;
+  border-color: #a78bfa !important;
+}
+
+.order-doc-btn.btn-bill {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+.order-doc-btn.btn-bill:hover {
+  background: #d1fae5 !important;
+  color: #047857 !important;
+  border-color: #34d399 !important;
+}
+
+/* 3. Интерактивная цепочка жизненного цикла статуса заказа (Order Stepper) */
+.order-stepper-card {
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 12px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.order-stepper-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.order-stepper-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--admin-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.order-stepper-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+  scrollbar-width: thin;
+}
+
+.order-step-btn {
+  flex: 1 1 0;
+  min-width: 110px;
+  background: var(--admin-card-header);
+  border: 1px solid var(--admin-border-color);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.order-step-btn:hover {
+  background: var(--admin-card-hover);
+  border-color: var(--admin-primary);
+  transform: translateY(-1px);
+}
+
+.order-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--admin-border-color);
+  color: var(--admin-text-muted);
+  font-size: 10.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.order-step-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--admin-text-main);
+  white-space: nowrap;
+}
+
+/* Активный статус */
+.order-step-btn.is-active {
+  background: var(--admin-primary-soft) !important;
+  border-color: var(--admin-primary) !important;
+  box-shadow: 0 0 0 1px var(--admin-primary);
+}
+
+.order-step-btn.is-active .order-step-num {
+  background: var(--admin-primary) !important;
+  color: #ffffff !important;
+}
+
+.order-step-btn.is-active .order-step-title {
+  color: var(--admin-primary) !important;
+}
+
+/* Пройденные статусы */
+.order-step-btn.is-passed {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.order-step-btn.is-passed .order-step-num {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* Статус «Отменен» */
+.order-cancelled-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 4. Навигационные вкладки / быстрые переходы */
+.order-section-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  padding: 2px 0 6px 0;
+  scrollbar-width: thin;
+}
+
+.order-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: var(--admin-card-bg);
+  border: 1px solid var(--admin-border-color);
+  color: var(--admin-text-main);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.order-nav-pill:hover {
+  background: var(--admin-primary-soft);
+  color: var(--admin-primary);
+  border-color: var(--admin-primary-border);
+  text-decoration: none;
+}
+
+.order-nav-pill i {
+  color: var(--admin-primary);
+  font-size: 12px;
+}
+
+/* 5. Улучшенные стили карточек fieldset */
+fieldset.module {
+  border-radius: 12px !important;
+  border: 1px solid var(--admin-border-color) !important;
+  background: var(--admin-card-bg) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+  margin-bottom: 16px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+fieldset.module h2 {
+  background: var(--admin-card-header) !important;
+  color: var(--admin-text-title) !important;
+  border-bottom: 1px solid var(--admin-border-color) !important;
+  border-left: 4px solid var(--admin-primary) !important;
+  padding: 10px 16px !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+fieldset.module .form-row {
+  padding: 10px 16px !important;
+}
+
+fieldset.collapse details summary {
+  padding: 10px 16px !important;
+}
+
+/* 6. Позиции заказа (Табличный инлайн) */
+#items-group {
+  border-radius: 12px !important;
+  border: 1px solid var(--admin-border-color) !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+  margin-bottom: 16px !important;
+}
+
+#items-group h2 {
+  background: var(--admin-card-header) !important;
+  border-bottom: 1px solid var(--admin-border-color) !important;
+  border-left: 4px solid var(--admin-primary) !important;
+  padding: 10px 16px !important;
+  margin: 0 !important;
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  color: var(--admin-text-title) !important;
+}
+
+.tabular table thead th {
+  background: var(--admin-table-head-bg) !important;
+  padding: 8px 10px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: var(--admin-table-head-text) !important;
+  letter-spacing: 0.03em !important;
+  border-bottom: 1px solid var(--admin-border-color) !important;
+}
+
+.tabular table tbody td {
+  padding: 8px 10px !important;
+  vertical-align: middle !important;
+}
+
+/* Темная тема для кастомных компонентов */
+html[data-theme="dark"] .order-hero-banner {
+  background: #151d30;
+  border-color: #27354f;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .order-hero-finance {
+  background: #101726;
+  border-color: #27354f;
+}
+
+html[data-theme="dark"] .order-stepper-card {
+  background: #151d30;
+  border-color: #27354f;
+}
+
+html[data-theme="dark"] .order-step-btn {
+  background: #101726;
+  border-color: #27354f;
+}
+
+html[data-theme="dark"] .order-step-num {
+  background: #27354f;
+  color: #94a3b8;
+}
+
+html[data-theme="dark"] .order-nav-pill {
+  background: #151d30;
+  border-color: #27354f;
+  color: #e2e8f0;
+}
+
+html[data-theme="dark"] .order-doc-btn.btn-receipt {
+  background: rgba(249, 115, 22, 0.18) !important;
+  color: #fb923c !important;
+  border-color: rgba(249, 115, 22, 0.45) !important;
+}
+html[data-theme="dark"] .order-doc-btn.btn-waybill {
+  background: rgba(14, 165, 233, 0.18) !important;
+  color: #38bdf8 !important;
+  border-color: rgba(14, 165, 233, 0.45) !important;
+}
+html[data-theme="dark"] .order-doc-btn.btn-torg12 {
+  background: rgba(168, 85, 247, 0.18) !important;
+  color: #c084fc !important;
+  border-color: rgba(168, 85, 247, 0.45) !important;
+}
+html[data-theme="dark"] .order-doc-btn.btn-bill {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34d399 !important;
+  border-color: rgba(16, 185, 129, 0.45) !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+{% if original and original.pk %}
+<!-- =======================================================================
+     1. Премиальный Главный Баннер Заказа (Hero Banner)
+     ======================================================================= -->
+<div class="order-hero-banner">
+    <div class="order-hero-main">
+        <div class="order-hero-info">
+            <div class="order-hero-title-row">
+                <div class="order-hero-icon" title="Заказ клиента ТМ «Сибсыр»">
+                    <i class="bi bi-bag-check-fill"></i>
+                </div>
+                <h1 class="order-hero-title">Заказ #{{ original.id }}</h1>
+
+                <!-- Статус заказа -->
+                <span class="order-hero-badge badge-status-{{ original.status }}" id="heroStatusBadge">
+                    {% if original.status == 'new' %}<i class="bi bi-bell-fill"></i>
+                    {% elif original.status == 'processing' %}<i class="bi bi-arrow-repeat"></i>
+                    {% elif original.status == 'confirmed' %}<i class="bi bi-check2-all"></i>
+                    {% elif original.status == 'shipped' %}<i class="bi bi-truck"></i>
+                    {% elif original.status == 'completed' %}<i class="bi bi-patch-check-fill"></i>
+                    {% elif original.status == 'cancelled' %}<i class="bi bi-x-circle-fill"></i>
+                    {% endif %}
+                    {{ original.get_status_display }}
+                </span>
+
+                <!-- Статус оплаты -->
+                {% if original.is_paid %}
+                <span class="order-hero-badge badge-pay-paid" title="Оплачен через: {{ original.get_payment_method_display }}">
+                    <i class="bi bi-shield-check"></i> Оплачен
+                </span>
+                {% else %}
+                <span class="order-hero-badge badge-pay-pending" title="Способ оплаты: {{ original.get_payment_method_display }}">
+                    <i class="bi bi-hourglass-split"></i> Ожидает оплаты
+                </span>
+                {% endif %}
+
+                <!-- Тип покупателя -->
+                {% if original.is_legal %}
+                <span class="order-hero-badge badge-client-legal" title="Организация или Индивидуальный предприниматель">
+                    <i class="bi bi-building"></i> Юр. лицо / ИП
+                </span>
+                {% else %}
+                <span class="order-hero-badge badge-client-individual" title="Физическое лицо">
+                    <i class="bi bi-person-fill"></i> Физ. лицо
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="order-hero-details-grid">
+                <div class="order-hero-detail-item" title="Покупатель или название организации">
+                    <i class="bi bi-person-badge-fill"></i>
+                    <span><strong>{{ original.customer_display_title|default:"Покупатель не указан" }}</strong></span>
+                </div>
+
+                {% if original.phone %}
+                <div class="order-hero-detail-item" title="Позвонить клиенту в один клик">
+                    <i class="bi bi-telephone-fill"></i>
+                    <a href="tel:{{ original.clean_phone }}">{{ original.phone }}</a>
+                </div>
+                {% endif %}
+
+                {% if original.email %}
+                <div class="order-hero-detail-item" title="Написать клиенту на Email">
+                    <i class="bi bi-envelope-fill"></i>
+                    <a href="mailto:{{ original.email }}">{{ original.email }}</a>
+                </div>
+                {% endif %}
+
+                {% if original.created_at %}
+                <div class="order-hero-detail-item" title="Дата и время оформления заказа">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>{{ original.created_at|date:"d.m.Y" }} в {{ original.created_at|date:"H:i" }}</span>
+                </div>
+                {% endif %}
+
+                {% if original.delivery_address %}
+                <div class="order-hero-detail-item" title="Адрес доставки">
+                    <i class="bi bi-geo-alt-fill"></i>
+                    <span>{{ original.delivery_address|truncatechars:45 }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Финансовая сводка -->
+        <div class="order-hero-finance">
+            <div class="order-hero-finance-label">Итого к оплате</div>
+            <div class="order-hero-finance-val">{{ original.formatted_total_price }}</div>
+            {% if original.discount_amount > 0 %}
+            <div>
+                <span class="order-hero-finance-discount">
+                    <i class="bi bi-tag-fill"></i> Скидка -{{ original.formatted_discount_amount }}
+                </span>
+            </div>
+            {% endif %}
+            <div class="order-hero-finance-count">
+                <i class="bi bi-basket2"></i> {{ original.get_items_count_in_words }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Кнопки быстрой печати документов -->
+    <div class="order-hero-actions">
+        <div class="order-hero-actions-title">
+            <i class="bi bi-printer-fill" style="color: var(--admin-primary);"></i> Документы для быстрой печати:
+        </div>
+        <div class="order-hero-docs-list">
+            <a href="{% url 'shop:order_receipt' original.id %}" target="_blank" class="order-doc-btn btn-receipt" title="Товарный и кассовый чек для покупателя">
+                <i class="bi bi-receipt"></i><span>Товарный чек</span>
+            </a>
+            <a href="{% url 'shop:order_waybill' original.id %}" target="_blank" class="order-doc-btn btn-waybill" title="Расходная товарная накладная">
+                <i class="bi bi-card-checklist"></i><span>Накладная</span>
+            </a>
+            <a href="{% url 'shop:order_torg12' original.id %}" target="_blank" class="order-doc-btn btn-torg12" title="Унифицированная форма ТОРГ-12 для организаций и ИП">
+                <i class="bi bi-building"></i><span>ТОРГ-12</span>
+            </a>
+            <a href="{% url 'shop:order_bill' original.id %}" target="_blank" class="order-doc-btn btn-bill" title="Официальный счет на безналичную оплату">
+                <i class="bi bi-cash-stack"></i><span>Счет на оплату</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- =======================================================================
+     2. Интерактивная Цепочка Статусов Заказа (Lifecycle Stepper)
+     ======================================================================= -->
+<div class="order-stepper-card">
+    <div class="order-stepper-header">
+        <span class="order-stepper-title">
+            <i class="bi bi-diagram-3-fill" style="color: var(--admin-primary);"></i> Статус выполнения заказа:
+        </span>
+        <span style="font-size: 11px; color: var(--admin-text-muted);">
+            Нажмите на нужный этап, чтобы мгновенно изменить статус
+        </span>
+    </div>
+
+    <div class="order-stepper-nav" id="orderStatusStepper">
+        <div class="order-step-btn" data-status="new" title="Новый поступивший заказ">
+            <span class="order-step-num">1</span>
+            <span class="order-step-title">Новый</span>
+        </div>
+        <div class="order-step-btn" data-status="processing" title="Заказ передан в обработку / на сборку">
+            <span class="order-step-num">2</span>
+            <span class="order-step-title">В обработке</span>
+        </div>
+        <div class="order-step-btn" data-status="confirmed" title="Заказ подтвержден с клиентом">
+            <span class="order-step-num">3</span>
+            <span class="order-step-title">Подтвержден</span>
+        </div>
+        <div class="order-step-btn" data-status="shipped" title="Заказ передан в доставку / отгружен">
+            <span class="order-step-num">4</span>
+            <span class="order-step-title">Отгружен</span>
+        </div>
+        <div class="order-step-btn" data-status="completed" title="Заказ успешно доставлен и завершен">
+            <span class="order-step-num">5</span>
+            <span class="order-step-title">Выполнен</span>
+        </div>
+    </div>
+
+    {% if original.status == 'cancelled' %}
+    <div class="order-cancelled-banner">
+        <span><i class="bi bi-exclamation-triangle-fill"></i> Данный заказ в настоящее время <strong>ОТМЕНЕН</strong></span>
+        <button type="button" class="order-doc-btn btn-receipt" id="btnRestoreOrder" style="padding: 3px 8px !important;">
+            <i class="bi bi-arrow-counterclockwise"></i> Возобновить заказ
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- =======================================================================
+     3. Навигационные закладки быстрого перехода
+     ======================================================================= -->
+<div class="order-section-nav">
+    <a href="#order-section-params" class="order-nav-pill">
+        <i class="bi bi-sliders"></i> Параметры и оплата
+    </a>
+    <a href="#order-section-customer" class="order-nav-pill">
+        <i class="bi bi-person-lines-fill"></i> Покупатель и адрес
+    </a>
+    {% if original.is_legal %}
+    <a href="#order-section-legal" class="order-nav-pill">
+        <i class="bi bi-building"></i> Реквизиты организации
+    </a>
+    {% endif %}
+    <a href="#items-group" class="order-nav-pill">
+        <i class="bi bi-basket2"></i> Позиции заказа ({{ original.items.count }})
+    </a>
+    <a href="#order-section-comment" class="order-nav-pill">
+        <i class="bi bi-chat-left-text"></i> Комментарии
+    </a>
+</div>
+{% endif %}
+
+<!-- Стандартная форма редактирования Django -->
+{{ block.super }}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Привязка интерактивного степпера статусов к select #id_status
+    var statusSelect = document.getElementById("id_status");
+    var stepButtons = document.querySelectorAll(".order-step-btn");
+    var statusOrder = ["new", "processing", "confirmed", "shipped", "completed"];
+
+    function updateStepperUI(currentStatus) {
+        var currentIndex = statusOrder.indexOf(currentStatus);
+        stepButtons.forEach(function(btn, index) {
+            var btnStatus = btn.getAttribute("data-status");
+            btn.classList.remove("is-active", "is-passed");
+            if (btnStatus === currentStatus) {
+                btn.classList.add("is-active");
+            } else if (currentIndex !== -1 && index < currentIndex) {
+                btn.classList.add("is-passed");
+            }
+        });
+    }
+
+    if (statusSelect) {
+        updateStepperUI(statusSelect.value);
+
+        statusSelect.addEventListener("change", function() {
+            updateStepperUI(this.value);
+        });
+
+        stepButtons.forEach(function(btn) {
+            btn.addEventListener("click", function() {
+                var targetStatus = this.getAttribute("data-status");
+                if (statusSelect.value !== targetStatus) {
+                    statusSelect.value = targetStatus;
+                    // Триггерим событие change
+                    var evt = new Event("change", { bubbles: true });
+                    statusSelect.dispatchEvent(evt);
+                    updateStepperUI(targetStatus);
+                }
+            });
+        });
+
+        var btnRestore = document.getElementById("btnRestoreOrder");
+        if (btnRestore) {
+            btnRestore.addEventListener("click", function() {
+                statusSelect.value = "processing";
+                var evt = new Event("change", { bubbles: true });
+                statusSelect.dispatchEvent(evt);
+                updateStepperUI("processing");
+            });
+        }
+    }
+
+    // 2. Добавление иконок и якорей к заголовкам fieldset
+    var fieldsets = document.querySelectorAll("fieldset.module");
+    fieldsets.forEach(function(fs, i) {
+        var h2 = fs.querySelector("h2");
+        if (!h2) return;
+        var text = h2.textContent.trim();
+
+        if (text.indexOf("Статус") !== -1 || text.indexOf("Параметры") !== -1) {
+            fs.id = "order-section-params";
+            if (!h2.querySelector("i")) {
+                h2.insertAdjacentHTML("afterbegin", '<i class="bi bi-sliders" style="color: var(--admin-primary); margin-right: 6px;"></i> ');
+            }
+        } else if (text.indexOf("Контактная") !== -1 || text.indexOf("покупателя") !== -1) {
+            fs.id = "order-section-customer";
+            if (!h2.querySelector("i")) {
+                h2.insertAdjacentHTML("afterbegin", '<i class="bi bi-person-lines-fill" style="color: var(--admin-primary); margin-right: 6px;"></i> ');
+            }
+        } else if (text.indexOf("Реквизиты") !== -1 || text.indexOf("Юридического") !== -1) {
+            fs.id = "order-section-legal";
+            if (!h2.querySelector("i")) {
+                h2.insertAdjacentHTML("afterbegin", '<i class="bi bi-building" style="color: var(--admin-primary); margin-right: 6px;"></i> ');
+            }
+        } else if (text.indexOf("Состав") !== -1 || text.indexOf("комментарии") !== -1) {
+            fs.id = "order-section-comment";
+            if (!h2.querySelector("i")) {
+                h2.insertAdjacentHTML("afterbegin", '<i class="bi bi-chat-left-text" style="color: var(--admin-primary); margin-right: 6px;"></i> ');
+            }
+        } else if (text.indexOf("Служебная") !== -1) {
+            fs.id = "order-section-meta";
+            if (!h2.querySelector("i")) {
+                h2.insertAdjacentHTML("afterbegin", '<i class="bi bi-shield-lock" style="color: var(--admin-primary); margin-right: 6px;"></i> ');
+            }
+        }
+    });
+
+    // 3. Добавление иконки к блоку позиций
+    var itemsH2 = document.querySelector("#items-group h2");
+    if (itemsH2 && !itemsH2.querySelector("i")) {
+        itemsH2.insertAdjacentHTML("afterbegin", '<i class="bi bi-basket2-fill" style="color: var(--admin-primary); margin-right: 6px;"></i> ');
+    }
+});
+</script>
+{% endblock %}
+
