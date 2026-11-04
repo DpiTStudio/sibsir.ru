@@ -352,76 +352,9 @@
     </div>
 
     <!-- 7. ИНФОРМАЦИОННЫЙ ПУТЕВОДИТЕЛЬ (О КОМПАНИИ -> КОНТАКТЫ -> ДОСТАВКА И ОПЛАТА) -->
-    <div class="p-4 p-md-5 rounded-4 shadow-sm mb-4" 
-         style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 2px solid #fdba74;">
-        <div class="text-center mb-4">
-            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
-                <i class="bi bi-signpost-split-fill me-1"></i> Маршрут сотрудничества
-            </span>
-            <h2 class="fw-bold text-dark mb-2">О компании &rarr; Контакты &rarr; Доставка и оплата</h2>
-            <p class="text-muted small" style="max-width: 650px; margin: 0 auto;">
-                Свяжитесь с нами и переходите к оформлению доставки — специализированный транспорт доставит продукцию со строгим температурным контролем.
-            </p>
-        </div>
-
-        <div class="row g-3 g-md-4">
-            <!-- Step 1: About -->
-            <div class="col-md-4">
-                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="badge bg-secondary text-white fw-bold rounded-pill mb-2 px-3 py-1">
-                            Шаг 1 • О производстве
-                        </div>
-                        <h5 class="fw-bold text-dark mt-2 mb-2">
-                            <i class="bi bi-building text-warning me-2"></i>О компании «Сибсыр»
-                        </h5>
-                        <p class="text-muted small mb-3">
-                            История завода с 1999 года, сертификация по ГОСТ, система ХАССП, отборное молоко и традиции сибирских мастеров.
-                        </p>
-                    </div>
-                    <a href="{% url 'main:about' %}" class="btn btn-outline-dark rounded-pill w-100 fw-semibold">
-                        <i class="bi bi-arrow-left ms-1"></i> <span>Узнать о производстве</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Step 2: Contacts (Current) -->
-            <div class="col-md-4">
-                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-primary position-relative">
-                    <div class="badge bg-primary text-white fw-bold rounded-pill mb-2 px-3 py-1">
-                        Шаг 2 • Текущая страница
-                    </div>
-                    <h5 class="fw-bold text-dark mt-2 mb-2">
-                        <i class="bi bi-geo-alt-fill text-primary me-2"></i>Контакты и реквизиты
-                    </h5>
-                    <p class="text-muted small mb-3">
-                        Омск, ул. Зеленая 16, телефоны отдела сбыта, логистики, полные банковские реквизиты ИП Нахшкарян А.Л. и карта проезда.
-                    </p>
-                    <span class="badge bg-light text-muted border">Вы находитесь здесь</span>
-                </div>
-            </div>
-
-            <!-- Step 3: Delivery -->
-            <div class="col-md-4">
-                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="badge bg-success text-white fw-bold rounded-pill mb-2 px-3 py-1">
-                            Шаг 3 • Получение партии
-                        </div>
-                        <h5 class="fw-bold text-dark mt-2 mb-2">
-                            <i class="bi bi-truck text-success me-2"></i>Доставка и оплата
-                        </h5>
-                        <p class="text-muted small mb-3">
-                            Рефрижераторные перевозки (+2...+4°C), самовывоз со склада, расчет с НДС, отсрочка платежа для сетей и оптовый прайс.
-                        </p>
-                    </div>
-                    <a href="{% url 'main:delivery' %}" class="btn btn-sib-orange rounded-pill w-100 fw-semibold">
-                        <span>Условия доставки и оплаты</span> <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% with active_step='contacts' %}
+        {% include "main/components/company_nav_steps.html" %}
+    {% endwith %}
 
 </div>
 

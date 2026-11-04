@@ -1,0 +1,1276 @@
+    <!-- Bootstrap 5.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <!-- Flagship JS Logic -->
+    <script>
+        // --- CART SYSTEM (LocalStorage) ---
+        let cart = JSON.parse(localStorage.getItem('sib_cart') || '[]');
+        let appliedPromo = JSON.parse(localStorage.getItem('sib_applied_promo') || 'null');
+
+        function saveCart() {
+            localStorage.setItem('sib_cart', JSON.stringify(cart));
+            updateCartBadges();
+            renderCartModal();
+        }
+
+        function updateCartBadges() {
+            const totalCount = cart.reduce((sum, item) => sum + item.count, 0);
+            const navBadge = document.getElementById('navCartCounter');
+            const navMobileBadge = document.getElementById('navCartCounterMobile');
+            const floatBadge = document.getElementById('floatingCartCounter');
+            const bottomNavBadge = document.getElementById('bottomNavCartCounter');
+            if (navBadge) navBadge.textContent = totalCount;
+            if (navMobileBadge) navMobileBadge.textContent = totalCount;
+            if (floatBadge) floatBadge.textContent = totalCount;
+            if (bottomNavBadge) {
+                bottomNavBadge.textContent = totalCount;
+                bottomNavBadge.style.display = totalCount > 0 ? 'inline-flex' : 'none';
+            }
+        }
+
+        function addToCart(title, price, img, numPrice, count = 1) {
+            const qty = Math.max(1, parseInt(count) || 1);
+            const existing = cart.find(item => item.title === title);
+            if (existing) {
+                existing.count += qty;
+            } else {
+                cart.push({
+                    title: title,
+                    price: price,
+                    img: img,
+                    numPrice: numPrice || 0,
+                    count: qty
+                });
+            }
+            saveCart();
+            showToast(`«${title}» (${qty > 1 ? qty + ' шт.' : '1 шт.'}) добавлен в корзину!`);
+        }
+
+        function removeFromCart(title) {
+            cart = cart.filter(item => item.title !== title);
+            saveCart();
+        }
+
+        function changeCartCount(title, delta) {
+            const item = cart.find(i => i.title === title);
+            if (!item) return;
+            item.count += delta;
+            if (item.count <= 0) {
+                removeFromCart(title);
+            } else {
+                saveCart();
+            }
+        }
+
+        function setCartCount(title, newCount) {
+            const item = cart.find(i => i.title === title);
+            if (!item) return;
+            let count = parseInt(newCount);
+            if (isNaN(count) || count < 1) count = 1;
+            if (count > 999) count = 999;
+            item.count = count;
+            saveCart();
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function applyCartPromocode(specifiedCode) {
+            const input = document.getElementById('cartPromocodeInput');
+            const code = specifiedCode || (input ? input.value.trim() : '');
+            const feedback = document.getElementById('promocodeFeedback');
+            const btn = document.getElementById('applyPromocodeBtn');
+
+            if (!code) {
+                if (feedback) {
+                    feedback.className = 'small mt-2 text-danger fw-bold';
+                    feedback.textContent = 'Пожалуйста, введите промокод.';
+                    feedback.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (cart.length === 0) {
+                if (feedback) {
+                    feedback.className = 'small mt-2 text-danger fw-bold';
+                    feedback.textContent = 'Сначала добавьте понравившиеся сыры в корзину.';
+                    feedback.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (btn) btn.disabled = true;
+            const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+            fetch('{% url "shop:apply_promocode_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    code: code,
+                    items: cart
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (btn) btn.disabled = false;
+                if (data.success) {
+                    appliedPromo = data;
+                    localStorage.setItem('sib_applied_promo', JSON.stringify(appliedPromo));
+                    if (feedback) {
+                        feedback.className = 'small mt-2 text-success fw-bold';
+                        feedback.textContent = data.message;
+                        feedback.classList.remove('d-none');
+                    }
+                    renderCartModal();
+                    showToast(`Промокод «${data.code}» применен! Скидка: ${data.discount_display}`);
+                } else {
+                    if (feedback) {
+                        feedback.className = 'small mt-2 text-danger fw-bold';
+                        feedback.textContent = data.error;
+                        feedback.classList.remove('d-none');
+                    }
+                }
+            })
+            .catch(err => {
+                if (btn) btn.disabled = false;
+                if (feedback) {
+                    feedback.className = 'small mt-2 text-danger fw-bold';
+                    feedback.textContent = 'Ошибка соединения при проверке промокода.';
+                    feedback.classList.remove('d-none');
+                }
+            });
+        }
+
+        function removeCartPromocode() {
+            appliedPromo = null;
+            localStorage.removeItem('sib_applied_promo');
+            const feedback = document.getElementById('promocodeFeedback');
+            if (feedback) feedback.classList.add('d-none');
+            const input = document.getElementById('cartPromocodeInput');
+            if (input) input.value = '';
+            renderCartModal();
+            showToast('Промокод отменен.');
+        }
+
+        function copyAndApplyPromo(code) {
+            navigator.clipboard.writeText(code).then(() => {
+                showToast(`Промокод «${code}» скопирован!`);
+            }).catch(() => {});
+
+            const cartModalEl = document.getElementById('cartModal');
+            if (cartModalEl) {
+                const modal = bootstrap.Modal.getOrCreateInstance(cartModalEl);
+                modal.show();
+                const inp = document.getElementById('cartPromocodeInput');
+                if (inp) inp.value = code;
+                if (cart.length > 0) {
+                    applyCartPromocode(code);
+                } else {
+                    showToast(`Промокод «${code}» скопирован! Добавьте товары в корзину.`);
+                }
+            }
+        }
+
+        function pluralizeGoods(n) {
+            const abs = Math.abs(n) % 100;
+            const n1 = abs % 10;
+            if (abs > 10 && abs < 20) return 'товаров';
+            if (n1 > 1 && n1 < 5) return 'товара';
+            if (n1 === 1) return 'товар';
+            return 'товаров';
+        }
+
+        function clearCartConfirm() {
+            if (confirm('Очистить корзину?')) {
+                cart = [];
+                saveCart();
+                renderCartModal();
+                updateCartBadges();
+                showToast('Корзина полностью очищена');
+            }
+        }
+
+        function renderCartModal() {
+            const container = document.getElementById('cartItemsContainer');
+            const emptyState = document.getElementById('cartEmptyState');
+            const orderSection = document.getElementById('cartOrderSection');
+            const totalPriceEl = document.getElementById('cartTotalPrice');
+            const subtotalEl = document.getElementById('cartSubtotalPrice');
+            const discountRow = document.getElementById('cartDiscountRow');
+            const discountPriceEl = document.getElementById('cartDiscountPrice');
+            const hiddenChoice = document.getElementById('cartProductChoiceHidden');
+            const inputGroup = document.getElementById('promocodeInputGroup');
+            const appliedBadge = document.getElementById('appliedPromoBadge');
+            const appliedCodeText = document.getElementById('appliedPromoCodeText');
+            const appliedDesc = document.getElementById('appliedPromoDesc');
+            const hiddenPromocode = document.getElementById('cartPromocodeHidden');
+            const subtitleEl = document.getElementById('cartHeaderSubtitle');
+            const clearAllBtn = document.getElementById('cartClearAllBtn');
+            const submitBtn = document.getElementById('cartSubmitOrderBtn');
+
+            if (!container) return;
+
+            const totalItemCount = cart.reduce((sum, item) => sum + (item.count || 1), 0);
+
+            if (cart.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('d-none');
+                orderSection.classList.add('d-none');
+                if (clearAllBtn) clearAllBtn.classList.add('d-none');
+                if (subtitleEl) subtitleEl.textContent = 'Ваша корзина пуста';
+                return;
+            }
+
+            emptyState.classList.add('d-none');
+            orderSection.classList.remove('d-none');
+            if (clearAllBtn) clearAllBtn.classList.remove('d-none');
+
+            let subtotal = 0;
+            let summaryList = [];
+
+            let html = '<div class="cart-items-list">';
+            cart.forEach(item => {
+                const count = item.count || 1;
+                const itemTotal = (item.numPrice || 0) * count;
+                subtotal += itemTotal;
+                summaryList.push(`${item.title} x ${count} шт.`);
+
+                const totalFormatted = itemTotal > 0 ? itemTotal.toLocaleString('ru-RU') + ' ₽' : item.price;
+                const safeTitle = (item.title || '').replace(/'/g, "\\'");
+
+                html += `
+                    <div class="cart-item-card">
+                        <div class="cart-item-thumb-box">
+                            <img src="${item.img}" alt="${item.title}" class="cart-item-thumb" loading="lazy">
+                        </div>
+                        <div class="cart-item-info">
+                            <div class="d-flex align-items-start justify-content-between gap-2">
+                                <h6 class="cart-item-title">${item.title}</h6>
+                                <button type="button" class="cart-item-remove-btn" onclick="removeFromCart('${safeTitle}')" title="Удалить из корзины" aria-label="Удалить товар">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                            <div class="cart-item-unit-price mb-2 text-muted small">
+                                <span>${item.numPrice > 0 ? (item.numPrice.toLocaleString('ru-RU') + ' ₽ / шт.') : item.price}</span>
+                            </div>
+                            <div class="d-flex align-items-center justify-content-between mt-auto pt-1">
+                                <div class="cart-stepper" role="group" aria-label="Количество товара">
+                                    <button type="button" class="cart-stepper-btn" onclick="changeCartCount('${safeTitle}', -1)" aria-label="Уменьшить на 1">−</button>
+                                    <input type="number" min="1" max="999" class="cart-stepper-input" value="${count}" onchange="setCartCount('${safeTitle}', this.value)" style="width: 36px; text-align: center; border: none; font-weight: 700; background: transparent; -moz-appearance: textfield; font-size: 0.88rem; color: #0f172a;" title="Количество">
+                                    <button type="button" class="cart-stepper-btn" onclick="changeCartCount('${safeTitle}', 1)" aria-label="Увеличить на 1">+</button>
+                                </div>
+                                <div class="text-end">
+                                    <div class="cart-item-total-price fw-bold text-dark fs-6">
+                                        ${totalFormatted}
+                                    </div>
+                                    ${count > 1 && item.numPrice > 0 ? `<div class="text-muted" style="font-size: 0.72rem;">${count} × ${item.numPrice.toLocaleString('ru-RU')} ₽</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            hiddenChoice.value = summaryList.join('; ');
+
+            if (subtitleEl) {
+                subtitleEl.textContent = `${totalItemCount} ${pluralizeGoods(totalItemCount)} • ${subtotal > 0 ? subtotal.toLocaleString('ru-RU') + ' ₽' : 'быстрый расчет'}`;
+            }
+
+            if (subtotalEl) {
+                subtotalEl.textContent = subtotal > 0 ? subtotal.toLocaleString('ru-RU') + ' ₽' : 'По запросу';
+            }
+
+            // Calculation with active promo code
+            let finalPayAmount = subtotal;
+            if (appliedPromo && appliedPromo.code && subtotal > 0) {
+                let discAmount = 0;
+                if (appliedPromo.discount_type === 'percent') {
+                    discAmount = Math.round(subtotal * (appliedPromo.discount_value / 100));
+                } else {
+                    discAmount = Math.min(appliedPromo.discount_value, subtotal);
+                }
+                finalPayAmount = Math.max(0, subtotal - discAmount);
+
+                if (discountRow) {
+                    discountRow.classList.remove('d-none');
+                    if (discountPriceEl) discountPriceEl.textContent = `-${discAmount.toLocaleString('ru-RU')} ₽ (${appliedPromo.code})`;
+                }
+                if (totalPriceEl) {
+                    totalPriceEl.textContent = finalPayAmount.toLocaleString('ru-RU') + ' ₽';
+                }
+
+                if (inputGroup) inputGroup.classList.add('d-none');
+                if (appliedBadge) {
+                    appliedBadge.classList.remove('d-none');
+                    if (appliedCodeText) appliedCodeText.textContent = appliedPromo.code;
+                    if (appliedDesc) appliedDesc.textContent = `${appliedPromo.title || 'Скидка'} (-${discAmount} ₽)`;
+                }
+                if (hiddenPromocode) hiddenPromocode.value = appliedPromo.code;
+            } else {
+                if (discountRow) discountRow.classList.add('d-none');
+                if (totalPriceEl) {
+                    totalPriceEl.textContent = subtotal > 0 ? subtotal.toLocaleString('ru-RU') + ' ₽' : 'По запросу';
+                }
+                if (inputGroup) inputGroup.classList.remove('d-none');
+                if (appliedBadge) appliedBadge.classList.add('d-none');
+                if (hiddenPromocode) hiddenPromocode.value = '';
+            }
+
+            if (submitBtn) {
+                const totalDisplay = finalPayAmount > 0 ? `${finalPayAmount.toLocaleString('ru-RU')} ₽` : 'быстрый заказ';
+                submitBtn.innerHTML = `<span>Оформить заказ (${totalDisplay})</span> <i class="bi bi-arrow-right-circle ms-1"></i>`;
+            }
+        }
+
+        // --- TOAST HELPER ---
+        function showToast(msg) {
+            const toastEl = document.getElementById('liveToast');
+            if (!toastEl) return;
+            toastEl.querySelector('.toast-body').textContent = msg;
+            const toast = new bootstrap.Toast(toastEl, { delay: 4000 });
+            toast.show();
+        }
+
+        // --- QUICK BUY POPUP ---
+        function openQuickOrder(productTitle, price) {
+            document.getElementById('quickOrderProduct').value = `${productTitle} (${price})`;
+            const modal = new bootstrap.Modal(document.getElementById('quickOrderModal'));
+            modal.show();
+        }
+
+        // --- PRODUCT SHARE HELPER ---
+        function openShareModal(title, url, text) {
+            const fullUrl = (url && url.startsWith('http')) ? url : (window.location.origin + (url || window.location.pathname));
+            const shareText = text || `Попробуйте «${title}» от омской сыроварни «Сибсыр»!`;
+
+            // If mobile and Web Share API is available, offer native share
+            if (navigator.share && /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                navigator.share({
+                    title: title,
+                    text: shareText,
+                    url: fullUrl
+                }).catch(() => {});
+                return;
+            }
+
+            const titleEl = document.getElementById('shareModalProductTitle');
+            const urlInput = document.getElementById('shareModalInputUrl');
+            const alertEl = document.getElementById('shareCopySuccessAlert');
+            if (titleEl) titleEl.textContent = title;
+            if (urlInput) urlInput.value = fullUrl;
+            if (alertEl) alertEl.classList.add('d-none');
+
+            // Set links for social networks & messengers
+            const tgBtn = document.getElementById('shareBtnTelegram');
+            if (tgBtn) {
+                tgBtn.href = `https://t.me/share/url?url=${encodeURIComponent(fullUrl)}&text=${encodeURIComponent(title + '\n' + shareText)}`;
+            }
+
+            const waBtn = document.getElementById('shareBtnWhatsapp');
+            if (waBtn) {
+                waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(title + '\n' + shareText + '\n' + fullUrl)}`;
+            }
+
+            const vkBtn = document.getElementById('shareBtnVK');
+            if (vkBtn) {
+                vkBtn.href = `https://vk.com/share.php?url=${encodeURIComponent(fullUrl)}&title=${encodeURIComponent(title)}&comment=${encodeURIComponent(shareText)}`;
+            }
+
+            const okBtn = document.getElementById('shareBtnOK');
+            if (okBtn) {
+                okBtn.href = `https://connect.ok.ru/offer?url=${encodeURIComponent(fullUrl)}&title=${encodeURIComponent(title)}`;
+            }
+
+            const modalEl = document.getElementById('productShareModal');
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+
+        function copyShareModalUrl() {
+            const input = document.getElementById('shareModalInputUrl');
+            if (!input) return;
+            const url = input.value;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    const alertEl = document.getElementById('shareCopySuccessAlert');
+                    if (alertEl) alertEl.classList.remove('d-none');
+                    showToast('Ссылка на товар скопирована в буфер обмена!');
+                }).catch(() => {
+                    input.select();
+                    document.execCommand('copy');
+                    showToast('Ссылка скопирована!');
+                });
+            } else {
+                input.select();
+                document.execCommand('copy');
+                showToast('Ссылка скопирована!');
+            }
+        }
+
+        // --- ARTICLE DETAIL READER ---
+        function openArticleModal(slug) {
+            fetch(`/api/article/${slug}/`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('modalArticleTitle').textContent = data.title;
+                        document.getElementById('modalArticleDate').textContent = data.date_str;
+                        document.getElementById('modalArticleContent').innerHTML = data.content;
+                        const fullPageBtn = document.getElementById('modalArticleFullPageBtn');
+                        if (fullPageBtn) {
+                            fullPageBtn.href = `/articles/${slug}/`;
+                        }
+                        const imgWrap = document.getElementById('modalArticleImageWrap');
+                        const img = document.getElementById('modalArticleImage');
+                        if (data.image_url && !data.image_url.includes('hero_cheese')) {
+                            img.src = data.image_url;
+                            imgWrap.classList.remove('d-none');
+                        } else {
+                            imgWrap.classList.add('d-none');
+                        }
+                        const modal = new bootstrap.Modal(document.getElementById('articleReaderModal'));
+                        modal.show();
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching article:', err);
+                });
+        }
+
+        // --- CATEGORY FILTERING & NAVIGATION ---
+        function selectCategory(categorySlug) {
+            if (window.location.pathname.includes('/catalog/')) {
+                filterCatalog(categorySlug);
+            } else {
+                window.location.href = "{% url 'main:catalog' %}?cat=" + encodeURIComponent(categorySlug);
+            }
+        }
+
+        function filterCatalog(categorySlug) {
+            document.querySelectorAll('.category-tab-btn').forEach(btn => {
+                if (btn.getAttribute('data-cat') === categorySlug) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            applyCatalogFilters();
+        }
+
+        function applyCatalogFilters() {
+            const activeTab = document.querySelector('.category-tab-btn.active');
+            const activeCat = activeTab ? activeTab.getAttribute('data-cat') : 'all';
+            const searchQuery = (document.getElementById('catalogSearchInput')?.value || '').toLowerCase().trim();
+
+            const clearBtn = document.getElementById('catalogSearchClearBtn');
+            if (clearBtn) clearBtn.classList.toggle('d-none', !searchQuery);
+
+            const queryWords = searchQuery.split(/\s+/).filter(w => w.length > 0);
+
+            let visibleCount = 0;
+            document.querySelectorAll('.product-card-col').forEach(col => {
+                const cat = (col.getAttribute('data-category') || '').toLowerCase();
+                const title = (col.getAttribute('data-title') || '').toLowerCase();
+                const desc = (col.getAttribute('data-desc') || '').toLowerCase();
+                const hasDiscount = col.getAttribute('data-has-discount') === 'true';
+
+                let matchCat = false;
+                if (activeCat === 'all') {
+                    matchCat = true;
+                } else if (activeCat === 'sale') {
+                    matchCat = hasDiscount;
+                } else {
+                    matchCat = (cat === activeCat);
+                }
+                const matchSearch = queryWords.length === 0 || queryWords.every(w => title.includes(w) || desc.includes(w) || cat.includes(w));
+
+                if (matchCat && matchSearch) {
+                    col.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    col.style.display = 'none';
+                }
+            });
+
+            const noResults = document.getElementById('noCatalogResults');
+            if (noResults) {
+                noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+            }
+        }
+
+        // ========================================================
+        // --- ADAPTIVE SITE-WIDE LIVE SEARCH ENGINE ---
+        // ========================================================
+        let searchDebounceTimer = null;
+
+        function getRecentSearches() {
+            try {
+                return JSON.parse(localStorage.getItem('sib_recent_searches') || '[]');
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveRecentSearch(q) {
+            if (!q) return;
+            const trimmed = q.trim();
+            if (trimmed.length < 2) return;
+            let list = getRecentSearches().filter(item => item.toLowerCase() !== trimmed.toLowerCase());
+            list.unshift(trimmed);
+            if (list.length > 8) list = list.slice(0, 8);
+            localStorage.setItem('sib_recent_searches', JSON.stringify(list));
+        }
+
+        function removeRecentSearch(q, e, isModal) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            let list = getRecentSearches().filter(item => item !== q);
+            localStorage.setItem('sib_recent_searches', JSON.stringify(list));
+            const container = isModal ? document.getElementById('modalSearchResultsContainer') : document.getElementById('siteSearchResultsContent');
+            if (container) renderRecentAndPopular(container, isModal);
+        }
+
+        function clearAllRecentSearches(e, isModal) {
+            if (e) { e.preventDefault(); e.stopPropagation(); }
+            localStorage.removeItem('sib_recent_searches');
+            const container = isModal ? document.getElementById('modalSearchResultsContainer') : document.getElementById('siteSearchResultsContent');
+            if (container) renderRecentAndPopular(container, isModal);
+        }
+
+        function highlightQuery(text, query) {
+            if (!text || !query) return text || '';
+            const words = query.trim().split(/\s+/).filter(w => w.length > 0);
+            if (!words.length) return text;
+            const regex = new RegExp(`(${words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+            return text.replace(regex, '<mark class="search-match-mark">$1</mark>');
+        }
+
+        function renderRecentAndPopular(container, isModal) {
+            const recent = getRecentSearches();
+            const popularTags = [
+                { emoji: "🧀", text: "Сулугуни" },
+                { emoji: "🥢", text: "Косичка" },
+                { emoji: "🧈", text: "Масло 82.5%" },
+                { emoji: "🥓", text: "Чечил" },
+                { emoji: "🤍", text: "Адыгейский" },
+                { emoji: "🧂", text: "Брынза" },
+                { emoji: "🥛", text: "Айран" }
+            ];
+
+            let html = '';
+
+            // 1. Recent searches
+            if (recent.length > 0) {
+                html += `
+                    <div class="search-section-header">
+                        <span class="search-section-title"><i class="bi bi-clock-history me-1 text-warning"></i> Недавние запросы</span>
+                        <button type="button" class="btn btn-sm btn-link text-danger text-decoration-none p-0 fw-semibold" onclick="clearAllRecentSearches(event, ${isModal})">Очистить</button>
+                    </div>
+                    <div class="search-recent-chips-wrap">
+                        ${recent.map(item => {
+                            const safe = item.replace(/'/g, "\\'");
+                            return `
+                                <div class="search-recent-chip" onclick="executeSearchQuery('${safe}', ${isModal})">
+                                    <i class="bi bi-search text-muted" style="font-size: 0.72rem;"></i>
+                                    <span class="search-recent-chip-text">${item}</span>
+                                    <button type="button" class="search-recent-chip-del" onclick="removeRecentSearch('${safe}', event, ${isModal})" title="Удалить" aria-label="Удалить">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            // 2. Category fast access tiles
+            html += `
+                <div class="search-section-header">
+                    <span class="search-section-title"><i class="bi bi-grid me-1 text-warning"></i> Категории каталога</span>
+                </div>
+                <div class="search-categories-grid">
+                    <a href="/catalog/?cat=tverdye" class="search-category-tile">
+                        <span class="fs-5">🧀</span>
+                        <div>
+                            <div class="fw-bold">Все сыры</div>
+                            <span class="text-muted" style="font-size: 0.7rem;">Классика и мягкие</span>
+                        </div>
+                    </a>
+                    <a href="/catalog/?cat=butter" class="search-category-tile">
+                        <span class="fs-5">🧈</span>
+                        <div>
+                            <div class="fw-bold">Масло 82.5%</div>
+                            <span class="text-muted" style="font-size: 0.7rem;">ГОСТ монолит и пачки</span>
+                        </div>
+                    </a>
+                    <a href="/catalog/?cat=kopchenye" class="search-category-tile">
+                        <span class="fs-5">🥓</span>
+                        <div>
+                            <div class="fw-bold">Чечил и косичка</div>
+                            <span class="text-muted" style="font-size: 0.7rem;">Копченые снеки</span>
+                        </div>
+                    </a>
+                    <a href="/catalog/?cat=kislomolochnaya" class="search-category-tile">
+                        <span class="fs-5">🥛</span>
+                        <div>
+                            <div class="fw-bold">Тан и Айран</div>
+                            <span class="text-muted" style="font-size: 0.7rem;">Освежающие напитки</span>
+                        </div>
+                    </a>
+                </div>
+            `;
+
+            // 3. Popular queries with emoji pills
+            html += `
+                <div class="search-section-header">
+                    <span class="search-section-title"><i class="bi bi-fire me-1 text-warning"></i> Популярно сейчас</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2 pb-2">
+                    ${popularTags.map(tag => `
+                        <button type="button" class="search-popular-pill-btn" onclick="executeSearchQuery('${tag.text.replace(/'/g, "\\'")}', ${isModal})">
+                            <span>${tag.emoji}</span>
+                            <span>${tag.text}</span>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function executeSearchQuery(query, isModal) {
+            saveRecentSearch(query);
+            if (isModal) {
+                const inp = document.getElementById('modalSearchInput');
+                if (inp) {
+                    inp.value = query;
+                    inp.dispatchEvent(new Event('input'));
+                    return;
+                }
+            }
+            window.location.href = `/search/?q=${encodeURIComponent(query)}`;
+        }
+
+        function addFromSearchToCart(btn, title, price, img, numPrice) {
+            addToCart(title, price, img, numPrice);
+            if (btn) {
+                const prev = btn.innerHTML;
+                btn.innerHTML = '<i class="bi bi-check2 text-success"></i>';
+                btn.classList.add('btn-added');
+                setTimeout(() => {
+                    btn.innerHTML = prev;
+                    btn.classList.remove('btn-added');
+                }, 1200);
+            }
+        }
+
+        function setSearchModalFilter(categorySlug, btn) {
+            document.querySelectorAll('.search-chip-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            const input = document.getElementById('modalSearchInput');
+            const container = document.getElementById('modalSearchResultsContainer');
+            if (!input || !container) return;
+            if (categorySlug === 'all') {
+                input.value = '';
+                const clearBtn = document.getElementById('modalSearchClear');
+                if (clearBtn) clearBtn.classList.add('d-none');
+                renderRecentAndPopular(container, true);
+                input.focus();
+            } else {
+                setSearchModalQuery(categorySlug);
+            }
+        }
+
+        function fetchLiveSearchResults(query, container, isModal) {
+            if (!query || query.trim().length === 0) {
+                renderRecentAndPopular(container, isModal);
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="text-center py-4 text-muted">
+                    <div class="spinner-border spinner-border-sm text-warning me-2" role="status"></div>
+                    <span class="small">Ищем по каталогу и статьям...</span>
+                </div>
+            `;
+
+            fetch(`/api/search/?q=${encodeURIComponent(query.trim())}`)
+                .then(r => r.json())
+                .then(data => {
+                    renderSearchResults(data, container, query, isModal);
+                })
+                .catch(err => {
+                    container.innerHTML = `
+                        <div class="text-center py-4 text-danger small">
+                            <i class="bi bi-exclamation-circle me-1"></i> Не удалось загрузить результаты
+                        </div>
+                    `;
+                });
+        }
+
+        function renderSearchResults(data, container, query, isModal) {
+            if (!data || data.total_count === 0) {
+                container.innerHTML = `
+                    <div class="text-center p-4">
+                        <i class="bi bi-search text-muted fs-3 d-block mb-2"></i>
+                        <p class="small text-dark fw-bold mb-1">По запросу «${query}» ничего не найдено</p>
+                        <p class="small text-muted mb-3">Попробуйте изменить формулировку или проверить написание</p>
+                        <a href="/search/?q=${encodeURIComponent(query)}" class="btn btn-sib-outline btn-sm">
+                            Перейти на страницу поиска
+                        </a>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // 1. Категории
+            if (data.categories && data.categories.length > 0) {
+                html += `
+                    <div class="search-popup-section-head">
+                        <span><i class="bi bi-tag text-warning me-1"></i>Категории (${data.categories_count})</span>
+                    </div>
+                `;
+                data.categories.forEach(cat => {
+                    html += `
+                        <a href="/search/?category=${encodeURIComponent(cat.slug)}" class="search-popup-item search-result-nav-item" onclick="saveRecentSearch('${query.replace(/'/g, "\\'")}')">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-warning-subtle text-warning-emphasis p-2 rounded-3">
+                                    <i class="bi ${cat.icon}"></i>
+                                </span>
+                                <div>
+                                    <div class="search-popup-title">${highlightQuery(cat.name, query)}</div>
+                                    <div class="search-popup-sub">${cat.products_count} товаров в категории</div>
+                                </div>
+                            </div>
+                            <i class="bi bi-arrow-right text-muted small"></i>
+                        </a>
+                    `;
+                });
+            }
+
+            // 2. Товары
+            if (data.products && data.products.length > 0) {
+                html += `
+                    <div class="search-popup-section-head">
+                        <span><i class="bi bi-bag-check text-warning me-1"></i>Товары (${data.products_count})</span>
+                    </div>
+                `;
+                data.products.forEach(prod => {
+                    const weightPart = prod.unit_weight ? ` • ${prod.unit_weight}` : '';
+                    const fatPart = prod.fat_content ? ` • ${prod.fat_content}%` : '';
+                    const safeTitle = (prod.title || '').replace(/'/g, "\\'");
+                    const safePrice = (prod.price_display || '').replace(/'/g, "\\'");
+                    const safeImg = (prod.image_url || '').replace(/'/g, "\\'");
+                    const wholesalePart = prod.wholesale_price_display ? `<span class="d-block text-success fw-bold" style="font-size: 0.7rem; line-height: 1.1;" title="Опт ${prod.wholesale_min_qty || ''}">Опт: ${prod.wholesale_price_display}</span>` : '';
+                    html += `
+                        <div class="search-popup-item search-result-nav-item">
+                            <a href="/search/?q=${encodeURIComponent(prod.title)}" class="d-flex align-items-center gap-3 text-decoration-none flex-grow-1" onclick="saveRecentSearch('${safeTitle}')">
+                                <img src="${prod.image_url}" alt="${prod.title}" class="search-popup-thumb">
+                                <div class="overflow-hidden">
+                                    <div class="search-popup-title text-truncate">${highlightQuery(prod.title, query)}</div>
+                                    <div class="search-popup-sub text-truncate">${prod.category}${fatPart}${weightPart}</div>
+                                </div>
+                            </a>
+                            <div class="d-flex align-items-center gap-2 ms-2">
+                                <div class="text-end">
+                                    <span class="search-popup-price">${prod.price_display}</span>
+                                    ${wholesalePart}
+                                </div>
+                                <button type="button" 
+                                        class="search-popup-btn-cart" 
+                                        onclick="addFromSearchToCart(this, '${safeTitle}', '${safePrice}', '${safeImg}', ${prod.price_numeric})"
+                                        title="Добавить в корзину"
+                                        aria-label="Добавить в корзину">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // 3. Статьи
+            if (data.articles && data.articles.length > 0) {
+                html += `
+                    <div class="search-popup-section-head">
+                        <span><i class="bi bi-journal-text text-warning me-1"></i>Статьи (${data.articles_count})</span>
+                    </div>
+                `;
+                data.articles.forEach(art => {
+                    const safeQuery = query.replace(/'/g, "\\'");
+                    html += `
+                        <a href="javascript:void(0)" class="search-popup-item search-result-nav-item" onclick="openArticleModal('${art.slug}'); saveRecentSearch('${safeQuery}')">
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="${art.image_url}" alt="" class="search-popup-thumb" style="width: 36px; height: 36px;">
+                                <div>
+                                    <div class="search-popup-title">${highlightQuery(art.title, query)}</div>
+                                    <div class="search-popup-sub text-truncate">${art.snippet}</div>
+                                </div>
+                            </div>
+                            <span class="badge bg-light text-muted fw-normal">${art.date_str}</span>
+                        </a>
+                    `;
+                });
+            }
+
+            // Кнопка перехода на полную страницу поиска
+            html += `
+                <div class="p-2 text-center bg-light border-top">
+                    <a href="/search/?q=${encodeURIComponent(query)}" class="btn btn-sib-orange btn-sm w-100 py-2 fw-bold" onclick="saveRecentSearch('${query.replace(/'/g, "\\'")}')">
+                        <span>Показать все результаты (${data.total_count})</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function setSearchModalQuery(q) {
+            const input = document.getElementById('modalSearchInput');
+            if (input) {
+                input.value = q;
+                input.dispatchEvent(new Event('input'));
+                input.focus();
+            }
+        }
+
+        function focusSiteSearch() {
+            const modalEl = document.getElementById('siteSearchModal');
+            if (window.innerWidth < 992 && modalEl) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+                return;
+            }
+            const searchInput = document.getElementById('navbarSearchInput');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else if (modalEl) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        }
+
+        // --- LEGAL ENTITY TOGGLES ---
+        function toggleQuickLegalFields(isLegal) {
+            const el = document.getElementById('quickLegalFields');
+            if (el) {
+                if (isLegal) el.classList.remove('d-none');
+                else el.classList.add('d-none');
+            }
+        }
+
+        function toggleCartLegalFields(isLegal) {
+            const el = document.getElementById('cartLegalFields');
+            if (el) {
+                if (isLegal) el.classList.remove('d-none');
+                else el.classList.add('d-none');
+            }
+        }
+
+        function showOrderSuccessModal(data) {
+            document.getElementById('successOrderId').textContent = '#' + data.order_id;
+            document.getElementById('successReceiptBtn').href = data.receipt_url;
+            document.getElementById('successBillBtn').href = data.bill_url;
+            
+            const waybillBtn = document.getElementById('successWaybillBtn');
+            const waybillLabel = document.getElementById('successWaybillLabel');
+            if (data.customer_type === 'legal') {
+                waybillBtn.href = data.torg12_url;
+                waybillLabel.textContent = 'Накладная ТОРГ-12 (юрлица)';
+            } else {
+                waybillBtn.href = data.waybill_url;
+                waybillLabel.textContent = 'Товарная накладная';
+            }
+            
+            document.getElementById('successPrimaryDocBtn').href = data.doc_primary_url || data.receipt_url;
+
+            const modal = new bootstrap.Modal(document.getElementById('orderSuccessModal'));
+            modal.show();
+        }
+
+        // --- FORM HANDLERS (AJAX) ---
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartBadges();
+            renderCartModal();
+
+            // Quick Order Form
+            // Captcha Helper Functions
+            function refreshCaptchaInWrapper(wrapper) {
+                if (!wrapper) return;
+                const refreshBtn = wrapper.querySelector('.captcha-refresh-btn');
+                const img = wrapper.querySelector('.captcha-img');
+                const keyInput = wrapper.querySelector('.captcha-key-input');
+                const answerInput = wrapper.querySelector('.captcha-answer-input');
+
+                if (refreshBtn) refreshBtn.classList.add('rotating');
+                fetch("{% url 'main:captcha_refresh' %}")
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (img) img.src = data.image_url;
+                            if (keyInput) keyInput.value = data.key;
+                            if (answerInput) {
+                                answerInput.value = '';
+                                if (data.placeholder) answerInput.placeholder = data.placeholder;
+                            }
+                        }
+                    })
+                    .catch(e => console.error('Error refreshing captcha:', e))
+                    .finally(() => {
+                        if (refreshBtn) {
+                            setTimeout(() => refreshBtn.classList.remove('rotating'), 400);
+                        }
+                    });
+            }
+
+            document.addEventListener('click', function(e) {
+                const refreshBtn = e.target.closest('.captcha-refresh-btn');
+                if (refreshBtn) {
+                    e.preventDefault();
+                    const wrapper = refreshBtn.closest('.sib-captcha-wrapper');
+                    refreshCaptchaInWrapper(wrapper);
+                }
+            });
+
+            document.addEventListener('shown.bs.modal', function(e) {
+                const wrapper = e.target.querySelector('.sib-captcha-wrapper');
+                if (wrapper) {
+                    const answerInput = wrapper.querySelector('.captcha-answer-input');
+                    if (answerInput && !answerInput.value) {
+                        refreshCaptchaInWrapper(wrapper);
+                    }
+                }
+            });
+
+            const quickForm = document.getElementById('quickOrderForm');
+            if (quickForm) {
+                quickForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(quickForm);
+                    fetch(quickForm.action, { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                bootstrap.Modal.getInstance(document.getElementById('quickOrderModal'))?.hide();
+                                quickForm.reset();
+                                toggleQuickLegalFields(false);
+                                showToast(data.message);
+                                showOrderSuccessModal(data);
+                            } else {
+                                alert(data.error || 'Ошибка при отправке');
+                                refreshCaptchaInWrapper(quickForm.querySelector('.sib-captcha-wrapper'));
+                            }
+                        })
+                        .catch(err => {
+                            alert('Ошибка соединения при оформлении заказа');
+                            refreshCaptchaInWrapper(quickForm.querySelector('.sib-captcha-wrapper'));
+                        });
+                });
+            }
+
+            // Callback Form
+            const cbForm = document.getElementById('callbackForm');
+            if (cbForm) {
+                cbForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(cbForm);
+                    fetch(cbForm.action, { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                bootstrap.Modal.getInstance(document.getElementById('callbackModal'))?.hide();
+                                cbForm.reset();
+                                showToast(data.message);
+                            } else {
+                                alert(data.error || 'Ошибка при отправке');
+                                refreshCaptchaInWrapper(cbForm.querySelector('.sib-captcha-wrapper'));
+                            }
+                        })
+                        .catch(err => {
+                            refreshCaptchaInWrapper(cbForm.querySelector('.sib-captcha-wrapper'));
+                        });
+                });
+            }
+
+            // Cart Order Form
+            const cartForm = document.getElementById('cartOrderForm');
+            if (cartForm) {
+                cartForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const jsonInput = document.getElementById('cartItemsJsonHidden');
+                    if (jsonInput) {
+                        jsonInput.value = JSON.stringify(cart);
+                    }
+                    const formData = new FormData(cartForm);
+                    fetch(cartForm.action, { method: 'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                bootstrap.Modal.getInstance(document.getElementById('cartModal'))?.hide();
+                                cartForm.reset();
+                                toggleCartLegalFields(false);
+                                cart = [];
+                                appliedPromo = null;
+                                localStorage.removeItem('sib_applied_promo');
+                                saveCart();
+                                showToast(data.message);
+                                showOrderSuccessModal(data);
+                            } else {
+                                alert(data.error || 'Ошибка при отправке заказа');
+                                refreshCaptchaInWrapper(cartForm.querySelector('.sib-captcha-wrapper'));
+                            }
+                        })
+                        .catch(err => {
+                            alert('Ошибка соединения при оформлении заказа');
+                            refreshCaptchaInWrapper(cartForm.querySelector('.sib-captcha-wrapper'));
+                        });
+                });
+            }
+
+            // Navigation Enhancements
+            const navLinks = document.querySelectorAll('.nav-link-sib');
+            const navbarCollapse = document.getElementById('mainNav');
+            const siteNavbar = document.getElementById('siteNavbar');
+
+            // Auto close mobile menu when link is clicked
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (navbarCollapse && navbarCollapse.classList.contains('show')) {
+                        const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
+                        if (bsCollapse) bsCollapse.hide();
+                    }
+                    const mobileOffcanvasEl = document.getElementById('mobileNavOffcanvas');
+                    if (mobileOffcanvasEl) {
+                        const oc = bootstrap.Offcanvas.getInstance(mobileOffcanvasEl);
+                        if (oc) oc.hide();
+                    }
+                });
+            });
+
+            // Desktop Navbar Dropdown hover & anti-flicker controller
+            const navDropdownWraps = document.querySelectorAll('.nav-dropdown-wrap');
+            navDropdownWraps.forEach(wrap => {
+                const menu = wrap.querySelector('.nav-dropdown-menu');
+                if (!menu) return;
+                let hideTimer = null;
+
+                const openMenu = () => {
+                    if (window.innerWidth < 992) return;
+                    clearTimeout(hideTimer);
+                    navDropdownWraps.forEach(other => {
+                        if (other !== wrap) {
+                            other.classList.remove('is-open');
+                            const otherMenu = other.querySelector('.nav-dropdown-menu');
+                            if (otherMenu) otherMenu.classList.remove('show');
+                        }
+                    });
+                    wrap.classList.add('is-open');
+                    menu.classList.add('show');
+                };
+
+                const closeMenu = () => {
+                    if (window.innerWidth < 992) return;
+                    hideTimer = setTimeout(() => {
+                        wrap.classList.remove('is-open');
+                        menu.classList.remove('show');
+                    }, 180);
+                };
+
+                wrap.addEventListener('mouseenter', openMenu);
+                wrap.addEventListener('mouseleave', closeMenu);
+            });
+
+            // Compact sticky header & active nav section tracking
+            const observedSections = document.querySelectorAll('section[id], footer[id]');
+            window.addEventListener('scroll', () => {
+                if (siteNavbar) {
+                    if (window.scrollY > 25) {
+                        siteNavbar.classList.add('navbar-scrolled');
+                    } else {
+                        siteNavbar.classList.remove('navbar-scrolled');
+                    }
+                }
+
+                let currentSection = '';
+                const scrollPos = window.scrollY + 140;
+                observedSections.forEach(sec => {
+                    const top = sec.offsetTop;
+                    const height = sec.offsetHeight;
+                    if (scrollPos >= top && scrollPos < top + height) {
+                        currentSection = sec.getAttribute('id');
+                    }
+                });
+
+                if (currentSection) {
+                    navLinks.forEach(lnk => {
+                        const href = lnk.getAttribute('href');
+                        if (href === '#' + currentSection) {
+                            lnk.classList.add('active');
+                        } else {
+                            lnk.classList.remove('active');
+                        }
+                    });
+                }
+            }, { passive: true });
+
+            // --- SEARCH SYSTEM EVENT BINDINGS ---
+            const desktopSearchInp = document.getElementById('navbarSearchInput');
+            const desktopSearchClear = document.getElementById('navbarSearchClear');
+            const desktopSearchPopup = document.getElementById('siteSearchResultsPopup');
+            const desktopSearchContent = document.getElementById('siteSearchResultsContent');
+            const desktopSearchForm = document.getElementById('navbarSearchForm');
+
+            const modalSearchInp = document.getElementById('modalSearchInput');
+            const modalSearchClear = document.getElementById('modalSearchClear');
+            const modalSearchContainer = document.getElementById('modalSearchResultsContainer');
+            const modalSearchForm = document.getElementById('mobileSearchForm');
+            const siteSearchModalEl = document.getElementById('siteSearchModal');
+
+            // 1. Desktop Search Input Handlers
+            if (desktopSearchInp && desktopSearchPopup && desktopSearchContent) {
+                desktopSearchInp.addEventListener('input', function() {
+                    const q = desktopSearchInp.value;
+                    if (desktopSearchClear) {
+                        desktopSearchClear.classList.toggle('d-none', !q);
+                    }
+                    desktopSearchPopup.classList.remove('d-none');
+                    clearTimeout(searchDebounceTimer);
+                    searchDebounceTimer = setTimeout(() => {
+                        fetchLiveSearchResults(q, desktopSearchContent, false);
+                    }, 220);
+                });
+
+                desktopSearchInp.addEventListener('focus', function() {
+                    desktopSearchPopup.classList.remove('d-none');
+                    const q = desktopSearchInp.value;
+                    if (!q) {
+                        renderRecentAndPopular(desktopSearchContent, false);
+                    } else {
+                        fetchLiveSearchResults(q, desktopSearchContent, false);
+                    }
+                });
+
+                if (desktopSearchClear) {
+                    desktopSearchClear.addEventListener('click', function() {
+                        desktopSearchInp.value = '';
+                        desktopSearchClear.classList.add('d-none');
+                        renderRecentAndPopular(desktopSearchContent, false);
+                        desktopSearchInp.focus();
+                    });
+                }
+
+                if (desktopSearchForm) {
+                    desktopSearchForm.addEventListener('submit', function() {
+                        saveRecentSearch(desktopSearchInp.value);
+                    });
+                }
+            }
+
+            // Close desktop popup on click outside
+            document.addEventListener('click', function(e) {
+                if (desktopSearchPopup && !desktopSearchPopup.contains(e.target) && !e.target.closest('.site-search-wrapper')) {
+                    desktopSearchPopup.classList.add('d-none');
+                }
+            });
+
+            // 2. Mobile Modal Search Handlers
+            if (modalSearchInp && modalSearchContainer) {
+                modalSearchInp.addEventListener('input', function() {
+                    const q = modalSearchInp.value;
+                    if (modalSearchClear) {
+                        modalSearchClear.classList.toggle('d-none', !q);
+                    }
+                    modalSearchContainer.classList.remove('d-none');
+                    clearTimeout(searchDebounceTimer);
+                    searchDebounceTimer = setTimeout(() => {
+                        fetchLiveSearchResults(q, modalSearchContainer, true);
+                    }, 220);
+                });
+
+                if (modalSearchClear) {
+                    modalSearchClear.addEventListener('click', function() {
+                        modalSearchInp.value = '';
+                        modalSearchClear.classList.add('d-none');
+                        renderRecentAndPopular(modalSearchContainer, true);
+                        modalSearchInp.focus();
+                    });
+                }
+
+                if (modalSearchForm) {
+                    modalSearchForm.addEventListener('submit', function() {
+                        saveRecentSearch(modalSearchInp.value);
+                    });
+                }
+
+                if (siteSearchModalEl) {
+                    siteSearchModalEl.addEventListener('shown.bs.modal', function() {
+                        modalSearchInp.focus();
+                        modalSearchContainer.classList.remove('d-none');
+                        if (!modalSearchInp.value) {
+                            renderRecentAndPopular(modalSearchContainer, true);
+                        } else {
+                            fetchLiveSearchResults(modalSearchInp.value, modalSearchContainer, true);
+                        }
+                    });
+                }
+            }
+
+            // 3. Global Shortcuts: Ctrl+K, Cmd+K, "/" and Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (desktopSearchPopup) desktopSearchPopup.classList.add('d-none');
+                }
+
+                if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                    e.preventDefault();
+                    focusSiteSearch();
+                    return;
+                }
+
+                if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+                    e.preventDefault();
+                    focusSiteSearch();
+                }
+            });
+
+            // 4. Catalog in-page search input enhancements (on homepage)
+            const catSearchInp = document.getElementById('catalogSearchInput');
+            if (catSearchInp) {
+                catSearchInp.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const q = catSearchInp.value.trim();
+                        if (q) {
+                            saveRecentSearch(q);
+                            window.location.href = `/search/?q=${encodeURIComponent(q)}`;
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+    

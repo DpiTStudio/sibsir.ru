@@ -1,0 +1,48 @@
+    <!-- 1. TOPBAR -->
+    <div class="topbar-bar">
+        <div class="container">
+            <div class="topbar-inner d-flex align-items-center justify-content-between">
+                <!-- Left Details (Desktop: Address + Hours; Mobile: Compact City/Region) -->
+                <div class="topbar-left d-flex align-items-center gap-2 gap-md-3">
+                    <span class="topbar-item d-inline-flex align-items-center">
+                        <i class="bi bi-geo-alt-fill text-warning me-1"></i>
+                        <span class="d-none d-sm-inline">{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</span>
+                        <span class="d-inline d-sm-none">г. Омск</span>
+                    </span>
+                    <span class="topbar-divider d-none d-md-inline">•</span>
+                    <span class="topbar-item d-none d-md-inline-flex align-items-center">
+                        <i class="bi bi-clock-fill text-warning me-1"></i>
+                        <span>{{ site_settings.working_hours|default:"Пн-Пт: 8:00 - 17:00" }}</span>
+                    </span>
+                    <span class="topbar-divider d-none d-lg-inline">•</span>
+                    <span class="topbar-badge d-none d-lg-inline-flex align-items-center">
+                        <i class="bi bi-shield-check text-warning me-1"></i>
+                        <span>100% натуральная продукция ГОСТ</span>
+                    </span>
+                </div>
+
+                <!-- Right Details (Phone, Email, Admin) -->
+                <div class="topbar-right d-flex align-items-center gap-2 gap-md-3">
+                    {% if site_settings.phone %}
+                    <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="topbar-phone" title="Позвонить на сыроварню">
+                        <i class="bi bi-telephone-fill text-warning me-1"></i>
+                        <strong>{{ site_settings.phone }}</strong>
+                    </a>
+                    {% endif %}
+                    {% if site_settings.email %}
+                    <span class="topbar-divider d-none d-sm-inline">•</span>
+                    <a href="mailto:{{ site_settings.email }}" class="topbar-email d-none d-sm-inline-flex align-items-center" title="Написать нам">
+                        <i class="bi bi-envelope-fill text-warning me-1"></i>
+                        <span>{{ site_settings.email }}</span>
+                    </a>
+                    {% endif %}
+                    {% if request.user.is_staff %}
+                    <a href="/admin/" target="_blank" class="topbar-admin-badge d-none d-md-inline-flex" title="Вход в панель управления Django">
+                        <i class="bi bi-sliders me-1"></i> Админка
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+

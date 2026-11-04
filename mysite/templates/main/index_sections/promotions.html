@@ -1,0 +1,80 @@
+    <!-- 2.5 PROMOTIONS & SPECIAL OFFERS SECTION -->
+    {% if promotions or featured_promocodes %}
+    <section class="mb-5" id="promotions">
+        <div class="promo-showcase-wrap">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                <div>
+                    <span class="promo-showcase-badge"><i class="bi bi-fire"></i> Спецпредложения & Скидки</span>
+                    <h3 class="fw-bold text-dark fs-3 mt-2 mb-1">Выгодные акции и промокоды от фабрики</h3>
+                    <p class="text-muted small mb-0">Покупайте любимые натуральные сыры и молочную продукцию по специальным ценам</p>
+                </div>
+                <a href="{% url 'main:catalog' %}?cat=sale" class="btn btn-danger rounded-pill px-4 py-2 fw-bold shadow-sm">
+                    <i class="bi bi-tag-fill me-1"></i> Все акционные товары ({{ sale_products_count }})
+                </a>
+            </div>
+
+            <div class="row g-3 g-lg-4">
+                {% for promo in promotions %}
+                <div class="col-md-6 {% if promotions|length == 1 %}col-lg-6{% else %}col-lg-4{% endif %}">
+                    <div class="promo-card-item shadow-sm">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-danger fw-bold px-2 py-1 rounded-3 font-monospace" style="font-size: 0.8rem;">
+                                    {{ promo.badge_text|default:"АКЦИЯ" }}
+                                </span>
+                                {% if promo.discount_percent %}
+                                    <span class="fw-bold text-danger fs-5">-{{ promo.discount_percent }}%</span>
+                                {% elif promo.discount_amount %}
+                                    <span class="fw-bold text-danger fs-5">-{{ promo.discount_amount|floatformat:0 }} ₽</span>
+                                {% endif %}
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">{{ promo.title }}</h5>
+                            <p class="text-muted small mb-3">{{ promo.description|default:"Специальная скидка на отборную продукцию ТМ «Сибсыр»." }}</p>
+                        </div>
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                {% if promo.applies_to == 'all' %}Весь каталог{% elif promo.applies_to == 'categories' %}На категорию{% else %}На товары{% endif %}
+                            </span>
+                            <a href="{% url 'main:catalog' %}?cat=sale" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">
+                                Смотреть товары <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% for pcode in featured_promocodes %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="promo-card-item shadow-sm" style="border: 2px dashed #f59e0b; background: #fffdfa;">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-3 font-monospace" style="font-size: 0.8rem;">
+                                    ПРОМОКОД
+                                </span>
+                                <span class="fw-bold text-success fs-5">
+                                    {% if pcode.discount_type == 'percent' %}-{{ pcode.discount_value|floatformat:0 }}%{% else %}-{{ pcode.discount_value|floatformat:0 }} ₽{% endif %}
+                                </span>
+                            </div>
+                            <h5 class="fw-bold text-dark mb-1">{{ pcode.title }}</h5>
+                            <p class="text-muted small mb-3">
+                                {% if pcode.min_order_amount > 0 %}При заказе от {{ pcode.min_order_amount|floatformat:0 }} ₽.{% else %}Действует на любой заказ.{% endif %}
+                            </p>
+                        </div>
+                        <div class="pt-2 border-top d-flex justify-content-between align-items-center">
+                            <div class="promocode-pill-copy" onclick="copyAndApplyPromo('{{ pcode.code }}')" title="Нажмите, чтобы скопировать и применить в корзине">
+                                <code class="fw-bold text-dark fs-6">{{ pcode.code }}</code>
+                                <i class="bi bi-clipboard text-warning"></i>
+                            </div>
+                            <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark" onclick="copyAndApplyPromo('{{ pcode.code }}')">
+                                Применить
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+

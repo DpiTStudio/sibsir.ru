@@ -1,0 +1,357 @@
+    <!-- 2. STICKY NAVBAR -->
+    <nav class="navbar main-navbar flex-column p-0" id="siteNavbar">
+        <!-- 1st Line (Desktop & Mobile): Brand, Search & Action Group -->
+        <div class="navbar-top-row w-100">
+            <div class="container">
+                <div class="navbar-top-inner d-flex align-items-center justify-content-between gap-3 gap-xl-4 py-2 py-lg-3">
+                    
+                    <!-- BRAND LOGO (Left) -->
+                    <a class="brand-logo-wrap" href="{% url 'main:index' %}">
+                        {% if site_settings.logo %}
+                        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.brand_short_name }}" class="brand-logo-img">
+                        {% else %}
+                        <div class="brand-icon-box">
+                            <i class="bi bi-award-fill"></i>
+                        </div>
+                        {% endif %}
+                        <div class="brand-title-group">
+                            <div class="brand-text-name">{{ site_settings.brand_short_name|default:"СИБСЫР" }}</div>
+                            <div class="brand-text-tag">Сыроварня • Омск</div>
+                        </div>
+                    </a>
+
+                    <!-- DESKTOP CENTERED SEARCH (Center) -->
+                    <div class="navbar-search-col d-none d-lg-block flex-grow-1">
+                        <div class="site-search-wrapper">
+                            <form action="{% url 'main:search' %}" method="GET" class="site-search-form m-0" id="navbarSearchForm">
+                                <div class="site-search-input-box">
+                                    <i class="bi bi-search site-search-icon"></i>
+                                    <input type="text" 
+                                           name="q" 
+                                           id="navbarSearchInput" 
+                                           class="site-search-input" 
+                                           placeholder="Поиск по каталогу продукции (Сулугуни, Масло 82.5%, Косичка)..." 
+                                           autocomplete="off">
+                                    <button type="button" id="navbarSearchClear" class="site-search-clear d-none" title="Очистить">
+                                        <i class="bi bi-x-circle-fill"></i>
+                                    </button>
+                                    <span class="site-search-kbd d-none d-xl-inline"><kbd>Ctrl K</kbd></span>
+                                    <button type="submit" class="site-search-submit-btn" title="Найти">
+                                        <span>Найти</span>
+                                        <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </form>
+
+                            <!-- Live Search Results Dropdown -->
+                            <div id="siteSearchResultsPopup" class="site-search-popup d-none shadow-lg">
+                                <div id="siteSearchResultsContent" class="search-popup-scroll">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- DESKTOP ACTIONS (Right) -->
+                    <div class="navbar-actions-col d-none d-lg-flex align-items-center gap-2 gap-xl-3">
+                        <!-- User Account / Login Button -->
+                        {% if request.user.is_authenticated %}
+                        <div class="dropdown">
+                            <button class="btn btn-header-pill btn-header-account dropdown-toggle" type="button" id="userMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false" title="Личный кабинет">
+                                <i class="bi {% if request.user.profile.is_legal %}bi-building text-primary{% else %}bi-person-circle text-warning{% endif %}"></i>
+                                <span class="btn-header-label text-truncate">{{ request.user.profile.display_name|default:request.user.username }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-4 p-2 border-0 mt-2" aria-labelledby="userMenuDropdown" style="min-width: 250px; font-size: 0.9rem; z-index: 1060;">
+                                <li class="px-3 py-2 border-bottom mb-1">
+                                    <div class="fw-bold text-dark text-truncate">{{ request.user.profile.display_name }}</div>
+                                    <div class="small text-muted text-truncate">{{ request.user.email }}</div>
+                                    {% if request.user.profile.is_legal %}
+                                    <span class="badge bg-primary-subtle text-primary mt-1" style="font-size: 10px;">Юр. лицо / ИП</span>
+                                    {% else %}
+                                    <span class="badge bg-warning-subtle text-dark mt-1" style="font-size: 10px;">Розничный покупатель</span>
+                                    {% endif %}
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'accounts:profile' %}">
+                                        <i class="bi bi-grid-fill text-warning"></i>
+                                        <span>Личный кабинет</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'accounts:orders' %}">
+                                        <i class="bi bi-bag-check-fill text-primary"></i>
+                                        <span>История покупок</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2" href="{% url 'accounts:profile_edit' %}">
+                                        <i class="bi bi-pencil-square text-secondary"></i>
+                                        <span>{% if request.user.profile.is_legal %}Реквизиты компании{% else %}Мои данные{% endif %}</span>
+                                    </a>
+                                </li>
+                                {% if request.user.is_staff %}
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-primary" href="{% url 'admin:index' %}">
+                                        <i class="bi bi-speedometer2"></i>
+                                        <span>Панель управления</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item rounded-3 py-2 d-flex align-items-center gap-2 text-danger" href="{% url 'accounts:logout' %}">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        <span>Выйти</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        {% else %}
+                        <a href="{% url 'accounts:login' %}" class="btn btn-header-pill btn-header-account" title="Вход в личный кабинет">
+                            <i class="bi bi-person-circle text-warning"></i>
+                            <span class="btn-header-label">Войти</span>
+                        </a>
+                        {% endif %}
+
+                        <!-- Cart Button -->
+                        <button class="btn btn-header-pill btn-header-cart" type="button" data-bs-toggle="modal" data-bs-target="#cartModal" title="Открыть корзину">
+                            <i class="bi bi-cart3"></i>
+                            <span class="btn-header-label">Корзина</span>
+                            <span id="navCartCounter" class="badge rounded-pill bg-warning text-dark header-cart-badge">0</span>
+                        </button>
+
+                        <!-- Callback CTA Button -->
+                        <button class="btn btn-sib-orange btn-header-callback" type="button" data-bs-toggle="modal" data-bs-target="#callbackModal" title="Заказать обратный звонок">
+                            <i class="bi bi-telephone-outbound"></i>
+                            <span>Заказать звонок</span>
+                        </button>
+                    </div>
+
+                    <!-- MOBILE ACTION ICONS (Right on Mobile) -->
+                    <div class="d-flex align-items-center gap-2 d-lg-none">
+                        <button class="btn-mobile-nav-icon" type="button" onclick="focusSiteSearch()" title="Поиск" aria-label="Поиск по сайту">
+                            <i class="bi bi-search"></i>
+                        </button>
+
+                        <button class="btn-mobile-nav-icon position-relative" type="button" data-bs-toggle="modal" data-bs-target="#cartModal" title="Корзина" aria-label="Открыть корзину">
+                            <i class="bi bi-cart3"></i>
+                            <span id="navCartCounterMobile" class="badge rounded-pill bg-warning text-dark mobile-cart-badge">0</span>
+                        </button>
+
+                        <button class="btn-mobile-nav-icon btn-mobile-burger" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNavOffcanvas" aria-controls="mobileNavOffcanvas" aria-label="Открыть меню">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 2nd Line (Desktop Only): Catalog Dropdown, Grouped Nav Links & Hotline -->
+        <div class="navbar-bottom-row w-100 d-none d-lg-block">
+            <div class="container">
+                <div class="navbar-bottom-inner d-flex align-items-center justify-content-between flex-nowrap py-1">
+                    
+                    <!-- Left: Catalog Dropdown Button (Единый удобный каталог с подкатегориями) -->
+                    <div class="nav-catalog-group nav-dropdown-wrap flex-shrink-0" id="navCatalogDropdownWrap">
+                        <a href="{% url 'main:catalog' %}" 
+                           class="btn btn-nav-catalog nav-dropdown-trigger {% if '/catalog' in request.path or '/categories' in request.path %}active{% endif %}" 
+                           title="Каталог продукции">
+                            <i class="bi bi-grid-3x3-gap-fill text-warning"></i>
+                            <span>Каталог товаров</span>
+                            <i class="bi bi-chevron-down nav-caret-icon"></i>
+                        </a>
+                        <div class="dropdown-menu nav-dropdown-menu nav-catalog-dropdown-menu shadow-lg">
+                            <div class="nav-catalog-dropdown-header p-2 mb-2 bg-light rounded-3 border">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <a href="{% url 'main:catalog' %}" class="nav-quick-action-card">
+                                            <i class="bi bi-grid-fill text-warning fs-5"></i>
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">Все товары</div>
+                                                <small class="text-muted" style="font-size: 0.72rem;">Полный ассортимент</small>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="col-6">
+                                        <a href="{% url 'main:categories' %}" class="nav-quick-action-card">
+                                            <i class="bi bi-collection-fill text-warning fs-5"></i>
+                                            <div>
+                                                <div class="fw-bold text-dark" style="font-size: 0.85rem;">Категории с фото</div>
+                                                <small class="text-muted" style="font-size: 0.72rem;">Визуальный гид</small>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="nav-dropdown-section-title px-2 py-1 text-uppercase text-muted fw-bold" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                                Категории продукции:
+                            </div>
+
+                            <div class="nav-catalog-grid">
+                                {% for cat in nav_categories %}
+                                <a class="dropdown-item nav-dropdown-item d-flex align-items-center gap-2 py-2 px-2 rounded-3" href="{% url 'main:catalog' %}?cat={{ cat.slug }}">
+                                    <div class="nav-cat-icon-badge">
+                                        <i class="bi {{ cat.icon|default:'bi-tag-fill' }}"></i>
+                                    </div>
+                                    <span class="nav-cat-name">{{ cat.name }}</span>
+                                </a>
+                                {% endfor %}
+                            </div>
+
+                            <div class="nav-catalog-dropdown-footer mt-2 pt-2 px-2 border-top d-flex align-items-center justify-content-between text-muted" style="font-size: 0.78rem;">
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <i class="bi bi-shield-check text-warning"></i>
+                                    <span>Свежесть и ГОСТ качество</span>
+                                </span>
+                                <a href="{% url 'main:catalog' %}" class="text-decoration-none fw-semibold text-warning">
+                                    Весь каталог →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Center: Grouped & Clear Navigation Links -->
+                    <ul class="nav nav-main-links align-items-center flex-nowrap gap-1 my-0">
+                        
+                        <!-- Группа 1: О компании (Объединяет: О сыроварне, Преимущества, Отзывы, Доставка и оплата, HoReCa и Опт, Контакты) -->
+                        <li class="nav-item nav-menu-dropdown-hover nav-dropdown-wrap">
+                            <a class="nav-link nav-link-sib nav-dropdown-trigger d-inline-flex align-items-center gap-1 {% if '/about' in request.path or '/reviews' in request.path or '/delivery' in request.path or '/contacts' in request.path or 'horeca-partnership' in request.path %}active{% endif %}" 
+                               href="{% url 'main:about' %}">
+                                <span>О компании</span>
+                                <i class="bi bi-chevron-down nav-caret-icon"></i>
+                            </a>
+                            <ul class="dropdown-menu nav-dropdown-menu shadow-lg rounded-4 p-2 border-0 mt-1" style="min-width: 280px;">
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if '/about' in request.path %}active{% endif %}" href="{% url 'main:about' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-building text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">О сыроварне</div>
+                                            <div class="nav-dropdown-desc">История, производство, сертификаты</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3" href="{% url 'main:index' %}#features">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-stars text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">Преимущества</div>
+                                            <div class="nav-dropdown-desc">100% натурально, ГОСТ рецептура</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if '/reviews' in request.path %}active{% endif %}" href="{% url 'main:reviews' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-chat-quote text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">Отзывы покупателей</div>
+                                            <div class="nav-dropdown-desc">Честные отзывы и оценки клиентов</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if '/delivery' in request.path %}active{% endif %}" href="{% url 'main:delivery' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-truck text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">Доставка и оплата</div>
+                                            <div class="nav-dropdown-desc">Условия по Омску и регионам РФ</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if 'horeca-partnership' in request.path %}active{% endif %}" href="{% url 'main:page_detail' 'horeca-partnership' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-briefcase text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">HoReCa и Опт</div>
+                                            <div class="nav-dropdown-desc">Поставки для ресторанов, кафе и сетей</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if '/contacts' in request.path %}active{% endif %}" href="{% url 'main:contacts' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-geo-alt text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">Контакты</div>
+                                            <div class="nav-dropdown-desc">Адрес завода, отдел продаж, реквизиты</div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Группа 2: Покупателям (Объединяет: Вопрос-ответ FAQ, Статьи и рецепты) -->
+                        <li class="nav-item nav-menu-dropdown-hover nav-dropdown-wrap">
+                            <a class="nav-link nav-link-sib nav-dropdown-trigger d-inline-flex align-items-center gap-1 {% if '/faq' in request.path or '/articles' in request.path %}active{% endif %}" 
+                               href="{% url 'main:faq' %}">
+                                <span>Покупателям</span>
+                                <i class="bi bi-chevron-down nav-caret-icon"></i>
+                            </a>
+                            <ul class="dropdown-menu nav-dropdown-menu shadow-lg rounded-4 p-2 border-0 mt-1" style="min-width: 270px;">
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if '/faq' in request.path %}active{% endif %}" href="{% url 'main:faq' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-question-circle text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">Вопрос-ответ (FAQ)</div>
+                                            <div class="nav-dropdown-desc">Сроки, хранение, как сделать заказ</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item nav-dropdown-item rounded-3 py-2 px-3 d-flex align-items-center gap-3 {% if '/articles' in request.path %}active{% endif %}" href="{% url 'main:articles' %}">
+                                        <div class="nav-cat-icon-badge">
+                                            <i class="bi bi-journal-text text-warning"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nav-dropdown-title">Полезные статьи</div>
+                                            <div class="nav-dropdown-desc">Рецепты, как выбрать сыр, советы</div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Динамические страницы в меню шапки -->
+                        {% for hp in header_pages %}
+                        {% if hp.slug != 'horeca-partnership' %}
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-sib {% if hp.slug in request.path %}active{% endif %}" href="{{ hp.get_absolute_url }}">
+                                {{ hp.get_display_title }}
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
+
+                    <!-- Right: Wholesale / Hotline Info -->
+                    <div class="nav-bottom-extra d-flex align-items-center gap-2 gap-xl-3 flex-shrink-0">
+                        <a href="{% url 'main:contacts' %}#wholesale" class="nav-extra-badge d-none d-xxl-inline-flex align-items-center text-decoration-none" title="Оптовые поставки сыров и молочной продукции">
+                            <i class="bi bi-truck text-warning me-1"></i> Оптовые поставки по РФ
+                        </a>
+                        {% if site_settings.phone %}
+                        <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="nav-hotline-link" title="Прямой телефон сыроварни">
+                            <i class="bi bi-headset text-warning me-1"></i>
+                            <strong class="text-nowrap">{{ site_settings.phone }}</strong>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+

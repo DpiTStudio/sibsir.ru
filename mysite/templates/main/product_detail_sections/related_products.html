@@ -1,0 +1,60 @@
+    <!-- 4. RELATED PRODUCTS / РЕКОМЕНДУЕМ ПОПРОБОВАТЬ -->
+    {% if related_products %}
+    <div class="mb-5">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <span class="badge bg-warning-subtle text-warning px-3 py-1 rounded-pill fw-bold mb-1">Вам также понравится</span>
+                <h3 class="fw-bold text-dark mb-0">Похожие товары из нашего каталога</h3>
+            </div>
+            <a href="{% url 'main:catalog' %}" class="btn btn-link text-warning fw-bold text-decoration-none">
+                Весь каталог <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            {% for rel in related_products %}
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="product-card h-100 d-flex flex-column">
+                    {% if rel.effective_badge %}
+                    <div class="product-badge-float {% if rel.has_discount %}product-badge-sale{% endif %}">
+                        {% if rel.has_discount %}<i class="bi bi-fire me-1"></i>{% endif %}{{ rel.effective_badge }}
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'main:product_detail' slug=rel.slug %}" class="product-img-holder text-decoration-none">
+                        <img src="{{ rel.image_url }}" alt="{{ rel.title }}" loading="lazy">
+                    </a>
+                    <div class="product-body d-flex flex-column flex-grow-1">
+                        <span class="product-category-sub">{{ rel.category.name|default:"Сибсыр" }}</span>
+                        <h4 class="product-title" title="{{ rel.title }}">
+                            <a href="{% url 'main:product_detail' slug=rel.slug %}" class="text-decoration-none text-dark">
+                                {{ rel.title }}
+                            </a>
+                        </h4>
+                        
+                        <div class="product-footer mt-auto pt-2">
+                            <div>
+                                <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                <span class="product-price-val">{{ rel.effective_price_display }}</span>
+                                {% if rel.effective_wholesale_price_display %}
+                                    <span class="d-block small text-success fw-bold" style="font-size: 0.75rem;" title="Опт {{ rel.wholesale_min_qty|default:'' }}">Опт: {{ rel.effective_wholesale_price_display }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <button class="btn btn-card-cart" 
+                                        onclick="addToCart('{{ rel.title|escapejs }}', '{{ rel.effective_price_display|escapejs }}', '{{ rel.image_url|escapejs }}', {{ rel.effective_price_numeric|default:rel.price_numeric }})"
+                                        title="Добавить в корзину">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                                <a href="{% url 'main:product_detail' slug=rel.slug %}" class="btn btn-card-buy text-decoration-none" title="Подробнее">
+                                    <span>Детали</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+

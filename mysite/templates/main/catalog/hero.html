@@ -1,0 +1,104 @@
+    <!-- 1. UNIFIED CATALOG HERO & SEARCH -->
+    <div class="catalog-hero-wrapper p-3 p-md-4 p-lg-5 rounded-4 mb-4 shadow-sm"
+         style="{% if site_settings.catalog_banner_image_url %}background: linear-gradient(rgba(15, 23, 42, 0.90), rgba(30, 41, 59, 0.94)), url('{{ site_settings.catalog_banner_image_url }}') center/cover;{% endif %}">
+
+        <!-- Decorative Watermark Icon -->
+        <div style="position: absolute; right: -25px; bottom: -35px; opacity: 0.04; font-size: 17rem; pointer-events: none; line-height: 1;">
+            <i class="bi bi-grid-3x3-gap-fill"></i>
+        </div>
+
+        <div class="position-relative" style="z-index: 2;">
+            <!-- Sleek Glassmorphism Breadcrumbs -->
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb mb-0 py-1 px-3 d-inline-flex align-items-center rounded-pill" 
+                    style="background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.18); font-size: 0.82rem;">
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'main:index' %}" class="text-white-50 text-decoration-none">
+                            <i class="bi bi-house-door me-1"></i>Главная
+                        </a>
+                    </li>
+                    {% if current_category %}
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'main:catalog' %}" class="text-white-50 text-decoration-none">Каталог</a>
+                    </li>
+                    <li class="breadcrumb-item active text-white fw-semibold" aria-current="page">{{ current_category.name }}</li>
+                    {% else %}
+                    <li class="breadcrumb-item active text-white fw-semibold" aria-current="page">Каталог продукции</li>
+                    {% endif %}
+                </ol>
+            </nav>
+
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <!-- Factory Badge -->
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2 mb-md-3" 
+                         style="background: rgba(255, 132, 0, 0.22); border: 1px solid rgba(255, 132, 0, 0.45); color: #ffb74d; font-size: 0.82rem; font-weight: 600;">
+                        <i class="bi bi-patch-check-fill text-warning"></i>
+                        <span>{{ site_settings.catalog_badge_text|default:"Прямые поставки с сыродельного завода • Омск" }}</span>
+                    </div>
+
+                    <!-- Title & Subtitle -->
+                    <h1 class="display-6 fw-bold text-white mb-2 fs-2 fs-md-1">
+                        {% if current_category %}{{ current_category.name }}{% else %}{{ site_settings.catalog_title|default:"Каталог продукции ТМ «Сибсыр»" }}{% endif %}
+                    </h1>
+                    <p class="text-white-50 mb-3 small fs-md-6" style="max-width: 620px; line-height: 1.5;">
+                        {{ site_settings.catalog_subtitle|default:"Полный ассортимент натуральных сыров, свежего сливочного масла и традиционных кисломолочных напитков. Изготовлено по ГОСТ и ТУ из 100% отборного сибирского молока." }}
+                    </p>
+
+                    <!-- Trust indicators -->
+                    <div class="d-flex flex-wrap align-items-center gap-3 text-white-50 small">
+                        <div class="d-inline-flex align-items-center">
+                            <i class="bi bi-check2-circle text-success me-1"></i> <strong class="text-white me-1">{{ products|length }}</strong> позиций в наличии
+                        </div>
+                        <div class="d-inline-flex align-items-center">
+                            <i class="bi bi-truck text-warning me-1"></i> Терморежим +2...+4°C
+                        </div>
+                        <div class="d-inline-flex align-items-center">
+                            <i class="bi bi-shield-check text-info me-1"></i> ФГИС «Меркурий»
+                        </div>
+                        <div class="d-inline-flex align-items-center">
+                            <i class="bi bi-qr-code text-light me-1"></i> Честный ЗНАК
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <!-- Quick Live Search in Hero -->
+                    <div class="catalog-search-card text-dark">
+                        <label for="catalogSearchInput" class="form-label small fw-bold text-muted mb-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-search text-warning me-1"></i>Быстрый поиск по каталогу</span>
+                            <span class="badge bg-light text-dark border" id="headerProductCount">{{ products|length }} товаров</span>
+                        </label>
+                        <div class="catalog-search-input-wrap">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" 
+                                   id="catalogSearchInput" 
+                                   class="form-control" 
+                                   placeholder="{{ site_settings.catalog_search_placeholder|default:'Сыр, сулугуни, масло, ГОСТ...' }}" 
+                                   oninput="applyCatalogFilters()" 
+                                   title="Поиск товара по каталогу">
+                            <button type="button" 
+                                    id="catalogSearchClearBtn" 
+                                    class="search-clear-btn d-none" 
+                                    onclick="clearSearchInput()" 
+                                    title="Очистить поиск">
+                                <i class="bi bi-x-circle-fill"></i>
+                            </button>
+                        </div>
+
+                        <!-- Quick suggestion tags -->
+                        <div class="search-tags-row">
+                            <span class="small text-muted me-1" style="font-size: 0.74rem;">Популярное:</span>
+                            <button type="button" class="search-tag-chip" onclick="setSearchTag('Сулугуни')">Сулугуни</button>
+                            <button type="button" class="search-tag-chip" onclick="setSearchTag('Масло')">Масло сливочное</button>
+                            <button type="button" class="search-tag-chip" onclick="setSearchTag('Чечил')">Чечил</button>
+                            <button type="button" class="search-tag-chip" onclick="setSearchTag('Копченый')">Копченый</button>
+                            <button type="button" class="search-tag-chip" onclick="setSearchTag('Адыгейский')">Адыгейский</button>
+                            <button type="button" class="search-tag-chip" onclick="setSearchTag('ГОСТ')">ГОСТ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+

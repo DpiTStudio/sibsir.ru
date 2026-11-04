@@ -1,0 +1,55 @@
+{% load captcha_tags %}
+    <!-- MODAL 2: CALLBACK & WHOLESALE REQUEST -->
+    <div class="modal fade" id="callbackModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content modal-content-sib">
+                <div class="modal-header modal-header-sib">
+                    <div>
+                        <h5 class="modal-title fw-bold">Обратная связь и консультация</h5>
+                        <p class="small text-secondary mb-0">Отдел продаж «Сибсыр» ответит на любые вопросы</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body modal-body-sib">
+                    <form id="callbackForm" action="{% url 'main:create_callback' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Тип обращения</label>
+                            <select name="request_type" class="form-select rounded-pill px-3">
+                                <option value="call">Заказать обратный звонок</option>
+                                <option value="wholesale">Запрос оптового прайс-листа и условий</option>
+                                <option value="question">Вопрос по ассортименту и наличию</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Ваше имя / Контактное лицо *</label>
+                            <input type="text" name="name" class="form-control rounded-pill px-3" placeholder="Иван Иванов" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Организация / ИП (для оптовых клиентов)</label>
+                            <input type="text" name="company_name" class="form-control rounded-pill px-3" placeholder="ООО / ИП / Название магазина">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Номер телефона *</label>
+                            <input type="tel" name="phone" class="form-control rounded-pill px-3" placeholder="+7 (___) ___-__-__" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">E-mail (для отправки прайс-листа и документов)</label>
+                            <input type="email" name="email" class="form-control rounded-pill px-3" placeholder="info@company.ru">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Текст сообщения</label>
+                            <textarea name="message" class="form-control rounded-4 px-3" rows="3" placeholder="Интересуют оптовые поставки Сулугуни и Косички в розничную сеть..."></textarea>
+                        </div>
+
+                        {% render_captcha 'callback' %}
+
+                        <button type="submit" class="btn btn-sib-orange w-100 py-3">
+                            <span>Отправить обращение</span> <i class="bi bi-send ms-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+

@@ -1,0 +1,250 @@
+    <!-- 2. PRODUCT DETAIL HERO CARD -->
+    <div class="product-detail-hero p-3 p-md-5 mb-5">
+        <div class="row g-4 g-lg-5 align-items-start">
+            
+            <!-- LEFT COLUMN: IMAGE & SHARE -->
+            <div class="col-lg-5">
+                <div class="product-detail-img-wrap shadow-sm">
+                    <div class="detail-badge-float">
+                        {% if product.effective_badge %}
+                        <div class="badge-pill-sib">
+                            {% if product.has_discount %}<i class="bi bi-fire"></i>{% else %}<i class="bi bi-patch-check-fill"></i>{% endif %}
+                            <span>{{ product.effective_badge }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="badge-pill-stock">
+                            <i class="bi bi-check2-circle me-1"></i>В наличии (Омск)
+                        </div>
+                    </div>
+                    <img src="{{ product.image_url }}" alt="{{ product.title }}" class="product-detail-img" id="mainProductImage">
+                </div>
+
+                <!-- SHARE PRODUCT SOCIAL WIDGET -->
+                <div class="mt-4 p-3 bg-light rounded-4 border">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="small fw-bold text-dark d-flex align-items-center">
+                            <i class="bi bi-share-fill text-warning me-2"></i>Поделиться товаром:
+                        </span>
+                        <span class="small text-muted" style="font-size: 0.75rem;">мессенджеры и соцсети</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Telegram -->
+                        <a href="https://t.me/share/url?url={{ full_url|urlencode }}&text={{ share_title|urlencode }}%0A{{ share_text|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-tg" title="Поделиться в Telegram">
+                            <i class="bi bi-telegram"></i>
+                        </a>
+                        <!-- WhatsApp -->
+                        <a href="https://api.whatsapp.com/send?text={{ share_title|urlencode }}%20{{ full_url|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-wa" title="Поделиться в WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <!-- VKontakte -->
+                        <a href="https://vk.com/share.php?url={{ full_url|urlencode }}&title={{ share_title|urlencode }}&comment={{ share_text|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-vk" title="Поделиться ВКонтакте">
+                            <i class="bi bi-vk"></i>
+                        </a>
+                        <!-- Одноклассники -->
+                        <a href="https://connect.ok.ru/offer?url={{ full_url|urlencode }}&title={{ share_title|urlencode }}" 
+                           target="_blank" rel="noopener noreferrer" class="share-btn-round share-ok" title="Поделиться в Одноклассниках">
+                            <i class="bi bi-people-fill"></i>
+                        </a>
+                        <!-- Скопировать ссылку -->
+                        <button type="button" class="share-btn-round share-copy border-0" onclick="copyDirectProductUrl()" title="Скопировать ссылку на товар">
+                            <i class="bi bi-link-45deg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: PRODUCT INFO & PURCHASE -->
+            <div class="col-lg-7">
+                {% if product.category %}
+                <a href="{% url 'main:catalog' %}?cat={{ product.category.slug }}" class="d-inline-flex align-items-center gap-1 badge bg-warning-subtle text-warning border px-3 py-2 rounded-pill text-decoration-none fw-semibold mb-2" style="font-size: 0.8rem;">
+                    <i class="bi {{ product.category.icon|default:'bi-tag-fill' }}"></i>
+                    <span>{{ product.category.name }}</span>
+                </a>
+                {% endif %}
+
+                <h1 class="fw-bold text-dark display-6 mb-2 fs-2 fs-md-1">{{ product.title }}</h1>
+
+                <!-- Rating and SKU -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-3 text-muted small">
+                    <div class="d-inline-flex align-items-center gap-1 text-warning">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= average_rating|default:5 %}
+                                <i class="bi bi-star-fill"></i>
+                            {% else %}
+                                <i class="bi bi-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                        <span class="text-dark fw-bold ms-1" id="topRatingValue">{{ average_rating|default:"4.9" }}</span>
+                    </div>
+                    <span class="text-muted">•</span>
+                    <a href="#tab-reviews" class="text-muted text-decoration-none" onclick="openReviewsTab(false)">
+                        <i class="bi bi-chat-left-dots me-1"></i><span id="productReviewsCounterTop">{{ total_reviews_display|default:product.reviews_count|default:"14" }}</span> отзывов
+                    </a>
+                    <span class="text-muted">•</span>
+                    <a href="#tab-reviews" class="text-warning fw-semibold text-decoration-none" onclick="openReviewsTab(true)">
+                        <i class="bi bi-pencil-square me-1"></i>Оставить отзыв
+                    </a>
+                    <span class="text-muted">•</span>
+                    <span class="text-muted">Арт: <strong>SIB-{{ product.id|stringformat:"04d" }}</strong></span>
+                    <span class="text-muted">•</span>
+                    <span class="badge bg-success-subtle text-success border"><i class="bi bi-shield-check me-1"></i>ГОСТ / ТУ</span>
+                </div>
+
+                <!-- PRICE BOX -->
+                <div class="p-3 p-md-4 rounded-4 mb-4" style="background: linear-gradient(135deg, #fff7ed 0%, #fffdf8 100%); border: 1.5px solid rgba(255, 132, 0, 0.25);">
+                    <div class="d-flex flex-wrap align-items-baseline gap-3 mb-2">
+                        <span class="display-6 fw-bold text-dark" id="detailProductTotalPrice" style="color: #0f172a !important;">
+                            {{ product.effective_price_display }}
+                        </span>
+                        {% if product.has_discount and product.effective_old_price_numeric > 0 %}
+                            <span class="fs-4 text-muted text-decoration-line-through" id="detailProductOldTotalPrice">
+                                {{ product.effective_old_price_numeric }} ₽
+                            </span>
+                            <span class="badge bg-danger text-white rounded-pill px-3 py-1 fw-bold" style="font-size: 0.85rem;">
+                                Скидка {{ product.effective_discount_percent }}%
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Live calculation breakdown badge -->
+                    <div id="detailCalcRow" class="d-flex align-items-center gap-2 mb-2" style="display: none !important;">
+                        <span class="badge bg-warning text-dark border border-warning px-2 py-1 small fw-bold">
+                            <i class="bi bi-calculator me-1"></i>Расчет: <span id="detailCalcFormula"></span>
+                        </span>
+                        <span class="text-muted small">({{ product.effective_price_display }} за 1 шт.)</span>
+                    </div>
+
+                    {% if product.effective_wholesale_price_display %}
+                    <div class="mt-3 pt-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success text-white rounded-pill px-2 py-1"><i class="bi bi-box-seam me-1"></i>Опт</span>
+                            <span class="text-secondary small">Оптовая цена:</span>
+                            <strong class="text-success fs-5">{{ product.effective_wholesale_price_display }}</strong>
+                        </div>
+                        {% if product.wholesale_min_qty %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 small fw-semibold">
+                                <i class="bi bi-info-circle me-1"></i>{{ product.wholesale_min_qty }}
+                            </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-2 small text-muted d-flex align-items-center gap-3 flex-wrap">
+                        <span><i class="bi bi-check-circle-fill text-success me-1"></i>Прямые поставки от производителя</span>
+                        <span><i class="bi bi-truck text-warning me-1"></i>Отгрузка от 1 упаковки / коробки</span>
+                    </div>
+                </div>
+
+                <!-- SHORT SUMMARY DESCRIPTION -->
+                {% if product.description %}
+                <p class="text-secondary mb-4 leading-relaxed" style="font-size: 1.05rem;">
+                    {{ product.description }}
+                </p>
+                {% endif %}
+
+                <!-- QUICK SPECS 4-GRID -->
+                <div class="row g-2 g-md-3 mb-4">
+                    {% if product.fat_content %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Жирность</div>
+                            <div class="spec-metric-value text-truncate">{{ product.fat_content }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.unit_weight %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Фасовка</div>
+                            <div class="spec-metric-value text-truncate">{{ product.unit_weight }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.package_type %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Упаковка</div>
+                            <div class="spec-metric-value text-truncate">{{ product.package_type }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if product.shelf_life %}
+                    <div class="col-6 col-md-3">
+                        <div class="spec-metric-card">
+                            <div class="spec-metric-label">Срок годности</div>
+                            <div class="spec-metric-value text-truncate">{{ product.shelf_life }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- BUY ACTION BAR -->
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+                    <!-- Quantity Picker -->
+                    <div class="qty-control-box">
+                        <button type="button" class="qty-btn" onclick="updateDetailQty(-1)" aria-label="Уменьшить">-</button>
+                        <input type="number" id="detailQtyInput" class="qty-input" value="1" min="1" max="999" oninput="updateDetailQty(0)" onchange="updateDetailQty(0)">
+                        <button type="button" class="qty-btn" onclick="updateDetailQty(1)" aria-label="Увеличить">+</button>
+                    </div>
+
+                    <!-- Add To Cart Button -->
+                    <button type="button" class="btn btn-sib-orange px-4 py-3 fw-bold flex-grow-1 d-flex align-items-center justify-content-center gap-2 shadow-sm"
+                            id="detailAddToCartBtn"
+                            onclick="addDetailToCart()" style="border-radius: 14px; font-size: 1.05rem;">
+                        <i class="bi bi-cart-plus-fill fs-5"></i>
+                        <span id="detailAddToCartText">В корзину • {{ product.effective_price_display }}</span>
+                    </button>
+
+                    <!-- 1-Click Order Button -->
+                    <button type="button" class="btn btn-outline-dark px-4 py-3 fw-bold"
+                            id="detailQuickOrderBtn"
+                            onclick="triggerDetailQuickOrder()"
+                            style="border-radius: 14px; font-size: 1.05rem;">
+                        <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Купить в 1 клик
+                    </button>
+                </div>
+
+                <!-- WhatsApp Quick Chat Button -->
+                <div class="mb-4">
+                    <a href="https://api.whatsapp.com/send?phone=79999999999&text={{ 'Здравствуйте! Интересует сыр ' }}{{ product.title|urlencode }}{{ '. Подскажите по наличию и оптовым условиям.' }}" 
+                       target="_blank" rel="noopener noreferrer" 
+                       class="btn btn-outline-success w-100 py-2 rounded-3 d-inline-flex align-items-center justify-content-center gap-2 fw-semibold" style="font-size: 0.95rem;">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                        <span>Консультация и заказ через WhatsApp</span>
+                    </a>
+                </div>
+
+                <!-- TRUST BADGES -->
+                <div class="pt-3 border-top">
+                    <div class="row g-3 text-secondary small">
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-truck fs-4 text-warning"></i>
+                            <div>
+                                <strong class="text-dark d-block">Доставка</strong>
+                                <span>Спецтранспорт с рефрижератором</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-patch-check fs-4 text-success"></i>
+                            <div>
+                                <strong class="text-dark d-block">100% Качество</strong>
+                                <span>ФГИС «Меркурий», ГОСТ</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                            <div>
+                                <strong class="text-dark d-block">Для Бизнеса</strong>
+                                <span>Закрывающие документы юрлицам</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+

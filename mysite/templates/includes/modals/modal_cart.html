@@ -1,0 +1,203 @@
+{% load captcha_tags %}
+    <!-- MODAL 3: SHOPPING CART -->
+    <div class="modal fade cart-modal-custom" id="cartModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+            <div class="modal-content modal-content-sib">
+                <div class="modal-header modal-header-sib py-3 px-3 px-md-4">
+                    <div class="d-flex align-items-center justify-content-between w-100 me-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="cart-header-icon-box">
+                                <i class="bi bi-cart3"></i>
+                            </div>
+                            <div>
+                                <h5 class="modal-title fw-bold mb-0">Корзина заказа</h5>
+                                <span class="small text-secondary" id="cartHeaderSubtitle">Проверьте выбранные товары</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-link text-warning-emphasis text-decoration-none py-0 px-2 fw-semibold d-none" id="cartClearAllBtn" onclick="clearCartConfirm()" title="Очистить корзину">
+                            <i class="bi bi-trash3 me-1"></i>Очистить
+                        </button>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body modal-body-sib p-3 p-md-4">
+                    <div id="cartItemsContainer" class="mb-3">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <div id="cartEmptyState" class="text-center py-5 d-none">
+                        <div class="cart-empty-icon-wrap mb-3">
+                            <i class="bi bi-bag-heart text-warning"></i>
+                        </div>
+                        <h5 class="mt-2 text-dark fw-bold">Ваша корзина пуста</h5>
+                        <p class="text-muted small mb-4" style="max-width: 320px; margin: 0 auto;">
+                            Выберите понравившиеся сыры, домашнее сливочное масло или традиционные напитки в каталоге
+                        </p>
+                        <button class="btn btn-sib-orange rounded-pill px-4 py-2 fw-bold" data-bs-dismiss="modal" onclick="window.location.href='{% url 'main:catalog' %}';">
+                            <i class="bi bi-grid-fill me-1"></i> Перейти в каталог продукции
+                        </button>
+                    </div>
+
+                    <div id="cartOrderSection">
+                        <!-- Promocode Input Box -->
+                        <div class="cart-promocode-card">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="fw-bold small text-dark d-flex align-items-center gap-2">
+                                    <i class="bi bi-ticket-perforated-fill text-warning fs-5"></i>
+                                    Промокод на скидку
+                                </span>
+                                <span class="text-muted small" style="font-size: 0.75rem;">Спецпредложение</span>
+                            </div>
+                            <div id="promocodeInputGroup" class="input-group">
+                                <input type="text" id="cartPromocodeInput" class="form-control cart-promocode-input" placeholder="ВВЕДИТЕ ПРОМОКОД (НАПР. SIBCHEESE10)">
+                                <button type="button" class="btn cart-promocode-btn fw-bold" id="applyPromocodeBtn" onclick="applyCartPromocode()">
+                                    Применить
+                                </button>
+                            </div>
+                            <div id="promocodeFeedback" class="small mt-2 d-none"></div>
+
+                            <!-- Applied promocode badge -->
+                            <div id="appliedPromoBadge" class="applied-promocode-badge mt-2 d-none">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold" id="appliedPromoCodeText">SIBCHEESE10</div>
+                                        <div class="small text-muted" id="appliedPromoDesc">Скидка применена</div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeCartPromocode()" title="Отменить промокод">
+                                    <i class="bi bi-x-circle fs-5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Calculation breakdown: Subtotal, Discount, Total -->
+                        <div class="cart-summary-card">
+                            <div id="cartSubtotalRow" class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="text-muted small">Стоимость товаров:</span>
+                                <span id="cartSubtotalPrice" class="fw-bold text-dark">0 ₽</span>
+                            </div>
+                            <div id="cartDiscountRow" class="d-flex justify-content-between align-items-center mb-2 d-none" style="color: #16a34a;">
+                                <span class="small fw-bold"><i class="bi bi-tag-fill me-1"></i>Скидка по промокоду:</span>
+                                <span id="cartDiscountPrice" class="fw-bold">-0 ₽</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top border-warning-subtle">
+                                <div>
+                                    <span class="fw-bold fs-5 text-dark d-block">Итого к оплате:</span>
+                                    <span class="text-muted" style="font-size: 0.72rem;">Оплата при получении или по счету</span>
+                                </div>
+                                <span id="cartTotalPrice" class="cart-total-price-val">0 ₽</span>
+                            </div>
+                        </div>
+
+                        <form id="cartOrderForm" action="{% url 'main:create_order' %}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_choice" id="cartProductChoiceHidden">
+                            <input type="hidden" name="cart_items_json" id="cartItemsJsonHidden">
+                            <input type="hidden" name="promocode_code" id="cartPromocodeHidden">
+
+                            <!-- User Auth Status Notice -->
+                            {% if request.user.is_authenticated %}
+                            <div class="p-2 px-3 rounded-4 mb-3 d-flex align-items-center justify-content-between" style="background: #f0f7ff; border: 1px solid #bfdbfe;">
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <i class="bi {% if request.user.profile.is_legal %}bi-building text-primary{% else %}bi-person-check-fill text-primary{% endif %} fs-5"></i>
+                                    <div>
+                                        <span class="text-muted">Заказ оформляется на:</span>
+                                        <strong class="text-dark">{{ request.user.profile.display_name }}</strong>
+                                        {% if request.user.profile.is_legal %}
+                                        <span class="badge bg-primary ms-1" style="font-size: 10px;">Юр. лицо / ИП</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <a href="{% url 'accounts:profile' %}" class="small text-primary text-decoration-none fw-semibold">
+                                    В кабинет →
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="p-2 px-3 rounded-4 mb-3 bg-light text-muted small d-flex align-items-center justify-content-between">
+                                <div>
+                                    <i class="bi bi-person-circle text-warning me-1"></i>
+                                    <span>Уже заказывали у нас?</span>
+                                </div>
+                                <div>
+                                    <a href="{% url 'accounts:login' %}" class="fw-bold text-warning text-decoration-none">Войдите</a>
+                                    <span class="text-muted mx-1">или</span>
+                                    <a href="{% url 'accounts:register' %}" class="fw-bold text-dark text-decoration-none">зарегистрируйтесь</a>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Customer Type Selector -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-muted">Тип покупателя</label>
+                                <div class="btn-group w-100" role="group">
+                                    <input type="radio" class="btn-check" name="customer_type" id="cartCustTypeIndiv" value="individual" {% if not request.user.profile.is_legal %}checked{% endif %} onchange="toggleCartLegalFields(false)">
+                                    <label class="btn btn-outline-secondary rounded-start-pill py-2 small fw-bold" for="cartCustTypeIndiv">
+                                        <i class="bi bi-person me-1"></i>Обычный покупатель
+                                    </label>
+                                    <input type="radio" class="btn-check" name="customer_type" id="cartCustTypeLegal" value="legal" {% if request.user.profile.is_legal %}checked{% endif %} onchange="toggleCartLegalFields(true)">
+                                    <label class="btn btn-outline-secondary rounded-end-pill py-2 small fw-bold" for="cartCustTypeLegal">
+                                        <i class="bi bi-building me-1"></i>Юр. лицо / ИП
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Legal Entity Fields -->
+                            <div id="cartLegalFields" class="{% if not request.user.profile.is_legal %}d-none{% endif %} mb-3 p-3 rounded-4" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-muted">Наименование организации / ИП *</label>
+                                    <input type="text" name="company_name" class="form-control rounded-pill px-3" placeholder="ООО «Сырная Лавка» или ИП Смирнов" value="{{ request.user.profile.company_name|default:'' }}">
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">ИНН *</label>
+                                        <input type="text" name="inn" class="form-control rounded-pill px-3" placeholder="10 или 12 цифр" value="{{ request.user.profile.inn|default:'' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold text-muted">КПП (для ООО)</label>
+                                        <input type="text" name="kpp" class="form-control rounded-pill px-3" placeholder="9 цифр" value="{{ request.user.profile.kpp|default:'' }}">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label small fw-bold text-muted">Юридический адрес</label>
+                                    <input type="text" name="legal_address" class="form-control rounded-pill px-3" placeholder="г. Омск, ул. Ленина, 5, оф. 12" value="{{ request.user.profile.legal_address|default:'' }}">
+                                </div>
+                            </div>
+
+                            <div class="row g-2 g-md-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Контактное лицо (ФИО) *</label>
+                                    <input type="text" name="name" class="form-control rounded-pill px-3" placeholder="Иван Иванович" value="{% if request.user.is_authenticated %}{{ request.user.profile.contact_person|default:request.user.profile.display_name }}{% endif %}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Телефон *</label>
+                                    <input type="tel" name="phone" class="form-control rounded-pill px-3" placeholder="+7 (___) ___-__-__" value="{{ request.user.profile.phone|default:'' }}" required>
+                                </div>
+                            </div>
+                            <div class="row g-2 g-md-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">E-mail (для отправки документов)</label>
+                                    <input type="email" name="email" class="form-control rounded-pill px-3" placeholder="client@mail.ru" value="{{ request.user.email|default:'' }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold text-muted">Адрес доставки</label>
+                                    <input type="text" name="delivery_address" class="form-control rounded-pill px-3" placeholder="г. Омск, ул. Мира, 10" value="{{ request.user.profile.delivery_address|default:'' }}">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label small fw-bold text-muted">Комментарий к заказу (пожелания, время доставки)</label>
+                                <textarea name="comment" class="form-control rounded-4 px-3" rows="2" placeholder="Дополнительные детали заказа..."></textarea>
+                            </div>
+
+                            {% render_captcha 'order' %}
+
+                            <button type="submit" class="btn btn-sib-orange w-100 py-3 shadow-sm" id="cartSubmitOrderBtn">
+                                <span>Оформить заказ и получить документы</span> <i class="bi bi-check2-circle ms-1"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+

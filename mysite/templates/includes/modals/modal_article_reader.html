@@ -1,0 +1,29 @@
+    <!-- MODAL 4: ARTICLE READER -->
+    <div class="modal fade" id="articleReaderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable modal-fullscreen-sm-down">
+            <div class="modal-content modal-content-sib">
+                <div class="modal-header modal-header-sib">
+                    <div>
+                        <span id="modalArticleDate" class="badge bg-warning text-dark mb-1">24.07.2025</span>
+                        <h4 class="modal-title fw-bold" id="modalArticleTitle">Заголовок статьи</h4>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body modal-body-sib p-4">
+                    <div id="modalArticleImageWrap" class="mb-4 text-center d-none">
+                        <img id="modalArticleImage" src="" alt="" class="img-fluid rounded-4 shadow-sm" style="max-height: 350px; width: 100%; object-fit: cover;">
+                    </div>
+                    <div id="modalArticleContent" class="article-rich-text" style="line-height: 1.8; color: #334155;">
+                        <!-- Injected via AJAX -->
+                    </div>
+                </div>
+                <div class="modal-footer modal-footer-sib d-flex justify-content-between align-items-center">
+                    <a id="modalArticleFullPageBtn" href="#" class="btn btn-sm btn-sib-orange rounded-pill px-3 py-1 text-decoration-none">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Читать на отдельной странице
+                    </a>
+                    <button type="button" class="btn btn-sm btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+

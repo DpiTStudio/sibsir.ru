@@ -1,0 +1,55 @@
+    <!-- 6. ARTICLES / CHEESE KNOWLEDGE BASE SECTION -->
+    <section class="mb-5" id="articles">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <span class="section-head-badge">Полезно знать</span>
+                <h2 class="section-head-title mb-0">Статьи о сыре и производстве</h2>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small d-none d-md-inline">Советы сыроваров, рецепты и факты</span>
+                <a href="{% url 'main:articles' %}" class="btn btn-sm btn-outline-warning rounded-pill px-3 py-1 fw-semibold">
+                    Все статьи ({% if total_articles_count %}{{ total_articles_count }}{% else %}{{ articles|length }}{% endif %}) <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-3 g-md-4">
+            {% for art in articles %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="article-card">
+                        <a href="{% url 'main:article_detail' art.slug %}" class="article-img-wrap text-decoration-none d-block">
+                            <img src="{{ art.image_url }}" alt="{{ art.title }}" loading="lazy">
+                        </a>
+                        <div class="article-body">
+                            <div class="article-date-row">
+                                <i class="bi bi-calendar3"></i>
+                                <span>{{ art.date_str }}</span>
+                                <span class="mx-1">•</span>
+                                <i class="bi bi-eye"></i>
+                                <span>{{ art.views_count }} просмотров</span>
+                            </div>
+                            <h3 class="article-title">
+                                <a href="{% url 'main:article_detail' art.slug %}" class="text-dark text-decoration-none">
+                                    {{ art.title }}
+                                </a>
+                            </h3>
+                            <p class="article-snippet">{{ art.snippet }}</p>
+                            <div class="d-flex align-items-center justify-content-between mt-auto pt-2">
+                                <a href="{% url 'main:article_detail' art.slug %}" class="btn-read-article">
+                                    <span>Читать статью</span>
+                                    <i class="bi bi-arrow-right"></i>
+                                </a>
+                                <button type="button" 
+                                        class="btn btn-sm btn-light rounded-pill px-2 py-0 text-muted border-0" 
+                                        onclick="openArticleModal('{{ art.slug }}')" 
+                                        title="Быстрый предпросмотр">
+                                    <i class="bi bi-arrows-angle-expand"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+

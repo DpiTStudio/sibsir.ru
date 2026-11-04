@@ -1,0 +1,169 @@
+<script>
+    // --- PRODUCTS CAROUSEL (Desktop: 3 items, Mobile/Tablet: 1 item) ---
+    function initProductsCarousel(wrapper) {
+        if (!wrapper) return;
+        const track = wrapper.querySelector('.products-carousel-track');
+        const viewport = wrapper.querySelector('.products-carousel-viewport');
+        if (!track || !viewport) return;
+        const slides = Array.from(track.querySelectorAll('.products-carousel-slide'));
+        if (!slides.length) return;
+
+        const id = '#' + wrapper.id;
+        const prevBtns = document.querySelectorAll(`[data-carousel-prev="${id}"]`);
+        const nextBtns = document.querySelectorAll(`[data-carousel-next="${id}"]`);
+        const dotsContainer = document.querySelector(`[data-carousel-dots="${id}"]`);
+
+        let currentPage = 0;
+        let itemsPerPage = window.innerWidth >= 992 ? 3 : 1;
+        let totalPages = Math.ceil(slides.length / itemsPerPage);
+
+        function renderDots() {
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            if (totalPages <= 1) {
+                dotsContainer.style.display = 'none';
+                return;
+            }
+            dotsContainer.style.display = 'flex';
+            for (let i = 0; i < totalPages; i++) {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = 'carousel-dot' + (i === currentPage ? ' active' : '');
+                dot.setAttribute('aria-label', `Слайд ${i + 1}`);
+                dot.addEventListener('click', () => goTo(i));
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function updateNavVisibility() {
+            const hide = totalPages <= 1;
+            prevBtns.forEach(btn => btn.style.display = hide ? 'none' : '');
+            nextBtns.forEach(btn => btn.style.display = hide ? 'none' : '');
+        }
+
+        function goTo(page) {
+            if (page < 0) page = totalPages - 1;
+            if (page >= totalPages) page = 0;
+            currentPage = page;
+
+            let offsetPercent;
+            if (itemsPerPage === 1) {
+                offsetPercent = currentPage * 100;
+            } else {
+                const maxOffset = (slides.length - itemsPerPage) * (100 / itemsPerPage);
+                offsetPercent = Math.min(currentPage * 100, Math.max(0, maxOffset));
+            }
+
+            track.style.transform = `translateX(-${offsetPercent}%)`;
+
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.carousel-dot');
+                dots.forEach((d, idx) => {
+                    d.classList.toggle('active', idx === currentPage);
+                });
+            }
+        }
+
+        prevBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                goTo(currentPage - 1);
+            });
+        });
+
+        nextBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                goTo(currentPage + 1);
+            });
+        });
+
+        // Touch swipe gestures for smartphones and tablets
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let isSwiping = false;
+
+        viewport.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isSwiping = true;
+        }, { passive: true });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            const dx = e.touches[0].clientX - touchStartX;
+            const dy = e.touches[0].clientY - touchStartY;
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+                if (e.cancelable) e.preventDefault();
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
+            const touchEndX = e.changedTouches[0].clientX;
+            const dx = touchEndX - touchStartX;
+            if (dx < -40) {
+                goTo(currentPage + 1);
+            } else if (dx > 40) {
+                goTo(currentPage - 1);
+            }
+        });
+
+        // Window resize adaptation
+        function onResize() {
+            const newItemsPerPage = window.innerWidth >= 992 ? 3 : 1;
+            if (newItemsPerPage !== itemsPerPage) {
+                itemsPerPage = newItemsPerPage;
+                totalPages = Math.ceil(slides.length / itemsPerPage);
+                if (currentPage >= totalPages) currentPage = totalPages - 1;
+                renderDots();
+                updateNavVisibility();
+                goTo(currentPage);
+            }
+        }
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(onResize, 100);
+        });
+
+        renderDots();
+        updateNavVisibility();
+        goTo(0);
+    }
+
+    // Hook up page callback form as well as carousels
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.products-carousel-wrapper').forEach(wrapper => {
+            initProductsCarousel(wrapper);
+        });
+
+        const pageForm = document.getElementById('pageCallbackForm');
+        if (pageForm) {
+            pageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(pageForm);
+                fetch(pageForm.action, { method: 'POST', body: formData })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.success) {
+                            pageForm.reset();
+                            showToast(data.message);
+                        } else {
+                            alert(data.error || 'Ошибка при отправке');
+                            if (typeof refreshCaptchaInWrapper === 'function') {
+                                refreshCaptchaInWrapper(pageForm.querySelector('.sib-captcha-wrapper'));
+                            }
+                        }
+                    })
+                    .catch(err => {
+                        if (typeof refreshCaptchaInWrapper === 'function') {
+                            refreshCaptchaInWrapper(pageForm.querySelector('.sib-captcha-wrapper'));
+                        }
+                    });
+            });
+        }
+    });
+</script>

@@ -1,0 +1,45 @@
+    <!-- 1. HERO SECTION -->
+    <section class="hero-wrapper">
+        <div class="row align-items-center g-4 g-lg-5">
+            <div class="col-lg-6">
+                <div class="hero-badge">
+                    <i class="bi bi-patch-check-fill text-warning"></i>
+                    <span>{{ site_settings.hero_badge_text|default:"Собственное производство • 100% натуральное молоко" }}</span>
+                </div>
+                <h1 class="hero-title-main">{{ site_settings.hero_title|default:"Здесь делают сыр" }}</h1>
+                <p class="hero-desc">
+                    {{ site_settings.hero_subtitle|default:"Компания «СибСыр» уже более 25 лет поставляет натуральные сыры, масло сливочное и кисломолочную продукцию высочайшего качества из свежего омского молока." }}
+                </p>
+                <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2 gap-sm-3 mb-4">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange justify-content-center py-2 px-3">
+                        <span>{{ site_settings.cta_button_text|default:"Перейти в каталог" }}</span>
+                        <i class="bi bi-arrow-right-circle"></i>
+                    </a>
+                    <button class="btn btn-sib-outline justify-content-center py-2 px-3" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                        <span>Оптовый прайс-лист</span>
+                    </button>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2 gap-md-4 text-muted fw-medium small pt-2 border-top border-light-subtle">
+                    <div><i class="bi bi-check2-circle text-success me-1"></i> ГОСТ и ТУ</div>
+                    <div><i class="bi bi-shield-check text-success me-1"></i> Система «Меркурий»</div>
+                    <div><i class="bi bi-truck text-success me-1"></i> Рефрижераторы</div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-img-box">
+                    <img src="{{ site_settings.hero_image_url }}" alt="{{ site_settings.hero_title }}">
+                    <div class="hero-floating-card">
+                        <div class="brand-icon-box" style="width: 40px; height: 40px; font-size: 1.2rem; flex-shrink: 0;">
+                            <i class="bi bi-award"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold text-white small">Продукция завода «Сибсыр»</div>
+                            <div class="text-secondary small" style="font-size: 0.75rem;">г. Омск, ул. Зеленая, 16 • Свежие поставки каждый день</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+

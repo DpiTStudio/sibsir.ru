@@ -1,0 +1,31 @@
+    <!-- 7. REVIEWS SECTION -->
+    <section class="mb-5" id="reviews">
+        <div class="text-center mb-4">
+            <span class="section-head-badge">Доверие партнеров</span>
+            <h2 class="section-head-title">Отзывы о продукции Сибсыр</h2>
+        </div>
+        <div class="row g-3 g-md-4">
+            {% for rev in reviews %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="review-card">
+                        <div class="review-stars">
+                            {% for i in "12345" %}
+                                <i class="bi bi-star-fill"></i>
+                            {% endfor %}
+                        </div>
+                        <p class="review-text">«{{ rev.text }}»</p>
+                        <div class="review-author">
+                            {{ rev.author_name }}
+                            <div class="review-city">{{ rev.city }} • {{ rev.product_mention }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'main:reviews' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                <i class="bi bi-chat-quote-fill me-1"></i> Все отзывы и добавить свой отзыв
+            </a>
+        </div>
+    </section>
+

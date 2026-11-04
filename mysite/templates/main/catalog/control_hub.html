@@ -1,0 +1,135 @@
+    <!-- 2. CATALOG CONTROL HUB (Categories Navigation + Filtering + Sorting) -->
+    <div class="catalog-control-hub p-3 p-md-4 mb-4">
+        <!-- Category bar header with link to dedicated categories page & favorites button -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-tags-fill text-warning"></i>
+                <span class="fw-bold text-dark" style="font-size: 0.95rem;">Категории продукции:</span>
+                <span class="badge bg-light text-muted border rounded-pill">{{ categories|length }} категорий</span>
+            </div>
+            
+            <div class="d-flex align-items-center gap-2">
+                <!-- Favorites quick toggle -->
+                <button type="button" id="favFilterBtn" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 d-inline-flex align-items-center gap-1 shadow-2xs" onclick="toggleFavFilter()" title="Показать только сохраненные в избранное">
+                    <i class="bi bi-heart-fill"></i>
+                    <span>Избранное</span>
+                    <span class="badge rounded-pill bg-danger text-white ms-1" id="favCounterBadge">0</span>
+                </button>
+
+                <!-- Link to visual categories page -->
+                <a href="{% url 'main:categories' %}" class="btn btn-sm btn-outline-warning text-dark fw-semibold rounded-pill px-3 py-1 d-inline-flex align-items-center gap-2 shadow-2xs" style="font-size: 0.82rem; background: #fffcf7; border-color: #ffd8a8;" title="Все категории завода с фотографиями и описанием">
+                    <i class="bi bi-collection-fill text-warning"></i>
+                    <span class="d-none d-sm-inline">Все категории с фото</span>
+                    <i class="bi bi-arrow-right small text-muted"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Scrollable Category Tabs with Chevrons -->
+        <div class="category-tabs-container-outer">
+            <button type="button" class="category-scroll-nav-btn me-2 d-none d-md-flex" onclick="scrollTabsLeft()" title="Прокрутить категории влево">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+
+            <div class="category-tabs-scroll-wrap" id="catalogTabsContainer">
+                <button type="button" class="category-tab-btn {% if selected_cat == 'all' or not selected_cat %}active{% endif %}" data-cat="all" onclick="filterCatalog('all', true)">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>Все товары</span>
+                    <span class="badge-pill">{{ products|length }}</span>
+                </button>
+
+                <button type="button" class="category-tab-btn {% if selected_cat == 'sale' %}active{% endif %}" data-cat="sale" onclick="filterCatalog('sale', true)">
+                    <i class="bi bi-fire text-danger"></i>
+                    <span class="text-danger fw-bold">Акции & Скидки</span>
+                    <span class="badge-pill bg-danger text-white">{{ sale_products_count }}</span>
+                </button>
+
+                {% for cat in categories %}
+                    <button type="button" class="category-tab-btn {% if selected_cat == cat.slug %}active{% endif %}" data-cat="{{ cat.slug }}" onclick="filterCatalog('{{ cat.slug }}', true)">
+                        <i class="bi {{ cat.icon|default:'bi-tag' }}"></i>
+                        <span>{{ cat.name }}</span>
+                        {% if cat.has_discount %}
+                            <span class="badge rounded-pill bg-danger text-white ms-1" style="font-size: 0.65rem;">🔥 СКИДКА</span>
+                        {% endif %}
+                        <span class="badge-pill">{{ cat.products.count }}</span>
+                    </button>
+                {% endfor %}
+            </div>
+
+            <button type="button" class="category-scroll-nav-btn ms-2 d-none d-md-flex" onclick="scrollTabsRight()" title="Прокрутить категории вправо">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Toolbar: Quick Filter Pills + Price Presets + Sort + View Mode -->
+        <div class="pt-3 border-top mt-2 d-flex flex-wrap align-items-center justify-content-between gap-3">
+            
+            <!-- Quick Filter Pills -->
+            <div class="filter-pills-wrap">
+                <span class="small text-muted me-1 fw-semibold d-none d-sm-inline"><i class="bi bi-funnel me-1"></i>Быстрый фильтр:</span>
+                
+                <button type="button" id="pillAllBtn" class="filter-pill-btn active" onclick="setQuickFilter('all')">
+                    Все товары
+                </button>
+
+                <button type="button" id="pillSaleBtn" class="filter-pill-btn" onclick="setQuickFilter('sale')">
+                    <i class="bi bi-fire text-danger"></i>Со скидкой ({{ sale_products_count }})
+                </button>
+
+                <button type="button" id="pillHitsBtn" class="filter-pill-btn" onclick="setQuickFilter('hits')">
+                    <i class="bi bi-star-fill text-warning"></i>Хиты продаж ({{ hits_count }})
+                </button>
+
+                <button type="button" id="pillGostBtn" class="filter-pill-btn" onclick="setQuickFilter('gost')">
+                    <i class="bi bi-patch-check-fill text-success"></i>По ГОСТу ({{ gost_count }})
+                </button>
+
+                <!-- Price range filter preset -->
+                <div class="dropdown d-inline-block">
+                    <button class="filter-pill-btn dropdown-toggle" type="button" id="priceFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-currency-ruble text-warning"></i><span id="priceFilterLabel">Цена: Любая</span>
+                    </button>
+                    <ul class="dropdown-menu shadow-sm border-0 rounded-4 p-2" aria-labelledby="priceFilterDropdown">
+                        <li><a class="dropdown-item rounded-3 py-2 small fw-semibold" href="javascript:void(0)" onclick="setPriceFilter('all', 'Любая')">Все цены</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 small" href="javascript:void(0)" onclick="setPriceFilter('under_300', 'До 300 ₽')">До 300 ₽</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 small" href="javascript:void(0)" onclick="setPriceFilter('300_600', '300 — 600 ₽')">300 — 600 ₽</a></li>
+                        <li><a class="dropdown-item rounded-3 py-2 small" href="javascript:void(0)" onclick="setPriceFilter('over_600', 'От 600 ₽')">От 600 ₽</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Right: Sorting & View Mode Switcher -->
+            <div class="d-flex align-items-center gap-2 ms-auto">
+                <!-- Sort Selector -->
+                <div class="d-flex align-items-center gap-1">
+                    <select id="catalogSortSelect" class="form-select form-select-sm rounded-pill border-light-subtle shadow-2xs" style="font-size: 0.85rem; min-width: 175px;" onchange="applyCatalogFilters()" title="Порядок отображения товаров">
+                        <option value="default" selected>По умолчанию (заводской)</option>
+                        <option value="price_asc">Сначала недорогие (цена ↑)</option>
+                        <option value="price_desc">Сначала премиальные (цена ↓)</option>
+                        <option value="discount">По размеру скидки (%)</option>
+                        <option value="rating_desc">По рейтингу покупателей (★)</option>
+                        <option value="title_asc">По алфавиту (А — Я)</option>
+                    </select>
+                </div>
+
+                <!-- View Mode Switchers -->
+                <div class="btn-group btn-group-sm border rounded-pill p-1 bg-light d-none d-md-inline-flex" role="group" aria-label="Вид каталога">
+                    <button type="button" class="btn btn-sm btn-white rounded-pill px-2 py-1 shadow-sm active" id="viewModeGridBtn" onclick="switchViewMode('grid')" title="Сетка (3 в ряд)">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-white rounded-pill px-2 py-1" id="viewModeCompactBtn" onclick="switchViewMode('compact')" title="Компактно (4 в ряд)">
+                        <i class="bi bi-grid-fill"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-white rounded-pill px-2 py-1" id="viewModeListBtn" onclick="switchViewMode('list')" title="Список">
+                        <i class="bi bi-view-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dynamic Active Filter Chips Ribbon -->
+        <div id="activeFiltersRow" class="d-flex flex-wrap align-items-center gap-2 pt-3 border-top mt-3 d-none">
+            <!-- Populated dynamically via JavaScript -->
+        </div>
+    </div>
+

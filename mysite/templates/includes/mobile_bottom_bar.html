@@ -1,0 +1,32 @@
+    <!-- MOBILE BOTTOM APP BAR (Native App Experience) -->
+    <nav class="mobile-bottom-nav d-lg-none" aria-label="Мобильная навигация">
+        <a href="{% url 'main:index' %}" class="mobile-bottom-nav-item {% if request.path == '/' %}active{% endif %}">
+            <i class="bi bi-house-door{% if request.path == '/' %}-fill{% endif %}"></i>
+            <span>Главная</span>
+        </a>
+        <a href="{% url 'main:catalog' %}" class="mobile-bottom-nav-item {% if '/catalog' in request.path %}active{% endif %}">
+            <i class="bi bi-grid-3x3-gap{% if '/catalog' in request.path %}-fill{% endif %}"></i>
+            <span>Каталог</span>
+        </a>
+        <button type="button" class="mobile-bottom-nav-item" onclick="focusSiteSearch()" aria-label="Поиск по сайту">
+            <i class="bi bi-search"></i>
+            <span>Поиск</span>
+        </button>
+        <button type="button" class="mobile-bottom-nav-item position-relative" data-bs-toggle="modal" data-bs-target="#cartModal" aria-label="Корзина">
+            <i class="bi bi-cart3"></i>
+            <span class="mobile-nav-cart-badge" id="bottomNavCartCounter">0</span>
+            <span>Корзина</span>
+        </button>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'accounts:profile' %}" class="mobile-bottom-nav-item {% if '/accounts' in request.path %}active{% endif %}">
+            <i class="bi {% if request.user.profile.is_legal %}bi-building{% else %}bi-person-circle{% endif %}"></i>
+            <span>Кабинет</span>
+        </a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="mobile-bottom-nav-item {% if '/accounts' in request.path %}active{% endif %}">
+            <i class="bi bi-person"></i>
+            <span>Войти</span>
+        </a>
+        {% endif %}
+    </nav>
+

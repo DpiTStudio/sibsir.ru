@@ -1,0 +1,64 @@
+    <!-- MODAL 0: ADAPTIVE SEARCH MODAL (MOBILE & QUICK SEARCH) -->
+    <div class="modal fade search-modal-mobile" id="siteSearchModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+            <div class="modal-content modal-content-sib border-0 shadow-lg">
+                <!-- Sleek Top Header with Integrated Search Input -->
+                <div class="modal-header search-modal-top-bar py-3 px-3 px-md-4 border-0">
+                    <div class="d-flex align-items-center gap-2 w-100">
+                        <form action="{% url 'main:search' %}" method="GET" id="mobileSearchForm" class="flex-grow-1 m-0">
+                            <div class="search-modal-input-wrap">
+                                <i class="bi bi-search search-modal-icon"></i>
+                                <input type="text" 
+                                       name="q" 
+                                       id="modalSearchInput" 
+                                       class="search-modal-field" 
+                                       placeholder="Поиск сыра, масла, жирности или статьи..." 
+                                       autocomplete="off">
+                                <button type="button" id="modalSearchClear" class="search-modal-clear-btn d-none" title="Очистить">
+                                    <i class="bi bi-x-circle-fill"></i>
+                                </button>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-search-modal-close" data-bs-dismiss="modal" aria-label="Закрыть">
+                            <span>Отмена</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Filter Chips Row (Scrollable horizontally) -->
+                <div class="search-quick-chips-bar px-3 px-md-4 pb-2">
+                    <div class="d-flex gap-2 overflow-x-auto scrollbar-none py-1">
+                        <button type="button" class="btn btn-sm search-chip-btn active" onclick="setSearchModalFilter('all', this)">
+                            <i class="bi bi-grid-fill"></i> Все
+                        </button>
+                        <button type="button" class="btn btn-sm search-chip-btn" onclick="setSearchModalQuery('Сулугуни')">
+                            🧀 Сулугуни
+                        </button>
+                        <button type="button" class="btn btn-sm search-chip-btn" onclick="setSearchModalQuery('Косичка')">
+                            🥢 Косичка
+                        </button>
+                        <button type="button" class="btn btn-sm search-chip-btn" onclick="setSearchModalQuery('Масло 82.5%')">
+                            🧈 Масло
+                        </button>
+                        <button type="button" class="btn btn-sm search-chip-btn" onclick="setSearchModalQuery('Чечил')">
+                            🥓 Чечил
+                        </button>
+                        <button type="button" class="btn btn-sm search-chip-btn" onclick="setSearchModalQuery('Адыгейский')">
+                            🤍 Адыгейский
+                        </button>
+                        <button type="button" class="btn btn-sm search-chip-btn" onclick="setSearchModalQuery('Брынза')">
+                            🧂 Брынза
+                        </button>
+                    </div>
+                </div>
+
+                <div class="modal-body p-3 p-md-4 pt-2 bg-white search-modal-body">
+                    <!-- Modal Live Results & Suggestions Container -->
+                    <div id="modalSearchResultsContainer" class="search-results-viewport">
+                        <!-- Populated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+

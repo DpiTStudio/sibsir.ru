@@ -1,0 +1,47 @@
+<!-- 7. STICKY QUICK-BAR ON SCROLL -->
+<div id="catalogStickyBar" class="catalog-sticky-bar py-2 px-3">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+        <!-- Left: Category Quick Select -->
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-grid-3x3-gap-fill text-warning fs-5"></i>
+            <span class="fw-bold small text-dark d-none d-md-inline">Каталог:</span>
+            <select class="form-select form-select-sm rounded-pill border-light-subtle" style="font-size: 0.82rem; max-width: 220px;" onchange="filterCatalog(this.value, true)" id="stickyCatSelect">
+                <option value="all">Все товары ({{ products|length }})</option>
+                <option value="sale">🔥 Акции ({{ sale_products_count }})</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.slug }}">{{ cat.name }} ({{ cat.products.count }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Center: Quick search input -->
+        <div class="d-none d-sm-block flex-grow-1" style="max-width: 380px;">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 12px; font-size: 0.85rem;"></i>
+                <input type="text" 
+                       id="stickySearchInput" 
+                       class="form-control form-control-sm rounded-pill pe-4" 
+                       style="padding-left: 2.2rem; font-size: 0.84rem;" 
+                       placeholder="Быстрый поиск по каталогу..." 
+                       oninput="syncStickySearch(this.value)">
+                <button type="button" 
+                        class="btn btn-sm btn-link text-muted position-absolute top-50 translate-middle-y end-0 me-2 p-0" 
+                        onclick="clearSearchInput()">
+                    <i class="bi bi-x-circle-fill small"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right: Cart & Back to Top -->
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 py-1 shadow-2xs d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#cartModal" title="Открыть корзину">
+                <i class="bi bi-cart3"></i>
+                <span class="d-none d-sm-inline">Корзина</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-light border rounded-pill px-2 py-1" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Наверх">
+                <i class="bi bi-arrow-up"></i>
+            </button>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,395 @@
+{% load static captcha_tags %}
+    <!-- 3. DETAILED INFORMATION TABS -->
+    <div class="bg-white rounded-4 shadow-sm p-3 p-md-5 mb-5 border">
+        <ul class="nav nav-tabs nav-tabs-sib mb-4" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="nav-desc-tab" data-bs-toggle="tab" data-bs-target="#tab-desc" type="button" role="tab" aria-controls="tab-desc" aria-selected="true">
+                    <i class="bi bi-card-text me-2"></i>Подробное описание
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-specs-tab" data-bs-toggle="tab" data-bs-target="#tab-specs" type="button" role="tab" aria-controls="tab-specs" aria-selected="false">
+                    <i class="bi bi-list-check me-2"></i>Состав и характеристики
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-cook-tab" data-bs-toggle="tab" data-bs-target="#tab-cook" type="button" role="tab" aria-controls="tab-cook" aria-selected="false">
+                    <i class="bi bi-egg-fried me-2"></i>Кулинарные советы
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-delivery-tab" data-bs-toggle="tab" data-bs-target="#tab-delivery" type="button" role="tab" aria-controls="tab-delivery" aria-selected="false">
+                    <i class="bi bi-truck me-2"></i>Доставка и оплата
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="nav-reviews-tab" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button" role="tab" aria-controls="tab-reviews" aria-selected="false">
+                    <i class="bi bi-chat-square-quote me-2"></i>Отзывы (<span id="detailReviewsTabCount">{{ total_reviews_display|default:product.reviews_count|default:"14" }}</span>)
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="productTabsContent">
+            
+            <!-- TAB 1: DETAILED DESCRIPTION -->
+            <div class="tab-pane fade show active" id="tab-desc" role="tabpanel" aria-labelledby="nav-desc-tab">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <h3 class="fw-bold text-dark mb-3">О продукте: традиция и качество «Сибсыр»</h3>
+                        <div class="text-secondary leading-relaxed mb-4" style="font-size: 1.05rem;">
+                            {{ product.full_description|default:product.description|linebreaks }}
+                        </div>
+                        <div class="p-3 bg-light rounded-4 border-start border-4 border-warning">
+                            <h6 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-warning me-1"></i>Прямые поставки с сыроваренного завода</h6>
+                            <p class="small text-muted mb-0">
+                                Мы контролируем каждый этап — от приема свежего молока высшего сорта от проверенных сибирских ферм до финальной упаковки в защитной среде.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <div class="p-4 rounded-4 bg-light border">
+                            <i class="bi bi-award-fill text-warning" style="font-size: 3.5rem;"></i>
+                            <h5 class="fw-bold text-dark mt-2 mb-1">100% Натурально</h5>
+                            <p class="small text-muted mb-0">Без антибиотиков, консервантов и заменителей молочного жира</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: SPECS & COMPOSITION TABLE -->
+            <div class="tab-pane fade" id="tab-specs" role="tabpanel" aria-labelledby="nav-specs-tab">
+                <h4 class="fw-bold text-dark mb-3">Характеристики и состав</h4>
+                <div class="table-responsive">
+                    <table class="table table-hover border align-middle mb-4">
+                        <tbody>
+                            <tr>
+                                <th class="bg-light text-muted w-25">Наименование:</th>
+                                <td class="fw-bold text-dark">{{ product.title }}</td>
+                            </tr>
+                            {% if product.category %}
+                            <tr>
+                                <th class="bg-light text-muted">Категория:</th>
+                                <td>{{ product.category.name }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.standard %}
+                            <tr>
+                                <th class="bg-light text-muted">Стандарт качества:</th>
+                                <td><span class="badge bg-secondary-subtle text-dark border">{{ product.standard }}</span></td>
+                            </tr>
+                            {% endif %}
+                            {% if product.composition %}
+                            <tr>
+                                <th class="bg-light text-muted">Состав:</th>
+                                <td class="text-secondary">{{ product.composition }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.fat_content %}
+                            <tr>
+                                <th class="bg-light text-muted">Массовая доля жира (м.д.ж.):</th>
+                                <td><strong>{{ product.fat_content }}</strong></td>
+                            </tr>
+                            {% endif %}
+                            {% if product.nutritional_value %}
+                            <tr>
+                                <th class="bg-light text-muted">Пищевая ценность (на 100 г):</th>
+                                <td>{{ product.nutritional_value }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.unit_weight %}
+                            <tr>
+                                <th class="bg-light text-muted">Фасовка / Вес:</th>
+                                <td>{{ product.unit_weight }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.package_type %}
+                            <tr>
+                                <th class="bg-light text-muted">Тип упаковки:</th>
+                                <td>{{ product.package_type }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.shelf_life %}
+                            <tr>
+                                <th class="bg-light text-muted">Срок годности:</th>
+                                <td>{{ product.shelf_life }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if product.storage_conditions %}
+                            <tr>
+                                <th class="bg-light text-muted">Условия хранения:</th>
+                                <td>{{ product.storage_conditions }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <th class="bg-light text-muted">Производитель:</th>
+                                <td>ТМ «Сибсыр» (Россия, г. Омск)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: COOKING TIPS -->
+            <div class="tab-pane fade" id="tab-cook" role="tabpanel" aria-labelledby="nav-cook-tab">
+                <div class="row g-4 align-items-center">
+                    <div class="col-lg-8">
+                        <h4 class="fw-bold text-dark mb-3"><i class="bi bi-lightbulb-fill text-warning me-2"></i>Кулинарное применение и подача</h4>
+                        <div class="text-secondary leading-relaxed mb-4" style="font-size: 1.05rem;">
+                            {{ product.cooking_tips|linebreaks }}
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-cup-hot text-danger me-2"></i>Идеальные сочетания</h6>
+                                    <p class="small text-muted mb-0">Свежая зелень, мед, орехи, спелые томаты, свежий хлеб и лаваш.</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded-3 border">
+                                    <h6 class="fw-bold text-dark mb-1"><i class="bi bi-fire text-warning me-2"></i>Термообработка</h6>
+                                    <p class="small text-muted mb-0">Отлично ведет себя при запекании, жарке и плавлении.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-center">
+                        <img src="{% static 'images/hero_cheese.jpg' %}" alt="Кулинарные советы" class="img-fluid rounded-4 shadow-sm" style="max-height: 250px; object-fit: cover;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: DELIVERY & PAYMENT -->
+            <div class="tab-pane fade" id="tab-delivery" role="tabpanel" aria-labelledby="nav-delivery-tab">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 bg-light border h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-truck text-warning me-2"></i>Доставка</h5>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-secondary small">
+                                <li><strong>По Омску:</strong> Бесплатная доставка при заказе от 1 500 ₽ спецтранспортом предприятия.</li>
+                                <li><strong>Самовывоз:</strong> г. Омск, ул. Зеленая, 16 (Пн-Пт: 8:00 - 17:00).</li>
+                                <li><strong>По России:</strong> Доставка в регионы транспортными компаниями с термобоксом и поддержанием температурного режима.</li>
+                                <li><strong>Сопроводительные документы:</strong> Электронные ВСД в системе ФГИС «Меркурий».</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-4 rounded-4 bg-light border h-100">
+                            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-credit-card-2-front text-primary me-2"></i>Оплата</h5>
+                            <ul class="list-unstyled mb-0 d-flex flex-column gap-2 text-secondary small">
+                                <li><strong>Для физических лиц:</strong> Наличными или банковской картой при получении, либо онлайн.</li>
+                                <li><strong>Для юридических лиц и ИП:</strong> Безналичный расчет по счету с предоставлением полного пакета документов (УПД, ТОРГ-12, счет-фактура).</li>
+                                <li><strong>Отсрочка платежа:</strong> Доступна для постоянных B2B партнеров и торговых сетей.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: REVIEWS -->
+            <div class="tab-pane fade" id="tab-reviews" role="tabpanel" aria-labelledby="nav-reviews-tab">
+                <!-- Header Summary Block -->
+                <div class="p-4 rounded-4 mb-4" style="background: linear-gradient(135deg, #fffaf0 0%, #fff7ed 100%); border: 1.5px solid #fed7aa;">
+                    <div class="row align-items-center g-4">
+                        <!-- Left: Big Score & Stars -->
+                        <div class="col-md-4 text-center border-end-md border-light-subtle">
+                            <div class="display-4 fw-bold text-dark mb-1" id="liveProductAvgRating">{{ average_rating|default:"4.9" }}</div>
+                            <div class="fs-4 text-warning mb-2">
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                                <i class="bi bi-star-fill"></i>
+                            </div>
+                            <p class="text-muted small mb-0">
+                                На основе <strong id="liveReviewsCountText">{{ total_reviews_display|default:product.reviews_count|default:"14" }}</strong> отзывов
+                            </p>
+                            <div class="small text-success fw-semibold mt-1">
+                                <i class="bi bi-check-circle-fill me-1"></i>98% покупателей рекомендуют этот товар
+                            </div>
+                        </div>
+
+                        <!-- Middle: Rating distribution progress bars -->
+                        <div class="col-md-5">
+                            <div class="d-flex flex-column gap-1">
+                                {% for item in rating_distribution %}
+                                <div class="d-flex align-items-center gap-2 small">
+                                    <span class="text-muted text-nowrap" style="width: 32px;">{{ item.star }} <i class="bi bi-star-fill text-warning"></i></span>
+                                    <div class="progress flex-grow-1" style="height: 8px; background-color: #e2e8f0; border-radius: 4px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" style="width: {{ item.percent }}%;" aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <span class="text-muted text-end" style="width: 30px; font-size: 0.75rem;">{{ item.count }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Right: Action Button -->
+                        <div class="col-md-3 text-center text-md-end">
+                            <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold w-100 mb-2 shadow-sm" onclick="toggleProductReviewForm()">
+                                <i class="bi bi-pencil-square me-1"></i>Оставить отзыв
+                            </button>
+                            <div class="small text-muted" style="font-size: 0.75rem;">
+                                Поделитесь впечатлением о вкусе и качестве
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Form (Collapsible / Toggleable) -->
+                <div id="productReviewFormCollapse" class="d-none mb-4">
+                    <div class="card border-0 rounded-4 shadow-sm p-4" style="background: #ffffff; border: 2px solid #ff8400 !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-pencil-square text-warning me-2"></i>Ваш отзыв о товаре «{{ product.title }}»
+                            </h5>
+                            <button type="button" class="btn-close" aria-label="Close" onclick="toggleProductReviewForm(false)"></button>
+                        </div>
+
+                        <form id="productReviewForm" onsubmit="handleProductReviewSubmit(event)">
+                            {% csrf_token %}
+                            <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                            <!-- Rating Star Picker -->
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark d-block mb-1">Ваша оценка *</label>
+                                <div class="d-flex align-items-center gap-2 text-warning fs-3" id="prodStarRatingSelect" style="cursor: pointer;">
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="1" onclick="setProductReviewRating(1)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="2" onclick="setProductReviewRating(2)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="3" onclick="setProductReviewRating(3)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="4" onclick="setProductReviewRating(4)"></i>
+                                    <i class="bi bi-star-fill prod-star-picker" data-rating="5" onclick="setProductReviewRating(5)"></i>
+                                    <span class="small text-muted fw-normal ms-2" id="prodRatingScoreText">(5 из 5 — Отлично!)</span>
+                                </div>
+                                <input type="hidden" name="rating" id="prodReviewRatingInput" value="5">
+                            </div>
+
+                            <div class="row g-2 mb-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-bold text-dark">Ваше имя *</label>
+                                    <input type="text" name="author_name" class="form-control rounded-pill px-3 py-2" required 
+                                           value="{% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% endif %}"
+                                           placeholder="Например: Екатерина В.">
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label small fw-bold text-dark">Город *</label>
+                                    <input type="text" name="city" class="form-control rounded-pill px-3 py-2" value="г. Омск" placeholder="г. Омск">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold text-dark">Текст отзыва *</label>
+                                <textarea name="text" id="productReviewTextArea" rows="4" class="form-control rounded-3 p-3" required 
+                                          placeholder="Расскажите о вкусе, консистенции, аромате, как подавали (в нарезке, выпечке или к столу)..."></textarea>
+                            </div>
+
+                            <!-- Captcha if enabled -->
+                            {% render_captcha 'callback' %}
+
+                            <div id="productReviewAlert" class="alert d-none mb-3 py-2 small" role="alert"></div>
+
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <button type="submit" id="submitProductReviewBtn" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold">
+                                    <i class="bi bi-check2-circle me-1"></i> Опубликовать отзыв
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-3 py-2" onclick="toggleProductReviewForm(false)">
+                                    Отмена
+                                </button>
+                                <span class="text-muted small ms-auto" style="font-size: 0.75rem;">
+                                    Отзыв будет сразу опубликован на сайте
+                                </span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                <div class="row g-3" id="productReviewsContainer">
+                    {% for rev in product_reviews %}
+                    <div class="col-md-6 review-card-col">
+                        <div class="p-3 p-md-4 rounded-4 border bg-white shadow-sm h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-warning text-dark fw-bold d-flex align-items-center justify-content-center" 
+                                             style="width: 36px; height: 36px; font-size: 0.9rem; flex-shrink: 0;">
+                                            {{ rev.author_name|slice:":1"|upper }}
+                                        </div>
+                                        <div>
+                                            <strong class="text-dark d-block" style="font-size: 0.95rem;">{{ rev.author_name }}</strong>
+                                            <span class="text-muted" style="font-size: 0.75rem;">{{ rev.city|default:"г. Омск" }} • {{ rev.created_at|date:"d.m.Y" }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-warning">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= rev.rating %}
+                                                <i class="bi bi-star-fill"></i>
+                                            {% else %}
+                                                <i class="bi bi-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <p class="text-secondary small mb-0 mt-2" style="line-height: 1.6;">{{ rev.text }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5 rounded-4 bg-light border border-light-subtle" id="productReviewsEmptyState">
+                        <i class="bi bi-chat-heart text-warning display-5 d-block mb-3"></i>
+                        <h5 class="fw-bold text-dark mb-1">У этого товара пока нет отзывов</h5>
+                        <p class="text-muted small mb-3" style="max-width: 480px; margin: 0 auto;">
+                            Вы уже попробовали «{{ product.title }}»? Поделитесь своими впечатлениями и помогите другим покупателям сделать правильный выбор!
+                        </p>
+                        <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold" onclick="toggleProductReviewForm(true)">
+                            <i class="bi bi-pencil-square me-1"></i> Написать первый отзыв
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Social proof: general reviews if needed -->
+                {% if general_reviews %}
+                <div class="mt-5 pt-4 border-top">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Другие отзывы о продукции ТМ «Сибсыр»</h5>
+                            <span class="text-muted small">Мнения покупателей о наших сырах и масле</span>
+                        </div>
+                        <a href="{% url 'main:reviews' %}" class="btn btn-outline-warning text-dark btn-sm rounded-pill px-3">
+                            Все отзывы завода <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="row g-3">
+                        {% for g_rev in general_reviews %}
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 rounded-4 border bg-light h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="text-warning small">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= g_rev.rating %}<i class="bi bi-star-fill"></i>{% else %}<i class="bi bi-star"></i>{% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span class="text-muted" style="font-size: 0.7rem;">{{ g_rev.created_at|date:"d.m.Y" }}</span>
+                                    </div>
+                                    {% if g_rev.product_mention %}
+                                    <div class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill mb-2 text-truncate d-inline-block" style="max-width: 100%; font-size: 0.7rem;">
+                                        {{ g_rev.product_mention }}
+                                    </div>
+                                    {% endif %}
+                                    <p class="text-secondary small mb-2" style="font-size: 0.8rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ g_rev.text }}
+                                    </p>
+                                </div>
+                                <div class="small fw-semibold text-dark">{{ g_rev.author_name }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+

@@ -1,0 +1,61 @@
+    <!-- MODAL: PRODUCT SHARE MODAL (MESSENGERS & SOCIAL NETWORKS) -->
+    <div class="modal fade" id="productShareModal" tabindex="-1" aria-labelledby="productShareModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 490px;">
+            <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+                <div class="modal-header border-0 pb-0 pt-4 px-4 bg-light">
+                    <div>
+                        <div class="d-inline-flex align-items-center gap-2 px-2 py-1 rounded-pill bg-warning-subtle text-warning mb-2" style="font-size: 0.75rem; font-weight: 700;">
+                            <i class="bi bi-share-fill"></i>
+                            <span>Поделиться продуктом</span>
+                        </div>
+                        <h5 class="modal-title fw-bold text-dark fs-5" id="shareModalProductTitle">Название товара</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Отправьте карточку товара в любимый мессенджер или социальную сеть:</p>
+
+                    <!-- Social / Messenger Buttons Grid -->
+                    <div class="row g-2 mb-4">
+                        <div class="col-6">
+                            <a href="#" id="shareBtnTelegram" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold text-decoration-none shadow-sm" style="border-color: #229ED9; color: #229ED9; background: #f0f9ff;">
+                                <i class="bi bi-telegram fs-5"></i>
+                                <span>Telegram</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" id="shareBtnWhatsapp" target="_blank" rel="noopener noreferrer" class="btn btn-outline-success w-100 py-2 d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold text-decoration-none shadow-sm" style="border-color: #25D366; color: #25D366; background: #f0fdf4;">
+                                <i class="bi bi-whatsapp fs-5"></i>
+                                <span>WhatsApp</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" id="shareBtnVK" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary w-100 py-2 d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold text-decoration-none shadow-sm" style="border-color: #0077FF; color: #0077FF; background: #f0f7ff;">
+                                <i class="bi bi-vk fs-5"></i>
+                                <span>ВКонтакте</span>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="#" id="shareBtnOK" target="_blank" rel="noopener noreferrer" class="btn btn-outline-warning w-100 py-2 d-flex align-items-center justify-content-center gap-2 rounded-3 fw-semibold text-decoration-none shadow-sm" style="border-color: #EE8208; color: #EE8208; background: #fffaf0;">
+                                <i class="bi bi-people-fill fs-5"></i>
+                                <span>Одноклассники</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Direct Link Copy Input -->
+                    <label class="form-label small fw-bold text-muted mb-1">Прямая ссылка на страницу товара:</label>
+                    <div class="input-group mb-2">
+                        <input type="text" id="shareModalInputUrl" class="form-control form-control-sm bg-light border-end-0" readonly style="font-size: 0.85rem;">
+                        <button class="btn btn-sib-orange btn-sm px-3 fw-bold" type="button" onclick="copyShareModalUrl()">
+                            <i class="bi bi-clipboard me-1"></i>Копировать
+                        </button>
+                    </div>
+                    <div id="shareCopySuccessAlert" class="small text-success fw-bold d-none">
+                        <i class="bi bi-check-circle-fill me-1"></i>Ссылка успешно скопирована в буфер обмена!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+

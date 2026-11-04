@@ -1,0 +1,24 @@
+    <!-- 4.5 CALLOUT BANNER TO FULL CATALOG (47 ITEMS) -->
+    <section class="mb-5">
+        <div class="p-4 p-md-5 rounded-4 shadow-sm text-center text-md-start position-relative overflow-hidden" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff;">
+            <div style="position: absolute; right: -30px; bottom: -30px; opacity: 0.08; font-size: 13rem; pointer-events: none; line-height: 1;">
+                <i class="bi bi-grid-3x3-gap-fill"></i>
+            </div>
+            <div class="row align-items-center g-4 position-relative" style="z-index: 2;">
+                <div class="col-md-8">
+                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">Полный ассортимент завода</span>
+                    <h3 class="fw-bold text-white mb-2">Весь каталог сыров и молочной продукции ({{ total_products_count|default:"47" }} товаров)</h3>
+                    <p class="text-white-50 mb-0" style="font-size: 1.05rem;">
+                        В нашем отдельном каталоге вы можете ознакомиться со всеми наименованиями, воспользоваться быстрым поиском и фильтром по категориям: рассольные, мягкие, колбасные сыры, домашнее масло и напитки.
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange btn-lg px-4 py-3 fw-bold shadow">
+                        <span>Перейти в каталог</span>
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+

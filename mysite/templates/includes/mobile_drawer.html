@@ -1,0 +1,261 @@
+    <!-- MOBILE OFFCANVAS DRAWER (Премиальное боковое меню) -->
+    <div class="offcanvas offcanvas-start mobile-offcanvas" tabindex="-1" id="mobileNavOffcanvas" aria-labelledby="mobileNavOffcanvasLabel">
+        <div class="offcanvas-header border-bottom border-light-subtle">
+            <a class="brand-logo-wrap" href="{% url 'main:index' %}">
+                {% if site_settings.logo %}
+                <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.brand_short_name }}" class="brand-logo-img" style="height: 34px;">
+                {% else %}
+                <div class="brand-icon-box" style="width: 34px; height: 34px; font-size: 1rem;">
+                    <i class="bi bi-award-fill"></i>
+                </div>
+                {% endif %}
+                <div>
+                    <div class="brand-text-name" style="font-size: 1.15rem;">{{ site_settings.brand_short_name|default:"СИБСЫР" }}</div>
+                    <div class="brand-text-tag" style="font-size: 0.65rem;">Сыроварня • Омск</div>
+                </div>
+            </a>
+            <button type="button" class="btn-close shadow-none" data-bs-dismiss="offcanvas" aria-label="Закрыть"></button>
+        </div>
+
+        <div class="offcanvas-body d-flex flex-column p-0">
+            <!-- User Status / Auth Banner -->
+            <div class="mobile-drawer-user-section p-3 border-bottom">
+                {% if request.user.is_authenticated %}
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <div class="mobile-user-avatar">
+                        <i class="bi {% if request.user.profile.is_legal %}bi-building text-primary{% else %}bi-person-circle text-warning{% endif %} fs-2"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <div class="fw-bold text-dark text-truncate">{{ request.user.profile.display_name }}</div>
+                        <div class="text-muted small text-truncate">{{ request.user.email }}</div>
+                        {% if request.user.profile.is_legal %}
+                        <span class="badge bg-primary-subtle text-primary mt-1" style="font-size: 10px;">Юр. лицо / ИП</span>
+                        {% else %}
+                        <span class="badge bg-warning-subtle text-dark mt-1" style="font-size: 10px;">Розничный покупатель</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row g-2 mt-1">
+                    <div class="col-6">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-sm btn-outline-dark rounded-pill w-100 py-1" style="font-size: 0.8rem;">
+                            <i class="bi bi-grid-fill text-warning me-1"></i> Кабинет
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'accounts:orders' %}" class="btn btn-sm btn-outline-primary rounded-pill w-100 py-1" style="font-size: 0.8rem;">
+                            <i class="bi bi-bag-check me-1"></i> Заказы
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-muted small mb-2">Войдите в профиль для покупок и управления заказами</div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-dark rounded-pill flex-grow-1 py-2 fw-semibold">
+                        <i class="bi bi-box-arrow-in-right me-1 text-warning"></i> Войти
+                    </a>
+                    <a href="{% url 'accounts:register' %}" class="btn btn-sm btn-sib-orange rounded-pill flex-grow-1 py-2 fw-semibold">
+                        <i class="bi bi-person-plus me-1"></i> Регистрация
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Quick Search Input inside Drawer -->
+            <div class="p-3 border-bottom">
+                <button type="button" class="btn btn-light border rounded-pill w-100 d-flex align-items-center justify-content-between px-3 py-2 text-muted shadow-sm" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileNavOffcanvas'))?.hide(); focusSiteSearch();">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-search text-warning"></i>
+                        <span style="font-size: 0.88rem;">Поиск по каталогу...</span>
+                    </span>
+                    <i class="bi bi-arrow-right small text-muted"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links (Логичная и понятная группировка меню) -->
+            <div class="mobile-drawer-nav p-3 flex-grow-1">
+                
+                <!-- 1. Каталог товаров (Акцентная группа + быстрый выбор категорий) -->
+                <div class="mobile-nav-group mb-3">
+                    <div class="mobile-nav-group-title text-uppercase text-muted fw-bold mb-2">Каталог продукции</div>
+                    
+                    <a href="{% url 'main:catalog' %}" class="mobile-drawer-link highlighted mb-2">
+                        <span class="d-flex align-items-center gap-2">
+                            <i class="bi bi-grid-3x3-gap-fill text-warning"></i>
+                            <strong>Весь каталог продукции</strong>
+                        </span>
+                        <span class="badge bg-warning text-dark rounded-pill">Все товары</span>
+                    </a>
+
+                    <a href="{% url 'main:categories' %}" class="mobile-drawer-link mb-2 {% if '/categories' in request.path %}active{% endif %}">
+                        <span class="d-flex align-items-center gap-2">
+                            <i class="bi bi-collection-fill text-warning"></i>
+                            <span>Категории с фото</span>
+                        </span>
+                        <span class="badge bg-light text-dark rounded-pill border">Визуальный гид</span>
+                    </a>
+
+                    <!-- Аккордеон быстрого выбора категорий -->
+                    <div class="accordion accordion-flush" id="mobileCatAccordion">
+                        <div class="accordion-item border-0 bg-transparent">
+                            <h2 class="accordion-header" id="headingCat">
+                                <button class="accordion-button collapsed px-3 py-2 rounded-3 text-secondary bg-light small fw-semibold" 
+                                        type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseCat" 
+                                        aria-expanded="false" 
+                                        aria-controls="collapseCat"
+                                        style="font-size: 0.84rem;">
+                                    <i class="bi bi-filter-circle text-warning me-2"></i> Быстрый выбор по видам сыров
+                                </button>
+                            </h2>
+                            <div id="collapseCat" class="accordion-collapse collapse" aria-labelledby="headingCat" data-bs-parent="#mobileCatAccordion">
+                                <div class="accordion-body p-1 pt-2">
+                                    <div class="d-flex flex-column gap-1">
+                                        {% for cat in nav_categories %}
+                                        <a href="{% url 'main:catalog' %}?cat={{ cat.slug }}" class="mobile-drawer-sublink">
+                                            <i class="bi {{ cat.icon|default:'bi-tag-fill' }} text-warning me-2"></i>
+                                            <span>{{ cat.name }}</span>
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mobile-drawer-divider my-2"></div>
+
+                <!-- 2. О компании -->
+                <div class="mobile-nav-group mb-3">
+                    <div class="mobile-nav-group-title text-uppercase text-muted fw-bold mb-2">О компании</div>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="{% url 'main:about' %}" class="mobile-drawer-link {% if '/about' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-building text-warning"></i>
+                                <span>О сыроварне «Сибсыр»</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+
+                        <a href="{% url 'main:index' %}#features" class="mobile-drawer-link" onclick="bootstrap.Offcanvas.getInstance(document.getElementById('mobileNavOffcanvas'))?.hide();">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-stars text-warning"></i>
+                                <span>Преимущества и ГОСТ</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+
+                        <a href="{% url 'main:reviews' %}" class="mobile-drawer-link {% if '/reviews' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-chat-quote text-warning"></i>
+                                <span>Отзывы покупателей</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+
+                        <a href="{% url 'main:delivery' %}" class="mobile-drawer-link {% if '/delivery' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-truck text-warning"></i>
+                                <span>Доставка и оплата</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+
+                        <a href="{% url 'main:page_detail' 'horeca-partnership' %}" class="mobile-drawer-link {% if 'horeca-partnership' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-briefcase text-warning"></i>
+                                <span>HoReCa и Опт</span>
+                            </span>
+                            <span class="badge bg-warning-subtle text-dark border" style="font-size: 0.72rem;">B2B</span>
+                        </a>
+
+                        <a href="{% url 'main:contacts' %}" class="mobile-drawer-link {% if '/contacts' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-geo-alt text-warning"></i>
+                                <strong>Контакты и адреса</strong>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mobile-drawer-divider my-2"></div>
+
+                <!-- 3. Покупателям -->
+                <div class="mobile-nav-group mb-3">
+                    <div class="mobile-nav-group-title text-uppercase text-muted fw-bold mb-2">Покупателям</div>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="{% url 'main:faq' %}" class="mobile-drawer-link {% if '/faq' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-question-circle text-warning"></i>
+                                <span>Вопрос-ответ (FAQ)</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+
+                        <a href="{% url 'main:articles' %}" class="mobile-drawer-link {% if '/articles' in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-journal-text text-warning"></i>
+                                <span>Полезные статьи и рецепты</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+                    </div>
+                </div>
+
+                {% for hp in header_pages %}
+                {% if hp.slug != 'horeca-partnership' %}
+                <div class="mobile-drawer-divider my-2"></div>
+                <div class="mobile-nav-group mb-2">
+                    <div class="mobile-nav-group-title text-uppercase text-muted fw-bold mb-2">Дополнительно</div>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="{{ hp.get_absolute_url }}" class="mobile-drawer-link {% if hp.slug in request.path %}active{% endif %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-text text-warning"></i>
+                                <span>{{ hp.get_display_title }}</span>
+                            </span>
+                            <i class="bi bi-chevron-right text-muted small"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+
+                {% if request.user.is_authenticated %}
+                <div class="mobile-drawer-divider my-2"></div>
+                <a href="{% url 'accounts:logout' %}" class="mobile-drawer-link text-danger">
+                    <span class="d-flex align-items-center gap-2">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Выйти из аккаунта</span>
+                    </span>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Drawer Footer Contact Details -->
+            <div class="mobile-drawer-footer p-3 bg-light border-top mt-auto">
+                <div class="d-flex flex-column gap-2 mb-3">
+                    {% if site_settings.phone %}
+                    <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="fw-bold text-dark d-flex align-items-center gap-2 text-decoration-none">
+                        <i class="bi bi-telephone-fill text-warning"></i>
+                        <span>{{ site_settings.phone }}</span>
+                    </a>
+                    {% endif %}
+                    <div class="text-muted small d-flex align-items-center gap-2">
+                        <i class="bi bi-clock-fill text-warning"></i>
+                        <span>{{ site_settings.working_hours|default:"Пн-Пт: 8:00 - 17:00" }}</span>
+                    </div>
+                    <div class="text-muted small d-flex align-items-center gap-2">
+                        <i class="bi bi-geo-alt-fill text-warning"></i>
+                        <span>{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</span>
+                    </div>
+                </div>
+
+                <button class="btn btn-sib-orange w-100 rounded-pill py-2" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                    <i class="bi bi-telephone-outbound me-2"></i> Заказать обратный звонок
+                </button>
+            </div>
+        </div>
+    </div>
+

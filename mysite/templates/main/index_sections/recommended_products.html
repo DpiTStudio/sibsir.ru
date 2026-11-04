@@ -1,0 +1,122 @@
+    <!-- 4. RECOMMENDED PRODUCTS (ВЫБОР ПОКУПАТЕЛЕЙ - КАРУСЕЛЬ: 3 НА ДЕСКТОПЕ, 1 НА МОБ/ПЛАНШЕТЕ) -->
+    <section class="mb-5" id="recommended-products">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div>
+                <span class="section-head-badge"><i class="bi bi-hand-thumbs-up-fill text-warning"></i> Выбор покупателей</span>
+                <h2 class="section-head-title mb-1">Рекомендуем попробовать</h2>
+                <p class="section-head-subtitle mb-0">Признанные фавориты и традиционные сыры по отзывам наших постоянных покупателей</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="carousel-nav-arrows d-flex align-items-center gap-2 me-1">
+                    <button type="button" class="btn btn-carousel-nav" data-carousel-prev="#recommendedCarousel" aria-label="Предыдущий товар" title="Предыдущий">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-carousel-nav" data-carousel-next="#recommendedCarousel" aria-label="Следующий товар" title="Следующий">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+                <a href="{% url 'main:catalog' %}" class="btn btn-sib-outline px-3 py-2 fw-semibold">
+                    <span>Перейти в каталог</span>
+                    <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="products-carousel-wrapper" id="recommendedCarousel">
+            <div class="products-carousel-viewport">
+                <div class="products-carousel-track">
+                    {% for prod in recommended_products %}
+                        <div class="products-carousel-slide">
+                            <div class="product-card">
+                                {% if prod.effective_badge %}
+                                    <div class="product-badge-float {% if prod.has_discount %}product-badge-sale{% endif %}">
+                                        {% if prod.has_discount %}<i class="bi bi-fire me-1"></i>{% endif %}{{ prod.effective_badge }}
+                                    </div>
+                                {% endif %}
+                                <a href="{% url 'main:product_detail' slug=prod.slug %}" class="product-img-holder text-decoration-none">
+                                    <img src="{{ prod.image_url }}" alt="{{ prod.title }}" loading="lazy">
+                                </a>
+                                <div class="product-body">
+                                    <span class="product-category-sub">{{ prod.category.name|default:"Сибсыр" }}</span>
+                                    <h3 class="product-title" title="{{ prod.title }}">
+                                        <a href="{% url 'main:product_detail' slug=prod.slug %}">{{ prod.title }}</a>
+                                    </h3>
+                                    
+                                    <div class="product-specs-list">
+                                        {% if prod.fat_content %}
+                                            <div class="product-spec-row">
+                                                <span>Жирность (м.д.ж.):</span>
+                                                <strong>{{ prod.fat_content }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.unit_weight %}
+                                            <div class="product-spec-row">
+                                                <span>Фасовка:</span>
+                                                <strong>{{ prod.unit_weight }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.package_type %}
+                                            <div class="product-spec-row">
+                                                <span>Упаковка:</span>
+                                                <strong>{{ prod.package_type }}</strong>
+                                            </div>
+                                        {% endif %}
+                                        {% if prod.shelf_life %}
+                                            <div class="product-spec-row">
+                                                <span>Срок годности:</span>
+                                                <strong>{{ prod.shelf_life }}</strong>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="product-footer">
+                                        <div>
+                                            <span class="small text-muted d-block" style="font-size: 0.72rem;">Розница:</span>
+                                            {% if prod.has_discount and prod.effective_old_price_numeric > 0 %}
+                                                <div class="d-flex align-items-baseline gap-2">
+                                                    <span class="product-price-val text-danger fw-bold">{{ prod.effective_price_display }}</span>
+                                                    <span class="product-price-old">{{ prod.effective_old_price_numeric }} ₽</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="product-price-val">{{ prod.effective_price_display }}</span>
+                                            {% endif %}
+                                            {% if prod.effective_wholesale_price_display %}
+                                                <div class="mt-1" title="Оптовая цена {{ prod.wholesale_min_qty|default:'оптом' }}">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0" style="font-size: 0.72rem; font-weight: 600;">
+                                                        <i class="bi bi-box-seam me-1"></i>Опт: {{ prod.effective_wholesale_price_display }}
+                                                    </span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <button type="button" class="btn btn-card-share" 
+                                                    onclick="openShareModal('{{ prod.title|escapejs }}', '{% url 'main:product_detail' slug=prod.slug %}', '{{ prod.description|default:prod.full_description|truncatewords:15|escapejs }}')"
+                                                    title="Поделиться в мессенджерах">
+                                                <i class="bi bi-share"></i>
+                                            </button>
+                                            <button class="btn btn-card-cart" 
+                                                    onclick="addToCart('{{ prod.title|escapejs }}', '{{ prod.effective_price_display|escapejs }}', '{{ prod.image_url|escapejs }}', {{ prod.effective_price_numeric|default:prod.price_numeric }})"
+                                                    title="Добавить в корзину">
+                                                <i class="bi bi-cart-plus"></i>
+                                            </button>
+                                            <a href="{% url 'main:product_detail' slug=prod.slug %}" class="btn btn-card-detail" title="Подробнее о товаре">
+                                                <span>Детали</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="button" class="carousel-side-nav carousel-side-prev" data-carousel-prev="#recommendedCarousel" aria-label="Предыдущий товар" title="Предыдущий">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button type="button" class="carousel-side-nav carousel-side-next" data-carousel-next="#recommendedCarousel" aria-label="Следующий товар" title="Следующий">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+            <div class="products-carousel-dots" data-carousel-dots="#recommendedCarousel"></div>
+        </div>
+    </section>
+

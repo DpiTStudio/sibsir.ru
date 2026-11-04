@@ -328,76 +328,9 @@
     </div>
 
     <!-- 6. ИНФОРМАЦИОННЫЙ ПУТЕВОДИТЕЛЬ (О КОМПАНИИ -> КОНТАКТЫ -> ДОСТАВКА И ОПЛАТА) -->
-    <div class="p-4 p-md-5 rounded-4 shadow-sm mb-4" 
-         style="background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); border: 2px solid #fdba74;">
-        <div class="text-center mb-4">
-            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold mb-2">
-                <i class="bi bi-signpost-split-fill me-1"></i> Маршрут сотрудничества
-            </span>
-            <h2 class="fw-bold text-dark mb-2">О компании &rarr; Контакты &rarr; Доставка и оплата</h2>
-            <p class="text-muted small" style="max-width: 650px; margin: 0 auto;">
-                Узнайте все детали работы с нами: от знакомства с производством до оперативной связи с отделом сбыта и получения первой партии в рефрижераторах.
-            </p>
-        </div>
-
-        <div class="row g-3 g-md-4">
-            <!-- Step 1: About (Current) -->
-            <div class="col-md-4">
-                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-warning position-relative">
-                    <div class="badge bg-warning text-dark fw-bold rounded-pill mb-2 px-3 py-1">
-                        Шаг 1 • Текущая страница
-                    </div>
-                    <h5 class="fw-bold text-dark mt-2 mb-2">
-                        <i class="bi bi-building text-warning me-2"></i>О компании «Сибсыр»
-                    </h5>
-                    <p class="text-muted small mb-3">
-                        25+ лет опыта, стандарты качества ХАССП, 100% натуральное цельное сибирское молоко и строгий лабораторный контроль каждой партии.
-                    </p>
-                    <span class="badge bg-light text-muted border">Вы находитесь здесь</span>
-                </div>
-            </div>
-
-            <!-- Step 2: Contacts -->
-            <div class="col-md-4">
-                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="badge bg-primary text-white fw-bold rounded-pill mb-2 px-3 py-1">
-                            Шаг 2 • Связь с заводом
-                        </div>
-                        <h5 class="fw-bold text-dark mt-2 mb-2">
-                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>Контакты и реквизиты
-                        </h5>
-                        <p class="text-muted small mb-3">
-                            Адрес завода в Омске (ул. Зеленая, 16), прямые телефоны отдела сбыта, логистики, полные реквизиты ИП и интерактивная карта.
-                        </p>
-                    </div>
-                    <a href="{% url 'main:contacts' %}" class="btn btn-outline-primary rounded-pill w-100 fw-semibold">
-                        <span>Перейти к контактам</span> <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Step 3: Delivery -->
-            <div class="col-md-4">
-                <div class="p-4 rounded-4 bg-white h-100 shadow-sm border border-light-subtle d-flex flex-column justify-content-between">
-                    <div>
-                        <div class="badge bg-success text-white fw-bold rounded-pill mb-2 px-3 py-1">
-                            Шаг 3 • Получение партии
-                        </div>
-                        <h5 class="fw-bold text-dark mt-2 mb-2">
-                            <i class="bi bi-truck text-success me-2"></i>Доставка и оплата
-                        </h5>
-                        <p class="text-muted small mb-3">
-                            Доставка по Омску от 1 дня, температурные перевозки (+2...+4°C) по РФ, безналичный расчет с НДС, самовывоз и оптовый прайс.
-                        </p>
-                    </div>
-                    <a href="{% url 'main:delivery' %}" class="btn btn-sib-orange rounded-pill w-100 fw-semibold">
-                        <span>Условия доставки и оплаты</span> <i class="bi bi-arrow-right ms-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    {% with active_step='about' %}
+        {% include "main/components/company_nav_steps.html" %}
+    {% endwith %}
 
 </div>
 {% endblock %}

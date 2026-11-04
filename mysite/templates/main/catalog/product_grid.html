@@ -1,0 +1,198 @@
+    <!-- 3. PRODUCTS GRID / LIST -->
+    <div class="row g-3 g-md-4" id="productsGrid">
+        {% for prod in products %}
+            <div class="col-12 col-md-6 col-lg-4 product-card-col" 
+                 data-id="{{ prod.id }}"
+                 data-order="{{ prod.order|default:0 }}"
+                 data-category="{{ prod.category.slug|default:'other' }}" 
+                 data-category-name="{{ prod.category.name|default:'Сибсыр' }}"
+                 data-title="{{ prod.title }}" 
+                 data-desc="{{ prod.description|default:prod.full_description }}"
+                 data-full-desc="{{ prod.full_description|default:prod.description }}"
+                 data-price="{{ prod.effective_price_numeric|default:prod.price_numeric }}"
+                 data-price-display="{{ prod.effective_price_display }}"
+                 data-old-price="{{ prod.effective_old_price_numeric|default:0 }}"
+                 data-discount-pct="{{ prod.effective_discount_percent|default:0 }}"
+                 data-has-discount="{% if prod.has_discount %}true{% else %}false{% endif %}"
+                 data-is-hit="{% if 'хит' in prod.effective_badge|lower or 'выбор' in prod.effective_badge|lower or 'популярн' in prod.effective_badge|lower or 'топ' in prod.effective_badge|lower %}true{% else %}false{% endif %}"
+                 data-is-gost="{% if 'гост' in prod.standard|lower %}true{% else %}false{% endif %}"
+                 data-standard="{{ prod.standard|default:'' }}"
+                 data-fat="{{ prod.fat_content|default:'' }}"
+                 data-weight="{{ prod.unit_weight|default:'' }}"
+                 data-shelf="{{ prod.shelf_life|default:'' }}"
+                 data-package="{{ prod.package_type|default:'' }}"
+                 data-storage="{{ prod.storage_conditions|default:'' }}"
+                 data-composition="{{ prod.composition|default:'' }}"
+                 data-nutritional="{{ prod.nutritional_value|default:'' }}"
+                 data-rating="{{ prod.rating|default:'4.9' }}"
+                 data-reviews-count="{{ prod.reviews_count|default:'14' }}"
+                 data-wholesale-price="{{ prod.effective_wholesale_price_display }}"
+                 data-wholesale-min="{{ prod.wholesale_min_qty|default:'' }}"
+                 data-image="{{ prod.image_url }}"
+                 data-url="{% url 'main:product_detail' slug=prod.slug %}">
+                
+                <div class="product-card">
+                    <!-- Badges Container -->
+                    <div class="product-card-badges">
+                        {% if prod.has_discount and prod.effective_discount_percent %}
+                            <span class="badge-tag-custom badge-tag-sale">
+                                <i class="bi bi-fire"></i> -{{ prod.effective_discount_percent }}%
+                            </span>
+                        {% elif prod.has_discount %}
+                            <span class="badge-tag-custom badge-tag-sale">
+                                <i class="bi bi-fire"></i> АКЦИЯ
+                            </span>
+                        {% endif %}
+
+                        {% if prod.badge %}
+                            <span class="badge-tag-custom badge-tag-hit">
+                                <i class="bi bi-star-fill"></i> {{ prod.badge }}
+                            </span>
+                        {% endif %}
+
+                        {% if 'гост' in prod.standard|lower %}
+                            <span class="badge-tag-custom badge-tag-gost" title="{{ prod.standard }}">
+                                <i class="bi bi-patch-check-fill"></i> ГОСТ
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Favorite / Wishlist Heart Button -->
+                    <button type="button" 
+                            class="btn-card-fav" 
+                            onclick="toggleFavorite(event, {{ prod.id }}, '{{ prod.title|escapejs }}')" 
+                            title="Добавить в избранное"
+                            aria-label="В избранное">
+                        <i class="bi bi-heart"></i>
+                    </button>
+
+                    <!-- Clickable Image with Quick View Hover Overlay -->
+                    <div class="product-img-holder">
+                        <a href="{% url 'main:product_detail' slug=prod.slug %}" class="d-flex align-items-center justify-content-center w-100 h-100 text-decoration-none">
+                            <img src="{{ prod.image_url }}" alt="{{ prod.title }}" loading="lazy">
+                        </a>
+
+                        <!-- Quick View Overlay Button -->
+                        <button type="button" 
+                                class="btn-quick-view-overlay" 
+                                onclick="openQuickView({{ prod.id }})" 
+                                title="Быстрый просмотр характеристик и состава">
+                            <i class="bi bi-eye-fill"></i> Быстрый просмотр
+                        </button>
+                    </div>
+
+                    <div class="product-body">
+                        <!-- Category Subtitle & Rating -->
+                        <div class="product-sub-row">
+                            <span class="product-category-sub">{{ prod.category.name|default:"Сибсыр" }}</span>
+                            <div class="product-rating-badge" title="Рейтинг покупателей: {{ prod.rating|default:'4.9' }} из 5">
+                                <i class="bi bi-star-fill"></i>
+                                <span>{{ prod.rating|default:"4.9" }}</span>
+                                <span class="reviews-cnt">({{ prod.reviews_count|default:"14" }})</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Product Title -->
+                        <h3 class="product-title" title="{{ prod.title }}">
+                            <a href="{% url 'main:product_detail' slug=prod.slug %}">
+                                {{ prod.title }}
+                            </a>
+                        </h3>
+                        
+                        <!-- Product Specs List -->
+                        {% if prod.fat_content or prod.unit_weight or prod.package_type or prod.shelf_life %}
+                            <div class="product-specs-list">
+                                {% if prod.fat_content %}
+                                    <div class="product-spec-row">
+                                        <span class="text-muted">Жирность:</span>
+                                        <strong class="text-dark">{{ prod.fat_content }}</strong>
+                                    </div>
+                                {% endif %}
+                                {% if prod.unit_weight %}
+                                    <div class="product-spec-row">
+                                        <span class="text-muted">Фасовка:</span>
+                                        <strong class="text-dark">{{ prod.unit_weight }}</strong>
+                                    </div>
+                                {% endif %}
+                                {% if prod.package_type %}
+                                    <div class="product-spec-row">
+                                        <span class="text-muted">Упаковка:</span>
+                                        <span class="text-truncate" style="max-width: 140px;">{{ prod.package_type }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if prod.shelf_life %}
+                                    <div class="product-spec-row">
+                                        <span class="text-muted">Срок:</span>
+                                        <span>{{ prod.shelf_life }}</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+
+                        <!-- Product Footer (Price, Stepper, Cart, Detail, Share) -->
+                        <div class="product-footer">
+                            <div class="product-price-row">
+                                <div>
+                                    <span class="small text-muted d-block" id="price_label_{{ prod.id }}" style="font-size: 0.72rem;">Розница:</span>
+                                    <span class="product-price-val {% if prod.has_discount %}text-danger{% endif %}" id="price_val_{{ prod.id }}">
+                                        {{ prod.effective_price_display }}
+                                    </span>
+                                </div>
+                                {% if prod.has_discount and prod.effective_old_price_numeric > 0 %}
+                                    <div class="text-end" id="old_price_wrap_{{ prod.id }}">
+                                        <span class="small text-muted d-block" style="font-size: 0.72rem;">Без скидки:</span>
+                                        <span class="product-price-old" id="old_price_val_{{ prod.id }}">{{ prod.effective_old_price_numeric }} ₽</span>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if prod.effective_wholesale_price_display %}
+                                <div class="product-wholesale-badge-wrap">
+                                    <span class="product-wholesale-badge" title="Оптовая цена при объеме {{ prod.wholesale_min_qty|default:'оптом' }}">
+                                        <i class="bi bi-box-seam text-success"></i>
+                                        <span>Опт: <strong>{{ prod.effective_wholesale_price_display }}</strong></span>
+                                        {% if prod.wholesale_min_qty %}<span class="wholesale-condition">({{ prod.wholesale_min_qty }})</span>{% endif %}
+                                    </span>
+                                </div>
+                            {% endif %}
+
+                            <div class="product-actions-bar">
+                                <!-- Quantity Stepper with Live Calculation -->
+                                <div class="card-qty-stepper" id="stepper_{{ prod.id }}">
+                                    <button type="button" class="card-qty-btn" onclick="stepCardQty({{ prod.id }}, -1)" aria-label="Уменьшить">-</button>
+                                    <input type="number" min="1" max="999" class="card-qty-input" id="qty_input_{{ prod.id }}" value="1" oninput="stepCardQty({{ prod.id }}, 0)" onchange="stepCardQty({{ prod.id }}, 0)" style="-moz-appearance: textfield;" title="Количество">
+                                    <button type="button" class="card-qty-btn" onclick="stepCardQty({{ prod.id }}, 1)" aria-label="Увеличить">+</button>
+                                </div>
+
+                                <!-- Add to Cart Button -->
+                                <button type="button" 
+                                        class="btn-card-buy-custom" 
+                                        id="cart_btn_{{ prod.id }}"
+                                        onclick="addCardProductToCart({{ prod.id }})"
+                                        title="Добавить в корзину">
+                                    <i class="bi bi-cart-plus"></i>
+                                    <span class="btn-text">В корзину</span>
+                                </button>
+
+                                <!-- Share Button -->
+                                <button type="button" 
+                                        class="btn-card-icon-action" 
+                                        onclick="openShareModal('{{ prod.title|escapejs }}', '{% url 'main:product_detail' slug=prod.slug %}', '{{ prod.description|default:prod.full_description|truncatewords:15|escapejs }}')"
+                                        title="Поделиться товаром">
+                                    <i class="bi bi-share"></i>
+                                </button>
+
+                                <!-- Detail Page Link Button -->
+                                <a href="{% url 'main:product_detail' slug=prod.slug %}" 
+                                   class="btn-card-icon-action" 
+                                   title="Перейти к подробному описанию">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+

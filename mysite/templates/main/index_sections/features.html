@@ -1,0 +1,30 @@
+    <!-- 2. FEATURES / ADVANTAGES SECTION -->
+    <section class="mb-5" id="features">
+        <div class="text-center mb-4">
+            <span class="section-head-badge">{{ site_settings.features_badge|default:"Наши стандарты" }}</span>
+            <h2 class="section-head-title">{{ site_settings.features_title|default:"Почему выбирают ТМ «Сибсыр»" }}</h2>
+        </div>
+        <div class="row g-3 g-md-4">
+            {% for feat in features %}
+                <div class="col-sm-6 col-lg-4">
+                    <div class="feature-card-box position-relative">
+                        {% if feat.badge %}
+                            <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3 rounded-pill fw-bold" style="font-size: 0.75rem;">
+                                {{ feat.badge }}
+                            </span>
+                        {% endif %}
+                        <div class="feature-icon-wrap">
+                            {% if feat.image %}
+                                <img src="{{ feat.image.url }}" alt="{{ feat.title }}" style="width: 32px; height: 32px; object-fit: contain;">
+                            {% else %}
+                                <i class="bi {{ feat.icon|default:'bi-check2-circle' }}"></i>
+                            {% endif %}
+                        </div>
+                        <h3 class="feature-card-title">{{ feat.title }}</h3>
+                        <p class="feature-card-desc">{{ feat.subtitle }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+

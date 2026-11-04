@@ -1,0 +1,75 @@
+{% load captcha_tags %}
+    <!-- MODAL 1: QUICK BUY PRODUCT -->
+    <div class="modal fade" id="quickOrderModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+            <div class="modal-content modal-content-sib">
+                <div class="modal-header modal-header-sib">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="quickOrderModalTitle">Оформить заказ в 1 клик</h5>
+                        <p class="small text-secondary mb-0">Менеджер свяжется с вами для подтверждения заказа и деталей отгрузки</p>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+                <div class="modal-body modal-body-sib">
+                    <form id="quickOrderForm" action="{% url 'main:create_order' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Выбранная продукция</label>
+                            <input type="text" id="quickOrderProduct" name="product_choice" class="form-control rounded-pill px-3" readonly style="background-color: #f8fafc; font-weight: 600;">
+                        </div>
+
+                        <!-- Customer Type Toggle -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Тип покупателя</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="customer_type" id="quickCustTypeIndiv" value="individual" checked onchange="toggleQuickLegalFields(false)">
+                                <label class="btn btn-outline-secondary rounded-start-pill py-2 small fw-bold" for="quickCustTypeIndiv">
+                                    <i class="bi bi-person me-1"></i>Обычный покупатель
+                                </label>
+                                <input type="radio" class="btn-check" name="customer_type" id="quickCustTypeLegal" value="legal" onchange="toggleQuickLegalFields(true)">
+                                <label class="btn btn-outline-secondary rounded-end-pill py-2 small fw-bold" for="quickCustTypeLegal">
+                                    <i class="bi bi-building me-1"></i>Юр. лицо / ИП
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Legal Entity Fields (Hidden by default) -->
+                        <div id="quickLegalFields" class="d-none mb-3 p-3 rounded-4" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <div class="mb-2">
+                                <label class="form-label small fw-bold text-muted">Наименование компании / ИП *</label>
+                                <input type="text" name="company_name" class="form-control rounded-pill px-3" placeholder="ООО «Сырная Лавка» или ИП Смирнов">
+                            </div>
+                            <div>
+                                <label class="form-label small fw-bold text-muted">ИНН *</label>
+                                <input type="text" name="inn" class="form-control rounded-pill px-3" placeholder="10 или 12 цифр">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Контактное лицо (ФИО) *</label>
+                            <input type="text" name="name" class="form-control rounded-pill px-3" placeholder="Иван Иванович" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">Контактный телефон *</label>
+                            <input type="tel" name="phone" class="form-control rounded-pill px-3" placeholder="+7 (___) ___-__-__" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted">E-mail (для накладной / счета / чека)</label>
+                            <input type="email" name="email" class="form-control rounded-pill px-3" placeholder="client@mail.ru">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted">Комментарий (адрес доставки, пожелания)</label>
+                            <textarea name="comment" class="form-control rounded-4 px-3" rows="2" placeholder="Например: доставка в Омске или самовывоз..."></textarea>
+                        </div>
+
+                        {% render_captcha 'order' %}
+
+                        <button type="submit" class="btn btn-sib-orange w-100 py-3">
+                            <span>Подтвердить заказ</span> <i class="bi bi-arrow-right ms-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+

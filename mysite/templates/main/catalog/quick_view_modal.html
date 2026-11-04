@@ -1,0 +1,122 @@
+<!-- 8. INTERACTIVE QUICK VIEW MODAL -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-fullscreen-sm-down">
+        <div class="modal-content quick-view-modal-content">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark px-2 py-1 rounded-pill small fw-bold" id="qvCategoryBadge">Сыры</span>
+                    <div class="product-rating-badge" id="qvRatingBadge">
+                        <i class="bi bi-star-fill"></i> <span id="qvRatingVal">4.9</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+
+            <div class="modal-body p-3 p-md-4">
+                <div class="row g-4">
+                    <!-- Left: Large Image & Badges -->
+                    <div class="col-md-5">
+                        <div class="quick-view-img-box">
+                            <div class="position-absolute top-0 start-0 m-3" id="qvBadgesContainer"></div>
+                            <img src="" id="qvProductImage" alt="Товар">
+                        </div>
+                    </div>
+
+                    <!-- Right: Product Info & Actions -->
+                    <div class="col-md-7 d-flex flex-direction-column justify-content-between">
+                        <div>
+                            <h3 class="fw-bold text-dark mb-2" id="qvProductTitle">Название сыра</h3>
+                            
+                            <!-- Price Block -->
+                            <div class="d-flex flex-wrap align-items-baseline gap-3 mb-1">
+                                <span class="fs-2 fw-bold text-dark" id="qvProductPrice">0 ₽</span>
+                                <span class="text-muted text-decoration-line-through fs-5 d-none" id="qvProductOldPrice">0 ₽</span>
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill fw-bold d-none" id="qvDiscountBadge"></span>
+                            </div>
+                            <div class="small text-muted mb-2 pb-2 border-bottom" id="qvCalcNote" style="display: none;">
+                                <i class="bi bi-calculator text-warning me-1"></i><span id="qvCalcFormula"></span>
+                            </div>
+
+                            <!-- Wholesale Price Box -->
+                            <div id="qvWholesaleBox" class="p-2 px-3 rounded-3 mb-3 d-none" style="background: #ecfdf5; border: 1px solid #a7f3d0;">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-box-seam text-success fs-5"></i>
+                                        <div>
+                                            <div class="small text-muted" style="font-size: 0.72rem; line-height: 1.1;">Оптовая цена:</div>
+                                            <strong class="text-success fs-5" id="qvWholesalePrice">—</strong>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-white text-success border border-success-subtle rounded-pill px-2 py-1 small fw-semibold" id="qvWholesaleCondition">
+                                        от 10 шт.
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Short Description -->
+                            <p class="text-secondary small mb-3 lh-base" id="qvProductDesc">
+                                Описание товара...
+                            </p>
+
+                            <!-- Specifications Table -->
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-bordered quick-view-specs-table mb-0 rounded-3 overflow-hidden">
+                                    <tbody>
+                                        <tr id="qvRowStandard">
+                                            <td class="text-muted fw-semibold" style="width: 40%;">Стандарт:</td>
+                                            <td class="text-dark fw-bold" id="qvStandardVal">ГОСТ</td>
+                                        </tr>
+                                        <tr id="qvRowFat">
+                                            <td class="text-muted fw-semibold">Массовая доля жира:</td>
+                                            <td class="text-dark" id="qvFatVal">45%</td>
+                                        </tr>
+                                        <tr id="qvRowWeight">
+                                            <td class="text-muted fw-semibold">Фасовка:</td>
+                                            <td class="text-dark" id="qvWeightVal">2,2 кг</td>
+                                        </tr>
+                                        <tr id="qvRowPackage">
+                                            <td class="text-muted fw-semibold">Тип упаковки:</td>
+                                            <td class="text-dark" id="qvPackageVal">Вакуум</td>
+                                        </tr>
+                                        <tr id="qvRowShelf">
+                                            <td class="text-muted fw-semibold">Срок годности:</td>
+                                            <td class="text-dark" id="qvShelfVal">35 суток</td>
+                                        </tr>
+                                        <tr id="qvRowStorage">
+                                            <td class="text-muted fw-semibold">Условия хранения:</td>
+                                            <td class="text-dark" id="qvStorageVal">0...+6°C</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Composition / Состав if available -->
+                            <div id="qvCompositionWrap" class="p-2 px-3 rounded-3 bg-light border small text-muted mb-3 d-none">
+                                <strong class="text-dark d-block mb-1"><i class="bi bi-flower1 text-warning me-1"></i>Состав продукта:</strong>
+                                <span id="qvCompositionVal"></span>
+                            </div>
+                        </div>
+
+                        <!-- Stepper & Add to Cart -->
+                        <div class="pt-3 border-top d-flex flex-wrap align-items-center gap-3">
+                            <div class="card-qty-stepper">
+                                <button type="button" class="card-qty-btn" onclick="stepQvQty(-1)" aria-label="Уменьшить">-</button>
+                                <input type="number" min="1" max="999" class="card-qty-input" id="qvQtyInput" value="1" oninput="stepQvQty(0)" onchange="stepQvQty(0)" style="-moz-appearance: textfield;" title="Количество">
+                                <button type="button" class="card-qty-btn" onclick="stepQvQty(1)" aria-label="Увеличить">+</button>
+                            </div>
+
+                            <button type="button" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-bold flex-grow-1 shadow-sm" id="qvAddToCartBtn" onclick="addQvProductToCart()">
+                                <i class="bi bi-cart-plus me-1"></i>В корзину
+                            </button>
+
+                            <a href="#" id="qvDetailLink" class="btn btn-outline-secondary rounded-pill px-3 py-2 small fw-semibold" title="Открыть отдельную страницу товара">
+                                <span>Подробнее</span>
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

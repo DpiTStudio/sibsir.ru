@@ -1,0 +1,137 @@
+    <!-- FOOTER -->
+    <footer class="site-footer" id="contacts">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        {% if site_settings.logo %}
+                        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.brand_short_name }}" class="brand-logo-img brand-logo-img-footer">
+                        {% else %}
+                        <div class="brand-icon-box" style="width: 38px; height: 38px; font-size: 1.1rem;">
+                            <i class="bi bi-award-fill"></i>
+                        </div>
+                        {% endif %}
+                        <span class="fs-4 fw-bold text-white">{{ site_settings.brand_short_name|default:"СИБСЫР" }}</span>
+                    </div>
+                    <p class="small text-secondary mb-3">
+                        {{ site_settings.brand_name|default:"ТМ «Сибсыр» ИП Нахшкарян А.Л." }}
+                    </p>
+                    <p class="small text-secondary">
+                        Производство и оптово-розничная продажа высококачественных сыров, сливочного масла, кисломолочной и молочной продукции в Омске и по всей территории России.
+                    </p>
+                    {% if social_links %}
+                    <div class="footer-social-wrap my-3">
+                        <div class="footer-social-label">Мы в социальных сетях:</div>
+                        <div class="footer-social-list">
+                            {% for item in social_links %}
+                            <a href="{{ item.url }}" 
+                               {% if item.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %} 
+                               class="footer-social-link" 
+                               title="{{ item.name }}" 
+                               aria-label="{{ item.name }}">
+                                {% if item.get_icon_url %}
+                                <img src="{{ item.get_icon_url }}" alt="{{ item.name }}" class="footer-social-img">
+                                {% elif item.bootstrap_icon %}
+                                <i class="bi {{ item.bootstrap_icon }}"></i>
+                                {% else %}
+                                <i class="bi bi-share-fill"></i>
+                                {% endif %}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="/admin/" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                            <i class="bi bi-gear-fill me-1"></i>Панель администратора
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 col-lg-2">
+                    <h6 class="text-white fw-bold mb-3">Покупателям</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'accounts:profile' %}" class="footer-link"><i class="bi bi-person-fill text-warning me-1"></i>Личный кабинет</a></li>
+                        <li><a href="{% url 'accounts:register' %}?type=legal" class="footer-link"><i class="bi bi-building text-info me-1"></i>B2B для Юр. лиц</a></li>
+                        <li><a href="{% url 'main:catalog' %}" class="footer-link">Каталог сыров</a></li>
+                        <li><a href="{% url 'main:about' %}" class="footer-link">О компании</a></li>
+                        <li><a href="{% url 'main:delivery' %}" class="footer-link">Доставка и оплата</a></li>
+                        <li><a href="{% url 'main:reviews' %}" class="footer-link">Отзывы клиентов</a></li>
+                        <li><a href="{% url 'main:faq' %}" class="footer-link">Вопрос-ответ (FAQ)</a></li>
+                        <li><a href="{% url 'main:contacts' %}" class="footer-link">Контакты и реквизиты</a></li>
+                        {% for fp in footer_pages %}
+                        <li><a href="{{ fp.get_absolute_url }}" class="footer-link">{{ fp.get_display_title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="col-sm-6 col-lg-3">
+                    <h6 class="text-white fw-bold mb-3">Категории продукции</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'main:catalog' %}?cat=myagkie-syry" class="footer-link">Мягкие сыры</a></li>
+                        <li><a href="{% url 'main:catalog' %}?cat=rassolnye-syry" class="footer-link">Рассольные сыры</a></li>
+                        <li><a href="{% url 'main:catalog' %}?cat=molochnaya-i-maslozhirovaya-produktsiya" class="footer-link">Молочная продукция</a></li>
+                        <li><a href="{% url 'main:catalog' %}?cat=kislomolochnaya-produktsiya" class="footer-link">Кисломолочная продукция</a></li>
+                        <li><a href="{% url 'main:catalog' %}?cat=produkty-plavlenye-s-aromatom-syra" class="footer-link">Плавленые продукты</a></li>
+                        <li><a href="{% url 'main:catalog' %}?cat=produkty-plavlenye-kolbasnye" class="footer-link">Колбасные сыры</a></li>
+                        <li class="mt-2 pt-2 border-top border-secondary-subtle">
+                            <a href="{% url 'main:categories' %}" class="footer-link text-warning fw-semibold d-inline-flex align-items-center gap-1">
+                                <i class="bi bi-collection-fill"></i>
+                                <span>Все категории с фото</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-3">
+                    <h6 class="text-white fw-bold mb-3">Контакты завода</h6>
+                    <div class="small mb-2 text-secondary">
+                        <i class="bi bi-geo-alt text-warning me-2"></i> {{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}
+                    </div>
+                    <div class="small mb-2 text-secondary">
+                        <i class="bi bi-telephone text-warning me-2"></i> <strong>{{ site_settings.phone }}</strong>
+                    </div>
+                    <div class="small mb-2 text-secondary">
+                        <i class="bi bi-envelope text-warning me-2"></i> {{ site_settings.email }}
+                    </div>
+                    <div class="small mb-3 text-secondary">
+                        <i class="bi bi-clock text-warning me-2"></i> {{ site_settings.working_hours }}
+                    </div>
+                    <button class="btn btn-sm btn-sib-orange w-100" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        Связаться с отделом продаж
+                    </button>
+                </div>
+            </div>
+
+            <div class="footer-bottom-row d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    &copy; 1999–2026 ТМ «Сибсыр» (arevtur.rf). Все права защищены.
+                </div>
+                {% if social_links %}
+                <div class="footer-social-list footer-social-list-bottom d-flex align-items-center gap-2">
+                    <span class="text-secondary small d-none d-md-inline me-1">Мы в сети:</span>
+                    {% for item in social_links %}
+                    <a href="{{ item.url }}" 
+                       {% if item.open_in_new_tab %}target="_blank" rel="noopener noreferrer"{% endif %} 
+                       class="footer-social-link footer-social-link-sm" 
+                       title="{{ item.name }}" 
+                       aria-label="{{ item.name }}">
+                        {% if item.get_icon_url %}
+                        <img src="{{ item.get_icon_url }}" alt="{{ item.name }}" class="footer-social-img" style="width: 22px; height: 22px;">
+                        {% elif item.bootstrap_icon %}
+                        <i class="bi {{ item.bootstrap_icon }}" style="font-size: 0.95rem;"></i>
+                        {% else %}
+                        <i class="bi bi-share-fill" style="font-size: 0.85rem;"></i>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div>
+                    Сайт работает под управлением
+                </div>
+            </div>
+        </div>
+    </footer>
+
