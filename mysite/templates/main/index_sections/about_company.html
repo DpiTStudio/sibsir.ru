@@ -1,27 +1,28 @@
 {% load static %}
-    <!-- 4. ABOUT COMPANY SECTION (НАДЕЖНОСТЬ И ТРАДИЦИИ) -->
+    <!-- 5. ABOUT COMPANY SECTION (НАДЕЖНОСТЬ И ТРАДИЦИИ) -->
     <section class="about-section-wrap" id="about">
         <!-- Background watermark icon -->
         <div class="about-bg-decoration">
-            <i class="bi bi-award"></i>
+            <i class="bi bi-award" aria-hidden="true"></i>
         </div>
 
         <div class="row align-items-center g-4 g-lg-5 position-relative" style="z-index: 2;">
             <!-- Left Column: Story, Quality Pillars, KPIs & Action Buttons -->
             <div class="col-lg-6">
                 <span class="section-head-badge d-inline-flex align-items-center gap-2 mb-2">
-                    <i class="bi bi-patch-check-fill text-warning"></i> Надежность и традиции с 1999 года
+                    <i class="bi bi-patch-check-fill text-warning" aria-hidden="true"></i>
+                    <span>{{ site_settings.about_hero_badge|default:"Надежность и традиции с 1999 года" }}</span>
                 </span>
-                <h2 class="section-head-title mb-3">{{ site_settings.about_heading|default:"О компании Сибсыр — качество и традиции" }}</h2>
+                <h2 class="section-head-title mb-3">{{ site_settings.about_heading|default:"О компании «Сибсыр» — качество и традиции" }}</h2>
                 <p class="about-lead-text mb-4">
-                    {{ site_settings.about_text|default:"Компания «СибСыр» уже более 25 лет поставляет кисломолочные продукты, рассольные и мягкие сыры, сливочное и топленое масло высочайшего качества. Вся наша продукция изготавливается исключительно из натурального отборного молока от проверенных фермерских хозяйств с применением классических и авторских технологий." }}
+                    {{ site_settings.about_text|default:"Компания «СибСыр» уже более 25 лет поставляет кисломолочные продукты, рассольные и мягкие сыры, сливочное и топленое масло высочайшего качества. Вся наша продукция изготавливается исключительно из натурального отборного молока от проверенных фермерских хозяйств с применением классических и авторских технологий."|linebreaksbr }}
                 </p>
 
                 <!-- Quality Pillars -->
                 <div class="about-pillars-list">
                     <div class="about-pillar-item">
                         <div class="about-pillar-icon">
-                            <i class="bi bi-cup-hot-fill"></i>
+                            <i class="bi bi-droplet-fill" aria-hidden="true"></i>
                         </div>
                         <div>
                             <strong class="d-block text-dark" style="font-size: 0.92rem;">100% цельное сибирское молоко</strong>
@@ -30,7 +31,7 @@
                     </div>
                     <div class="about-pillar-item">
                         <div class="about-pillar-icon">
-                            <i class="bi bi-snow2"></i>
+                            <i class="bi bi-snow2" aria-hidden="true"></i>
                         </div>
                         <div>
                             <strong class="d-block text-dark" style="font-size: 0.92rem;">Собственные климатические камеры созревания</strong>
@@ -39,7 +40,7 @@
                     </div>
                     <div class="about-pillar-item">
                         <div class="about-pillar-icon">
-                            <i class="bi bi-shield-fill-check"></i>
+                            <i class="bi bi-shield-fill-check" aria-hidden="true"></i>
                         </div>
                         <div>
                             <strong class="d-block text-dark" style="font-size: 0.92rem;">Аттестованная заводская лаборатория</strong>
@@ -52,28 +53,28 @@
                 <div class="row g-2 g-sm-3 text-center mb-4">
                     <div class="col-6 col-sm-3">
                         <div class="about-stat-box">
-                            <i class="bi bi-hourglass-split about-stat-icon"></i>
+                            <i class="bi bi-hourglass-split about-stat-icon" aria-hidden="true"></i>
                             <div class="about-stat-number">{{ site_settings.about_stat_1_val|default:"25+" }}</div>
                             <div class="about-stat-label">{{ site_settings.about_stat_1_label|default:"Лет на рынке" }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3">
                         <div class="about-stat-box">
-                            <i class="bi bi-grid-3x3-gap-fill about-stat-icon"></i>
+                            <i class="bi bi-grid-3x3-gap-fill about-stat-icon" aria-hidden="true"></i>
                             <div class="about-stat-number">{{ site_settings.about_stat_2_val|default:"47" }}</div>
                             <div class="about-stat-label">{{ site_settings.about_stat_2_label|default:"Видов товаров" }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3">
                         <div class="about-stat-box">
-                            <i class="bi bi-droplet-half about-stat-icon"></i>
+                            <i class="bi bi-droplet-half about-stat-icon" aria-hidden="true"></i>
                             <div class="about-stat-number">{{ site_settings.about_stat_3_val|default:"100%" }}</div>
                             <div class="about-stat-label">{{ site_settings.about_stat_3_label|default:"Свежее молоко" }}</div>
                         </div>
                     </div>
                     <div class="col-6 col-sm-3">
                         <div class="about-stat-box">
-                            <i class="bi bi-buildings about-stat-icon"></i>
+                            <i class="bi bi-buildings about-stat-icon" aria-hidden="true"></i>
                             <div class="about-stat-number">{{ site_settings.about_stat_4_val|default:">500" }}</div>
                             <div class="about-stat-label">{{ site_settings.about_stat_4_label|default:"Партнеров" }}</div>
                         </div>
@@ -82,12 +83,12 @@
 
                 <!-- Call to action buttons -->
                 <div class="d-flex flex-wrap align-items-center gap-3">
-                    <a href="{% url 'main:about' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                    <a href="{% url 'main:about' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 fw-semibold shadow-sm text-wrap text-center">
                         <span>Подробнее о компании и производстве</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                        <i class="bi bi-arrow-right ms-1" aria-hidden="true"></i>
                     </a>
-                    <button type="button" class="btn btn-sib-outline rounded-pill px-3 py-2 fw-semibold" data-bs-toggle="modal" data-bs-target="#callbackModal">
-                        <i class="bi bi-file-earmark-check me-1"></i>
+                    <button type="button" class="btn btn-sib-outline rounded-pill px-3 py-2 fw-semibold text-wrap text-center" data-bs-toggle="modal" data-bs-target="#callbackModal">
+                        <i class="bi bi-file-earmark-check me-1" aria-hidden="true"></i>
                         <span>Запросить сертификаты</span>
                     </button>
                 </div>
@@ -98,11 +99,13 @@
                 <!-- Visual Craft Photo Card -->
                 <div class="about-visual-card overflow-hidden rounded-4 shadow-sm mb-3">
                     <img src="{% if site_settings.about_image %}{{ site_settings.about_image.url }}{% else %}{% static 'images/card1.jpg' %}{% endif %}" 
-                         alt="Производство натуральных сыров ТМ Сибсыр в Омске" 
+                         alt="Производство натуральных сыров ТМ «Сибсыр» в Омске" 
                          class="about-visual-img" 
+                         width="600" 
+                         height="200" 
                          loading="lazy">
                     <div class="about-floating-glass-pill">
-                        <i class="bi bi-award-fill text-warning"></i>
+                        <i class="bi bi-award-fill text-warning" aria-hidden="true"></i>
                         <span>Собственный завод в Омске • Ручная работа и строгие ГОСТы</span>
                     </div>
                 </div>
@@ -110,8 +113,8 @@
                 <!-- Safety & Enterprise Passport Card -->
                 <div class="about-passport-card shadow">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <div class="brand-icon-box" style="width: 44px; height: 44px; font-size: 1.3rem; background: linear-gradient(135deg, #ff8400, #ffaa00); color: #fff;">
-                            <i class="bi bi-shield-check"></i>
+                        <div class="brand-icon-box flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.3rem;">
+                            <i class="bi bi-shield-check" aria-hidden="true"></i>
                         </div>
                         <div>
                             <h4 class="text-white fw-bold mb-0 fs-5">Гарантия безопасности продукции</h4>
@@ -122,33 +125,33 @@
                     <!-- Checklist -->
                     <ul class="passport-checklist">
                         <li class="passport-check-item">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <div><strong>ФГИС «Меркурий» & «Честный ЗНАК»:</strong> 100% электронная ветеринарная прослеживаемость и DataMatrix-маркировка.</div>
+                            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            <div><strong>ФГИС «Меркурий» и «Честный ЗНАК»:</strong> 100% электронная ветеринарная прослеживаемость и DataMatrix-маркировка.</div>
                         </li>
                         <li class="passport-check-item">
-                            <i class="bi bi-check-circle-fill"></i>
+                            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
                             <div><strong>Система ХАССП (HACCP):</strong> непрерывный контроль критических точек на всех стадиях сыроделия.</div>
                         </li>
                         <li class="passport-check-item">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <div><strong>Холодовая цепь (+2...+4°C):</strong> собственный автопарк рефрижераторов для бережной сохранности свежести.</div>
+                            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+                            <div><strong>Холодовая цепь (+2...+4 °C):</strong> собственный автопарк рефрижераторов для бережной сохранности свежести.</div>
                         </li>
                     </ul>
 
                     <!-- Factory Passport Info -->
                     <div class="border-top border-secondary border-opacity-25 pt-3">
-                        <div class="passport-info-row">
+                        <div class="passport-info-row gap-2">
                             <span>Юридическое лицо:</span>
-                            <strong class="text-white">{{ site_settings.inn_kpp|default:"ТМ «Сибсыр» ИП Нахшкарян А.Л." }}</strong>
+                            <strong class="text-white text-end">{{ site_settings.inn_kpp|default:"ТМ «Сибсыр» ИП Нахшкарян А.Л." }}</strong>
                         </div>
-                        <div class="passport-info-row">
+                        <div class="passport-info-row gap-2">
                             <span>Адрес производства:</span>
-                            <strong class="text-white">{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</strong>
+                            <strong class="text-white text-end">{{ site_settings.address|default:"г. Омск, ул. Зеленая, 16" }}</strong>
                         </div>
-                        <div class="passport-info-row">
+                        <div class="passport-info-row gap-2">
                             <span>Телефон отдела сбыта:</span>
-                            <a href="tel:{{ site_settings.phone|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="text-warning text-decoration-none fw-bold">
-                                <i class="bi bi-telephone-fill me-1"></i>{{ site_settings.phone }}
+                            <a href="tel:{{ site_settings.phone|default:'8 (3812) 43-35-36'|cut:' '|cut:'('|cut:')'|cut:'-' }}" class="text-warning text-decoration-none fw-bold text-end">
+                                <i class="bi bi-telephone-fill me-1" aria-hidden="true"></i>{{ site_settings.phone|default:"8 (3812) 43-35-36" }}
                             </a>
                         </div>
                     </div>
@@ -156,4 +159,3 @@
             </div>
         </div>
     </section>
-
