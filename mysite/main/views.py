@@ -1214,6 +1214,14 @@ def tinymce_image_upload(request):
     return JsonResponse({"location": file_url})
 
 
+def company_page_detail_view(request, slug):
+    """
+    Отображение страниц раздела компании (/company/consent/, /company/soglasie/ и др.).
+    Полностью управляется через панель администратора в разделе 'Динамические страницы'.
+    """
+    return page_detail_view(request, slug=slug)
+
+
 def page_detail_view(request, slug):
     """
     Отображение динамической страницы произвольного типа.

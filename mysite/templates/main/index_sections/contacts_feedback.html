@@ -100,6 +100,9 @@
                         <button type="submit" class="btn btn-sib-orange w-100 py-3">
                             <span>Отправить сообщение</span> <i class="bi bi-send ms-1"></i>
                         </button>
+                        <div class="text-center text-muted small mt-2" style="font-size: 0.75rem;">
+                            Нажимая кнопку, вы соглашаетесь с <a href="{% url 'main:company_consent' %}" target="_blank" class="text-decoration-underline text-muted">Политикой конфиденциальности</a> и даете <a href="{% url 'main:company_soglasie' %}" target="_blank" class="text-decoration-underline text-muted">согласие на обработку данных</a>
+                        </div>
                     </form>
                 </div>
             </div>

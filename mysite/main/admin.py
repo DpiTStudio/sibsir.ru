@@ -1336,18 +1336,27 @@ class PageAdmin(RichTextAdminMixin, DragDropReorderMixin, admin.ModelAdmin):
     def direct_url_preview(self, obj):
         if not obj or not obj.pk:
             return format_html('<span style="color: #94a3b8; font-size: 12px;">Адрес будет доступен после сохранения</span>')
-        url_pages = obj.get_absolute_url()
-        url_direct = obj.get_direct_url()
+        main_url = obj.get_absolute_url()
+        direct_url = f"/{obj.slug}/"
+        pages_url = f"/pages/{obj.slug}/"
+        company_url = f"/company/{obj.slug}/"
+        urls = [main_url]
+        for candidate in [company_url, direct_url, pages_url]:
+            if candidate not in urls:
+                urls.append(candidate)
+
+        links_html = "".join([
+            f'<a href="{u}" target="_blank" style="color: #0284c7; text-decoration: none; font-weight: 600; padding: 4px 10px; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px;"><i class="bi bi-link-45deg"></i> {u} ↗</a> '
+            for u in urls
+        ])
         return format_html(
-            '<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 13px;">'
-            '<div style="color: #475569; margin-bottom: 4px;">Страница будет доступна по адресам:</div>'
-            '<div style="display: flex; gap: 16px; flex-wrap: wrap;">'
-            '<a href="{}" target="_blank" style="color: #0284c7; text-decoration: none; font-weight: 600;"><i class="bi bi-link-45deg"></i> {} ↗</a>'
-            '<a href="{}" target="_blank" style="color: #0284c7; text-decoration: none; font-weight: 600;"><i class="bi bi-link-45deg"></i> {} ↗</a>'
+            '<div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; font-size: 13px;">'
+            '<div style="color: #475569; margin-bottom: 8px; font-weight: 600;">Страница доступна по следующим адресам на сайте:</div>'
+            '<div style="display: flex; gap: 8px; flex-wrap: wrap;">'
+            '{}'
             '</div>'
             '</div>',
-            url_pages, url_pages,
-            url_direct, url_direct
+            mark_safe(links_html)
         )
     direct_url_preview.short_description = "Адреса страницы на сайте"
 

@@ -25,6 +25,10 @@ urlpatterns = [
     path('contacts/', views.contacts_view, name='contacts'),
     path('faq/', views.faq_view, name='faq'),
     path('company/faq/', views.faq_view, name='company_faq'),
+    # Страницы компании и регламентные документы (/company/consent/, /company/soglasie/)
+    path('company/consent/', views.company_page_detail_view, {'slug': 'consent'}, name='company_consent'),
+    path('company/soglasie/', views.company_page_detail_view, {'slug': 'soglasie'}, name='company_soglasie'),
+    path('company/<slug:slug>/', views.company_page_detail_view, name='company_page_detail'),
     path('articles/', views.articles_list_view, name='articles'),
     path('articles/<slug:slug>/', views.article_detail_view, name='article_detail'),
     path('search/', views.search_view, name='search'),

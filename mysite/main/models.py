@@ -1453,12 +1453,21 @@ class Page(models.Model):
     def get_absolute_url(self):
         from django.urls import reverse
         try:
+            if self.slug in ['consent', 'soglasie']:
+                return reverse("main:company_page_detail", kwargs={"slug": self.slug})
             return reverse("main:page_detail", kwargs={"slug": self.slug})
         except Exception:
+            if self.slug in ['consent', 'soglasie']:
+                return f"/company/{self.slug}/"
             return f"/pages/{self.slug}/"
 
     def get_direct_url(self):
+        if self.slug in ['consent', 'soglasie']:
+            return f"/company/{self.slug}/"
         return f"/{self.slug}/"
+
+    def get_company_url(self):
+        return f"/company/{self.slug}/"
 
     def get_display_title(self):
         return self.menu_title.strip() if self.menu_title else self.title

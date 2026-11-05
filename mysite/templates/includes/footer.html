@@ -106,7 +106,12 @@
 
             <div class="footer-bottom-row d-flex flex-wrap justify-content-between align-items-center gap-3">
                 <div>
-                    &copy; 1999–2026 ТМ «Сибсыр» (arevtur.rf). Все права защищены.
+                    &copy; 1999–2026 ТМ «Сибсыр» (sibsir.ru). Все права защищены.
+                </div>
+                <div class="d-flex flex-wrap gap-2 gap-md-3 small text-secondary">
+                    <a href="{% url 'main:company_consent' %}" class="footer-legal-link text-secondary text-decoration-none">Политика конфиденциальности</a>
+                    <span class="text-muted">•</span>
+                    <a href="{% url 'main:company_soglasie' %}" class="footer-legal-link text-secondary text-decoration-none">Согласие на обработку данных</a>
                 </div>
                 {% if social_links %}
                 <div class="footer-social-list footer-social-list-bottom d-flex align-items-center gap-2">
@@ -128,8 +133,8 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                <div>
-                    Сайт работает под управлением
+                <div class="small text-secondary">
+                    Официальный сайт: <a href="https://sibsir.ru/" class="text-white text-decoration-none fw-semibold">sibsir.ru</a>
                 </div>
             </div>
         </div>
