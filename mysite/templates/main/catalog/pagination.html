@@ -1,0 +1,40 @@
+<!-- 5. ПОСТРАНИЧНАЯ НАВИГАЦИЯ КАТАЛОГА (ПО 9 ТОВАРОВ НА СТРАНИЦУ) -->
+<nav id="catalogPaginationNav" class="catalog-pagination-wrap my-4 my-md-5 {% if total_pages <= 1 %}d-none{% endif %}" aria-label="Постраничная навигация по каталогу">
+    <div class="card border-0 shadow-sm rounded-4 p-3 p-md-4 bg-white">
+        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+            
+            <!-- Левая колонка: счетчик и бейдж размера страницы -->
+            <div class="d-flex align-items-center flex-wrap gap-2 text-center text-md-start" id="catalogPaginationSummaryWrap">
+                <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fw-semibold" style="font-size: 0.82rem;">
+                    <i class="bi bi-grid-3x3-gap text-warning me-1"></i>9 товаров на страницу
+                </span>
+                <div class="small text-muted" id="catalogPaginationSummary">
+                    Показано <strong class="text-dark">{{ start_product_idx }}–{{ end_product_idx }}</strong> из <strong class="text-dark">{{ products|length }}</strong> товаров <span class="text-muted">(Страница {{ current_page }} из {{ total_pages }})</span>
+                </div>
+            </div>
+
+            <!-- Правая колонка: кнопки пагинатора -->
+            <ul class="pagination pagination-sib mb-0" id="catalogPaginationList">
+                <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
+                    <button type="button" class="page-link prev-next-link" onclick="goToPage({{ current_page|add:'-1' }})" {% if current_page <= 1 %}disabled aria-disabled="true"{% endif %} aria-label="Предыдущая страница">
+                        <i class="bi bi-chevron-left me-1"></i><span class="d-none d-sm-inline">Назад</span>
+                    </button>
+                </li>
+                {% for p in page_range %}
+                    <li class="page-item {% if p == current_page %}active{% endif %}">
+                        <button type="button" class="page-link {% if p == current_page %}current-page{% endif %}" onclick="goToPage({{ p }})" {% if p == current_page %}aria-current="page"{% endif %}>
+                            {{ p }}
+                        </button>
+                    </li>
+                {% endfor %}
+                <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
+                    <button type="button" class="page-link prev-next-link" onclick="goToPage({{ current_page|add:'1' }})" {% if current_page >= total_pages %}disabled aria-disabled="true"{% endif %} aria-label="Следующая страница">
+                        <span class="d-none d-sm-inline">Вперед</span><i class="bi bi-chevron-right ms-1"></i>
+                    </button>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</nav>
+

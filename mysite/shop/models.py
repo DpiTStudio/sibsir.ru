@@ -357,15 +357,16 @@ class Product(models.Model):
         now = timezone.now()
 
         # 1. Точечная акция на товар
-        p_promo = self.promotions.filter(
-            is_active=True
-        ).filter(
-            models.Q(start_date__isnull=True) | models.Q(start_date__lte=now)
-        ).filter(
-            models.Q(end_date__isnull=True) | models.Q(end_date__gte=now)
-        ).first()
-        if p_promo:
-            return p_promo
+        if self.pk:
+            p_promo = self.promotions.filter(
+                is_active=True
+            ).filter(
+                models.Q(start_date__isnull=True) | models.Q(start_date__lte=now)
+            ).filter(
+                models.Q(end_date__isnull=True) | models.Q(end_date__gte=now)
+            ).first()
+            if p_promo:
+                return p_promo
 
         # 2. Акция на категорию / каталог
         if self.category_id:

@@ -1,5 +1,7 @@
 <!-- JAVASCRIPT: ADVANCED E-COMMERCE CATALOG ENGINE -->
 <script>
+    const ITEMS_PER_PAGE = 9;
+    let currentPage = 1;
     let activeQuickFilter = 'all'; // 'all', 'sale', 'hits', 'gost', 'favorites'
     let activePriceFilter = 'all'; // 'all', 'under_300', '300_600', 'over_600'
     let currentQvProductId = null;
@@ -92,6 +94,11 @@
         const sortParam = urlParams.get('sort');
         const qParam = urlParams.get('q');
         const filterParam = urlParams.get('filter');
+        const pageParam = parseInt(urlParams.get('page')) || 1;
+
+        if (pageParam > 1) {
+            currentPage = pageParam;
+        }
 
         if (sortParam && document.getElementById('catalogSortSelect')) {
             document.getElementById('catalogSortSelect').value = sortParam;
@@ -102,18 +109,18 @@
         }
 
         if (filterParam) {
-            setQuickFilter(filterParam, false);
+            setQuickFilter(filterParam, false, false);
         }
 
         if (catParam) {
-            filterCatalog(catParam, false);
+            filterCatalog(catParam, false, false);
         } else if (window.location.hash) {
             const hashCat = window.location.hash.replace('#', '');
             if (hashCat) {
-                filterCatalog(hashCat, false);
+                filterCatalog(hashCat, false, false);
             }
         } else {
-            applyCatalogFilters();
+            applyCatalogFilters(false, false);
         }
 
         // Sticky Bar Scroll Listener
@@ -166,7 +173,8 @@
     }
 
     // Category filter tab click
-    function filterCatalog(categorySlug, updateUrl = true) {
+    function filterCatalog(categorySlug, updateUrl = true, resetPage = true) {
+        if (resetPage) currentPage = 1;
         document.querySelectorAll('.category-tab-btn').forEach(btn => {
             if (btn.getAttribute('data-cat') === categorySlug) {
                 btn.classList.add('active');
@@ -180,11 +188,12 @@
         const stickySelect = document.getElementById('stickyCatSelect');
         if (stickySelect) stickySelect.value = categorySlug;
 
-        applyCatalogFilters(updateUrl);
+        applyCatalogFilters(updateUrl, false);
     }
 
     // Quick filter pills handler
-    function setQuickFilter(type, updateUrl = true) {
+    function setQuickFilter(type, updateUrl = true, resetPage = true) {
+        if (resetPage) currentPage = 1;
         activeQuickFilter = type;
         
         const pillAll = document.getElementById('pillAllBtn');
@@ -208,40 +217,54 @@
             if (pillAll) pillAll.classList.add('active');
         }
 
-        applyCatalogFilters(updateUrl);
+        applyCatalogFilters(updateUrl, false);
     }
 
     // Price Filter Preset
     function setPriceFilter(type, label) {
+        currentPage = 1;
         activePriceFilter = type;
         const labelEl = document.getElementById('priceFilterLabel');
         if (labelEl) labelEl.textContent = `Цена: ${label}`;
-        applyCatalogFilters();
+        applyCatalogFilters(true, false);
     }
 
     // Search tag pills click
     function setSearchTag(tag) {
+        currentPage = 1;
         const searchInput = document.getElementById('catalogSearchInput');
         if (searchInput) {
             searchInput.value = tag;
-            applyCatalogFilters();
+            applyCatalogFilters(true, false);
             // Scroll to control hub
             document.querySelector('.catalog-control-hub')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }
 
     function clearSearchInput() {
+        currentPage = 1;
         const searchInput = document.getElementById('catalogSearchInput');
         const stickySearch = document.getElementById('stickySearchInput');
         if (searchInput) searchInput.value = '';
         if (stickySearch) stickySearch.value = '';
-        applyCatalogFilters();
+        applyCatalogFilters(true, false);
     }
 
     function syncStickySearch(val) {
+        currentPage = 1;
         const searchInput = document.getElementById('catalogSearchInput');
         if (searchInput) searchInput.value = val;
-        applyCatalogFilters();
+        applyCatalogFilters(true, false);
+    }
+
+    function onSearchInput() {
+        currentPage = 1;
+        applyCatalogFilters(true, false);
+    }
+
+    function onSortChange() {
+        currentPage = 1;
+        applyCatalogFilters(true, false);
     }
 
     // Stepper logic on cards
@@ -541,8 +564,12 @@
         }
     }
 
-    // Comprehensive filtering & sorting engine
-    function applyCatalogFilters(updateUrl = true) {
+    // Comprehensive filtering, sorting & pagination engine (9 items per page)
+    function applyCatalogFilters(updateUrl = true, resetPage = false) {
+        if (resetPage) {
+            currentPage = 1;
+        }
+
         const activeTab = document.querySelector('.category-tab-btn.active');
         const activeCat = activeTab ? activeTab.getAttribute('data-cat') : 'all';
         const searchInput = document.getElementById('catalogSearchInput');
@@ -558,7 +585,7 @@
         const allCards = Array.from(document.querySelectorAll('.product-card-col'));
 
         const favs = getFavorites();
-        let visibleCount = 0;
+        let matchedCards = [];
 
         allCards.forEach(col => {
             const id = parseInt(col.getAttribute('data-id')) || 0;
@@ -616,8 +643,7 @@
             );
 
             if (matchCat && matchQuick && matchPrice && matchSearch) {
-                col.style.display = '';
-                visibleCount++;
+                matchedCards.push(col);
             } else {
                 col.style.display = 'none';
             }
@@ -659,34 +685,218 @@
             allCards.forEach(card => grid.appendChild(card));
         }
 
-        // Update counts
+        // 5. Pagination Calculation (9 items per page)
+        const totalItems = matchedCards.length;
+        const totalPages = Math.max(1, Math.ceil(totalItems / ITEMS_PER_PAGE));
+
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+        if (currentPage < 1) {
+            currentPage = 1;
+        }
+
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+
+        // Hide all cards first
+        allCards.forEach(card => card.style.display = 'none');
+
+        // Show only matching cards for current page slice in sorted order
+        const sortedMatched = allCards.filter(c => matchedCards.includes(c));
+        sortedMatched.forEach((card, idx) => {
+            if (idx >= startIndex && idx < endIndex) {
+                card.style.display = '';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // 6. Update counts and indicators
+        const shownFrom = totalItems > 0 ? (startIndex + 1) : 0;
+        const shownTo = Math.min(endIndex, totalItems);
+
         const countDisplay = document.getElementById('catalogCountDisplay');
         if (countDisplay) {
-            countDisplay.innerHTML = `<i class="bi bi-box-seam text-warning me-1"></i>Найдено: <strong>${visibleCount}</strong> из ${allCards.length} товаров`;
+            if (totalItems > 0) {
+                countDisplay.innerHTML = `<i class="bi bi-box-seam text-warning me-1"></i>Показано: <strong>${shownFrom}–${shownTo}</strong> из <strong>${totalItems}</strong> товаров <span class="badge bg-light text-muted border rounded-pill ms-2 d-none d-sm-inline">По 9 на странице</span>`;
+            } else {
+                countDisplay.innerHTML = `<i class="bi bi-box-seam text-warning me-1"></i>Найдено: <strong>0</strong> товаров`;
+            }
         }
 
-        // Update Active Filters ribbon chips
+        const curPageTop = document.getElementById('currentPageTopVal');
+        const totPageTop = document.getElementById('totalPagesTopVal');
+        const quickPageInfo = document.getElementById('catalogQuickPageInfo');
+        if (curPageTop) curPageTop.textContent = currentPage;
+        if (totPageTop) totPageTop.textContent = totalPages;
+        if (quickPageInfo) {
+            quickPageInfo.classList.toggle('d-none', totalPages <= 1);
+        }
+
+        // 7. Render Pagination Component
+        renderPagination(totalItems, totalPages, currentPage);
+
+        // 8. Update Active Filters ribbon chips
         updateActiveFilterChips(activeCat, searchQuery, activeQuickFilter, activePriceFilter);
 
-        // Toggle No Results State
+        // 9. Toggle No Results State
         const noResults = document.getElementById('noCatalogResults');
         if (noResults) {
-            noResults.classList.toggle('d-none', visibleCount > 0);
+            noResults.classList.toggle('d-none', totalItems > 0);
         }
 
-        // Update browser URL query params
+        // 10. Update browser URL query params
         if (updateUrl && history.pushState) {
             const params = new URLSearchParams();
             if (activeCat !== 'all') params.set('cat', activeCat);
             if (currentSort !== 'default') params.set('sort', currentSort);
             if (searchQuery) params.set('q', searchQuery);
             if (activeQuickFilter !== 'all') params.set('filter', activeQuickFilter);
+            if (currentPage > 1) params.set('page', currentPage);
 
             const queryString = params.toString();
             const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
-            history.pushState(null, '', newUrl);
+            history.pushState({ page: currentPage, cat: activeCat, sort: currentSort, q: searchQuery, filter: activeQuickFilter }, '', newUrl);
         }
     }
+
+    // Pagination Navigation Handlers
+    function goToPage(page, smoothScroll = true) {
+        page = parseInt(page);
+        if (isNaN(page) || page < 1 || page === currentPage) return;
+        currentPage = page;
+        applyCatalogFilters(true, false);
+        if (smoothScroll) {
+            scrollToCatalogTop();
+        }
+    }
+
+    function scrollToCatalogTop() {
+        const target = document.getElementById('catalogResultsMeta') || document.getElementById('productsGrid') || document.querySelector('.catalog-control-hub');
+        if (target) {
+            const rect = target.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetTop = rect.top + scrollTop - 85;
+            window.scrollTo({
+                top: Math.max(0, targetTop),
+                behavior: 'smooth'
+            });
+        }
+    }
+
+    function renderPagination(totalItems, totalPages, curPage) {
+        const paginationNav = document.getElementById('catalogPaginationNav');
+        const paginationList = document.getElementById('catalogPaginationList');
+        const paginationSummary = document.getElementById('catalogPaginationSummary');
+        if (!paginationNav || !paginationList) return;
+
+        if (totalItems <= ITEMS_PER_PAGE || totalPages <= 1) {
+            paginationNav.classList.add('d-none');
+            return;
+        }
+        paginationNav.classList.remove('d-none');
+
+        // Summary text
+        const fromIdx = (curPage - 1) * ITEMS_PER_PAGE + 1;
+        const toIdx = Math.min(curPage * ITEMS_PER_PAGE, totalItems);
+        if (paginationSummary) {
+            paginationSummary.innerHTML = `Показано <strong class="text-dark">${fromIdx}–${toIdx}</strong> из <strong class="text-dark">${totalItems}</strong> товаров <span class="text-muted">(Страница ${curPage} из ${totalPages})</span>`;
+        }
+
+        let html = '';
+
+        // "Назад" / Previous button
+        const isPrevDisabled = (curPage <= 1);
+        html += `
+            <li class="page-item ${isPrevDisabled ? 'disabled' : ''}">
+                <button type="button" class="page-link prev-next-link" onclick="goToPage(${curPage - 1})" ${isPrevDisabled ? 'disabled aria-disabled="true"' : ''} aria-label="Предыдущая страница">
+                    <i class="bi bi-chevron-left me-1"></i><span class="d-none d-sm-inline">Назад</span>
+                </button>
+            </li>
+        `;
+
+        // Smart page numbers
+        const pages = getPaginationPageNumbers(curPage, totalPages);
+        pages.forEach(p => {
+            if (p === '...') {
+                html += `
+                    <li class="page-item disabled">
+                        <span class="page-link ellipsis-link">&hellip;</span>
+                    </li>
+                `;
+            } else {
+                const isActive = (p === curPage);
+                html += `
+                    <li class="page-item ${isActive ? 'active' : ''}">
+                        <button type="button" class="page-link ${isActive ? 'current-page' : ''}" onclick="goToPage(${p})" ${isActive ? 'aria-current="page"' : ''}>
+                            ${p}
+                        </button>
+                    </li>
+                `;
+            }
+        });
+
+        // "Вперед" / Next button
+        const isNextDisabled = (curPage >= totalPages);
+        html += `
+            <li class="page-item ${isNextDisabled ? 'disabled' : ''}">
+                <button type="button" class="page-link prev-next-link" onclick="goToPage(${curPage + 1})" ${isNextDisabled ? 'disabled aria-disabled="true"' : ''} aria-label="Следующая страница">
+                    <span class="d-none d-sm-inline">Вперед</span><i class="bi bi-chevron-right ms-1"></i>
+                </button>
+            </li>
+        `;
+
+        paginationList.innerHTML = html;
+    }
+
+    function getPaginationPageNumbers(current, total) {
+        if (total <= 7) {
+            return Array.from({ length: total }, (_, i) => i + 1);
+        }
+        const pages = [];
+        pages.push(1);
+
+        if (current > 3) {
+            pages.push('...');
+        }
+
+        const start = Math.max(2, current - 1);
+        const end = Math.min(total - 1, current + 1);
+
+        for (let i = start; i <= end; i++) {
+            pages.push(i);
+        }
+
+        if (current < total - 2) {
+            pages.push('...');
+        }
+
+        pages.push(total);
+        return pages;
+    }
+
+    // Handle Browser Back / Forward Buttons
+    window.addEventListener('popstate', function(e) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const pageParam = parseInt(urlParams.get('page')) || 1;
+        const catParam = urlParams.get('cat') || 'all';
+        const sortParam = urlParams.get('sort') || 'default';
+        const qParam = urlParams.get('q') || '';
+        const filterParam = urlParams.get('filter') || 'all';
+
+        currentPage = pageParam;
+
+        if (document.getElementById('catalogSortSelect')) {
+            document.getElementById('catalogSortSelect').value = sortParam;
+        }
+        if (document.getElementById('catalogSearchInput')) {
+            document.getElementById('catalogSearchInput').value = qParam;
+        }
+
+        setQuickFilter(filterParam, false, false);
+        filterCatalog(catParam, false, false);
+    });
 
     // Dynamic Filter Chips Renderer
     function updateActiveFilterChips(activeCat, searchQuery, quickFilter, priceFilter) {
@@ -767,6 +977,7 @@
 
         activeQuickFilter = 'all';
         activePriceFilter = 'all';
+        currentPage = 1;
 
         const labelEl = document.getElementById('priceFilterLabel');
         if (labelEl) labelEl.textContent = 'Цена: Любая';
@@ -774,7 +985,7 @@
         const sortSelect = document.getElementById('catalogSortSelect');
         if (sortSelect) sortSelect.value = 'default';
 
-        setQuickFilter('all', false);
-        filterCatalog('all', true);
+        setQuickFilter('all', false, false);
+        filterCatalog('all', true, true);
     }
 </script>

@@ -142,6 +142,23 @@ def catalog_view(request):
         page_description = seo_data["description"]
         page_keywords = seo_data["keywords"]
 
+    # Постраничная навигация (по 9 товаров на страницу)
+    page_size = 9
+    try:
+        current_page = int(request.GET.get("page", 1))
+        if current_page < 1:
+            current_page = 1
+    except (ValueError, TypeError):
+        current_page = 1
+
+    total_products_count = len(products)
+    total_pages = (total_products_count + page_size - 1) // page_size if total_products_count > 0 else 1
+    if current_page > total_pages:
+        current_page = total_pages
+
+    start_product_idx = (current_page - 1) * page_size + 1 if total_products_count > 0 else 0
+    end_product_idx = min(current_page * page_size, total_products_count)
+
     context = {
         "page_title": page_title,
         "page_description": page_description,
@@ -158,6 +175,12 @@ def catalog_view(request):
         "min_price": min_price,
         "max_price": max_price,
         "selected_cat": selected_cat,
+        "page_size": page_size,
+        "current_page": current_page,
+        "total_pages": total_pages,
+        "page_range": list(range(1, total_pages + 1)),
+        "start_product_idx": start_product_idx,
+        "end_product_idx": end_product_idx,
     }
     return render(request, "main/catalog.html", context)
 

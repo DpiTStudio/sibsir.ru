@@ -1,7 +1,18 @@
     <!-- 3. PRODUCTS GRID / LIST -->
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 px-1" id="catalogResultsMeta">
+        <div id="catalogCountDisplay" class="small text-muted fw-semibold">
+            <i class="bi bi-box-seam text-warning me-1"></i>Показано: <strong>{{ start_product_idx }}–{{ end_product_idx }}</strong> из <strong>{{ products|length }}</strong> товаров
+            <span class="badge bg-light text-muted border rounded-pill ms-2 d-none d-sm-inline">По 9 на странице</span>
+        </div>
+        <div id="catalogQuickPageInfo" class="small text-muted {% if total_pages <= 1 %}d-none{% endif %}">
+            Страница <strong class="text-dark" id="currentPageTopVal">{{ current_page }}</strong> из <span id="totalPagesTopVal">{{ total_pages }}</span>
+        </div>
+    </div>
+
     <div class="row g-3 g-md-4" id="productsGrid">
         {% for prod in products %}
             <div class="col-12 col-md-6 col-lg-4 product-card-col" 
+                 {% if forloop.counter < start_product_idx or forloop.counter > end_product_idx %}style="display: none;"{% endif %} 
                  data-id="{{ prod.id }}"
                  data-order="{{ prod.order|default:0 }}"
                  data-category="{{ prod.category.slug|default:'other' }}" 
