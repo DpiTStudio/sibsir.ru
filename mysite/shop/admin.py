@@ -239,7 +239,9 @@ class ProductAdmin(DragDropReorderMixin, RichTextAdminMixin, admin.ModelAdmin):
         "category",
         "price_display",
         "price_numeric",
-        "wholesale_display",
+        "wholesale_price_display",
+        "wholesale_price_numeric",
+        "wholesale_min_qty",
         "discount_info",
         "fat_content",
         "unit_weight",
@@ -248,9 +250,27 @@ class ProductAdmin(DragDropReorderMixin, RichTextAdminMixin, admin.ModelAdmin):
         "is_active",
     )
     list_display_links = ("title",)
-    list_editable = ("order", "price_display", "price_numeric", "is_featured", "is_active")
+    list_editable = (
+        "order",
+        "price_display",
+        "price_numeric",
+        "wholesale_price_display",
+        "wholesale_price_numeric",
+        "wholesale_min_qty",
+        "is_featured",
+        "is_active",
+    )
     list_filter = ("category", "is_featured", "is_active", "badge")
-    search_fields = ("title", "description", "full_description", "fat_content", "package_type", "price_display", "wholesale_price_display")
+    search_fields = (
+        "title",
+        "description",
+        "full_description",
+        "fat_content",
+        "package_type",
+        "price_display",
+        "wholesale_price_display",
+        "wholesale_min_qty",
+    )
     prepopulated_fields = {"slug": ("title",)}
     
     fieldsets = (

@@ -580,6 +580,85 @@ class Product(models.Model):
             self.save(update_fields=["rating", "reviews_count"])
 
     def save(self, *args, **kwargs):
+        import re
+
+        update_fields = kwargs.get("update_fields")
+        should_sync_prices = (
+            update_fields is None or
+            any(f in update_fields for f in ("price_numeric", "price_display", "wholesale_price_numeric", "wholesale_price_display"))
+        )
+
+        if should_sync_prices:
+            old_data = None
+            if self.pk:
+                try:
+                    old_data = Product.objects.filter(pk=self.pk).values(
+                        "price_numeric", "price_display",
+                        "wholesale_price_numeric", "wholesale_price_display"
+                    ).first()
+                except Exception:
+                    old_data = None
+
+            # 1. Синхронизация розничной цены (price_numeric и price_display)
+            if old_data:
+                if self.price_numeric != old_data["price_numeric"] and self.price_display == old_data["price_display"]:
+                    prefix = "от " if "от " in (old_data.get("price_display") or "").lower() else ""
+                    if self.price_numeric > 0:
+                        self.price_display = f"{prefix}{self.price_numeric} ₽"
+                    else:
+                        self.price_display = "По запросу"
+                elif self.price_display != old_data["price_display"] and self.price_numeric == old_data["price_numeric"]:
+                    raw_p = (self.price_display or "").strip().lower()
+                    if "запрос" in raw_p or not raw_p:
+                        self.price_numeric = 0
+                    else:
+                        nums = re.findall(r'\d+', raw_p)
+                        if nums:
+                            self.price_numeric = int("".join(nums))
+            else:
+                if self.price_numeric > 0 and (not self.price_display or self.price_display == "По запросу"):
+                    self.price_display = f"{self.price_numeric} ₽"
+                elif self.price_display and not self.price_numeric:
+                    nums = re.findall(r'\d+', self.price_display)
+                    if nums:
+                        self.price_numeric = int("".join(nums))
+
+            if self.price_numeric > 0 and not self.price_display:
+                self.price_display = f"{self.price_numeric} ₽"
+
+            # 2. Синхронизация оптовой цены (wholesale_price_numeric и wholesale_price_display)
+            if old_data:
+                if self.wholesale_price_numeric != old_data["wholesale_price_numeric"] and self.wholesale_price_display == old_data["wholesale_price_display"]:
+                    prefix = "от " if "от " in (old_data.get("wholesale_price_display") or "").lower() else ""
+                    if self.wholesale_price_numeric > 0:
+                        self.wholesale_price_display = f"{prefix}{self.wholesale_price_numeric} ₽"
+                    else:
+                        self.wholesale_price_display = "По запросу"
+                elif self.wholesale_price_display != old_data["wholesale_price_display"] and self.wholesale_price_numeric == old_data["wholesale_price_numeric"]:
+                    raw_ws = (self.wholesale_price_display or "").strip().lower()
+                    if "запрос" in raw_ws or not raw_ws:
+                        self.wholesale_price_numeric = 0
+                    else:
+                        nums = re.findall(r'\d+', raw_ws)
+                        if nums:
+                            self.wholesale_price_numeric = int("".join(nums))
+            else:
+                if self.wholesale_price_numeric > 0 and (not self.wholesale_price_display or self.wholesale_price_display == "По запросу"):
+                    self.wholesale_price_display = f"{self.wholesale_price_numeric} ₽"
+                elif self.wholesale_price_display and not self.wholesale_price_numeric:
+                    nums = re.findall(r'\d+', self.wholesale_price_display)
+                    if nums:
+                        self.wholesale_price_numeric = int("".join(nums))
+
+            if self.wholesale_price_numeric > 0 and not self.wholesale_price_display:
+                self.wholesale_price_display = f"{self.wholesale_price_numeric} ₽"
+
+            if update_fields is not None:
+                kwargs["update_fields"] = list(set(update_fields) | {
+                    "price_numeric", "price_display",
+                    "wholesale_price_numeric", "wholesale_price_display"
+                })
+
         if not self.meta_title or not self.meta_description or not self.meta_keywords:
             self.generate_seo(overwrite=False)
         super().save(*args, **kwargs)
