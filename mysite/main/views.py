@@ -120,7 +120,7 @@ def catalog_view(request):
     products = list(Product.objects.filter(is_active=True).select_related("category").order_by("order", "id"))
 
     sale_products_count = sum(1 for p in products if p.has_discount)
-    selected_cat = request.GET.get("cat", "all").strip()
+    selected_cat = (request.GET.get("cat") or request.GET.get("category") or "all").strip()
 
     valid_prices = [p.effective_price_numeric for p in products if p.effective_price_numeric > 0]
     min_price = min(valid_prices) if valid_prices else 0

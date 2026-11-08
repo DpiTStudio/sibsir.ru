@@ -650,6 +650,8 @@ class WholesalePriceRequestAdmin(admin.ModelAdmin):
     sent_date_formatted.short_description = "Дата отправки"
 
     def quick_action_buttons(self, obj):
+        if not obj or not obj.id:
+            return "—"
         send_url = reverse("admin:main_wholesalepricerequest_approve_send", args=[obj.id])
         if obj.approval_status != "approved":
             return format_html(

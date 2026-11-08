@@ -7,9 +7,10 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from main.views import tinymce_image_upload
-from main.seo_views import robots_txt_view, sitemap_xml_view
+from main.seo_views import robots_txt_view, sitemap_xml_view, favicon_view
 
 urlpatterns = [
+    path('favicon.ico', favicon_view, name='favicon'),
     path('robots.txt', robots_txt_view, name='robots_txt'),
     path('sitemap.xml', sitemap_xml_view, name='sitemap_xml'),
     path('admin/', admin.site.urls),

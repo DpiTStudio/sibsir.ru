@@ -607,7 +607,7 @@ class SiteSettings(models.Model):
             return bool(self.captcha_on_login)
         elif form_type == "admin_login":
             return bool(getattr(self, "captcha_on_admin_login", True))
-        elif form_type == "callback":
+        elif form_type in ("callback", "review"):
             return bool(self.captcha_on_callback)
         elif form_type == "order":
             if user and getattr(user, "is_authenticated", False):

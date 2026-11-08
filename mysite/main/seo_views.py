@@ -2,7 +2,11 @@
 Модуль динамической генерации robots.txt и sitemap.xml для поисковых систем (Яндекс, Google, Mail.ru).
 Поддерживает стандарты протокола Sitemap 0.9 и расширение Google/Yandex Image Sitemap.
 """
-from django.http import HttpResponse
+import os
+from pathlib import Path
+from django.conf import settings as django_settings
+from django.http import HttpResponse, FileResponse, HttpResponseRedirect
+from django.shortcuts import redirect
 from django.utils import timezone
 from django.urls import reverse
 import xml.etree.ElementTree as ET
@@ -11,6 +15,25 @@ from xml.dom import minidom
 from .models import SiteSettings, Page
 from shop.models import Category, Product
 from articles.models import Article
+
+
+def favicon_view(request):
+    """
+    Отдает иконку сайта (favicon.ico).
+    Если администратором загружен персональный favicon в SiteSettings, перенаправляет на него,
+    иначе отдает файл favicon.ico напрямую со статусом 200 OK.
+    """
+    settings = SiteSettings.get_solo()
+    if settings.favicon:
+        try:
+            return HttpResponseRedirect(settings.favicon.url)
+        except Exception:
+            pass
+
+    static_ico = Path(django_settings.BASE_DIR) / "static" / "images" / "favicon.ico"
+    if static_ico.exists():
+        return FileResponse(open(static_ico, "rb"), content_type="image/x-icon")
+    return HttpResponse(status=204)
 
 
 def robots_txt_view(request):

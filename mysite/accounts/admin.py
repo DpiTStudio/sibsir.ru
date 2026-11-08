@@ -143,6 +143,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     @admin.display(description="Оптовый прайс")
     def price_list_send_btn(self, obj):
+        if not obj or not obj.id:
+            return mark_safe('<span style="color: #94a3b8; font-size: 11px;">—</span>')
         send_url = reverse("admin:accounts_userprofile_send_price_list", args=[obj.id])
         email = obj.user.email if obj.user else ""
         if not email:
@@ -156,6 +158,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     @admin.display(description="Инструменты отправки прайс-листа")
     def wholesale_price_tools(self, obj):
+        if not obj or not obj.id:
+            return mark_safe('<span style="color: #94a3b8; font-size: 13px;">Инструменты отправки прайс-листа станут доступны после сохранения профиля.</span>')
         send_url = reverse("admin:accounts_userprofile_send_price_list", args=[obj.id])
         download_url = reverse("admin:main_wholesalepricerequest_download")
         email = obj.user.email if obj.user else ""
@@ -274,17 +278,23 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     @admin.display(description="Пользователь")
     def user_link(self, obj):
+        if not obj or not getattr(obj, "user_id", None):
+            return "—"
         url = reverse("admin:auth_user_change", args=[obj.user_id])
         return format_html('<a href="{}" style="font-weight: 600;">{} ({})</a>', url, obj.user.username, obj.user.email)
 
     @admin.display(description="Тип")
     def customer_type_badge(self, obj):
+        if not obj:
+            return "—"
         if obj.is_legal:
             return mark_safe('<span style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">ЮР. ЛИЦО</span>')
         return mark_safe('<span style="background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 11px;">ФИЗ. ЛИЦО</span>')
 
     @admin.display(description="Заказы")
     def get_orders_badge(self, obj):
+        if not obj or not getattr(obj, "user_id", None):
+            return "—"
         cnt = obj.get_orders_count()
         spent = obj.get_total_spent()
         url = reverse("admin:shop_order_changelist") + f"?user__id__exact={obj.user_id}"
@@ -295,6 +305,8 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     @admin.display(description="Сводка заказов")
     def orders_summary(self, obj):
+        if not obj or not obj.id:
+            return mark_safe('<span style="color: #94a3b8; font-size: 13px;">Сводка заказов появится после сохранения профиля.</span>')
         orders = obj.get_orders()[:10]
         if not orders:
             return "У данного пользователя пока нет заказов."
