@@ -73,202 +73,211 @@
 {% block content %}
 <div class="container py-4">
 
-    <!-- 1. BREADCRUMBS -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
-            <li class="breadcrumb-item">
-                <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
-                    <i class="bi bi-house-door me-1"></i>Главная
-                </a>
-            </li>
-            <li class="breadcrumb-item">
-                <a href="{% url 'main:articles' %}" class="text-decoration-none text-muted">
-                    Статьи
-                </a>
-            </li>
-            <li class="breadcrumb-item active text-dark fw-semibold text-truncate" style="max-width: 320px;" aria-current="page">
-                {{ article.title }}
-            </li>
-        </ol>
-    </nav>
-
-    <!-- 2. ARTICLE MAIN WRAPPER -->
-    <div class="row g-4 justify-content-center">
-        <div class="col-lg-9 col-xl-8">
-
-            <!-- Back Link -->
-            <div class="mb-3">
-                <a href="{% url 'main:articles' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 bg-white text-muted">
-                    <i class="bi bi-arrow-left me-1"></i>Ко всем статьям
-                </a>
-            </div>
-
-            <article class="bg-white p-4 p-md-5 rounded-4 border shadow-sm mb-5">
-                <!-- Meta Badge & Date -->
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                    <span class="badge bg-warning text-dark px-3 py-1 rounded-pill fw-bold" style="font-size: 0.82rem;">
-                        <i class="bi bi-journal-text me-1"></i>База знаний о сыре
-                    </span>
-                    <span class="text-muted small">
-                        <i class="bi bi-calendar3 me-1"></i>{{ article.date_str }}
-                    </span>
-                    <span class="text-muted small">•</span>
-                    <span class="text-muted small">
-                        <i class="bi bi-eye me-1"></i>{{ article.views_count }} просмотров
-                    </span>
-                    <span class="text-muted small">•</span>
-                    <span class="text-muted small">
-                        <i class="bi bi-clock me-1"></i>~{{ read_time }} мин чтения
-                    </span>
-                </div>
-
-                <!-- Title -->
-                <h1 class="display-6 fw-bold text-dark mb-4 article-detail-title" style="line-height: 1.25;">
+    <!-- 1. FULL-WIDTH TOP NAVIGATION & BREADCRUMBS -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-2 px-3 bg-white rounded-pill shadow-sm border border-light-subtle d-inline-flex">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'main:index' %}" class="text-decoration-none text-muted">
+                        <i class="bi bi-house-door me-1"></i>Главная
+                    </a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'main:articles' %}" class="text-decoration-none text-muted">
+                        Статьи
+                    </a>
+                </li>
+                <li class="breadcrumb-item active text-dark fw-semibold text-truncate" style="max-width: 360px;" aria-current="page">
                     {{ article.title }}
-                </h1>
+                </li>
+            </ol>
+        </nav>
+        <a href="{% url 'main:articles' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 bg-white text-muted shadow-sm hover-lift">
+            <i class="bi bi-arrow-left me-1"></i>Ко всем статьям
+        </a>
+    </div>
 
-                <!-- Snippet Intro Callout -->
-                {% if article.snippet %}
-                    <div class="p-3 p-md-4 rounded-3 mb-4" style="background: #f8fafc; border-left: 4px solid #f59e0b; font-size: 1.05rem; color: #475569; line-height: 1.7;">
+    <!-- 2. ARTICLE CARD (FULL CONTAINER WIDTH) -->
+    <article class="bg-white p-4 p-md-5 rounded-4 border shadow-sm mb-5">
+        
+        <!-- Symmetrical Header Block -->
+        <div class="text-center mb-4">
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-3 bg-warning-subtle text-dark border border-warning-subtle fw-semibold" style="font-size: 0.85rem;">
+                <i class="bi bi-journal-text text-warning"></i> База знаний о сыре
+            </div>
+            
+            <h1 class="display-5 fw-bold text-dark mb-3 article-detail-title" style="line-height: 1.3;">
+                {{ article.title }}
+            </h1>
+            
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-3 text-muted small">
+                <span><i class="bi bi-calendar3 me-1 text-warning"></i>{{ article.date_str }}</span>
+                <span>•</span>
+                <span><i class="bi bi-clock me-1 text-warning"></i>~{{ read_time }} мин чтения</span>
+                <span>•</span>
+                <span><i class="bi bi-eye me-1 text-warning"></i>{{ article.views_count }} просмотров</span>
+            </div>
+        </div>
+
+        <!-- Hero Image -->
+        {% if article.image_url %}
+            <div class="mb-4 text-center overflow-hidden rounded-4 shadow-sm position-relative">
+                <img src="{{ article.image_url }}" 
+                     alt="{{ article.title }}" 
+                     class="img-fluid w-100 article-hero-img" 
+                     style="max-height: 520px; object-fit: cover;">
+            </div>
+        {% endif %}
+
+        <!-- Symmetrical Intro / Snippet Callout -->
+        {% if article.snippet %}
+            <div class="p-3 p-md-4 rounded-4 mb-4 article-lead-callout" style="background: linear-gradient(135deg, #fffdfa 0%, #fef9ee 100%); border: 1px solid #fde68a;">
+                <div class="d-flex align-items-start gap-3">
+                    <span class="fs-4 text-warning">✨</span>
+                    <div class="text-secondary lead fs-6 mb-0" style="line-height: 1.8;">
                         {{ article.snippet }}
                     </div>
-                {% endif %}
-
-                <!-- Hero Image (if available) -->
-                {% if article.image_url %}
-                    <div class="mb-4 text-center">
-                        <img src="{{ article.image_url }}" 
-                             alt="{{ article.title }}" 
-                             class="img-fluid rounded-4 shadow-sm w-100" 
-                             style="max-height: 480px; object-fit: cover;">
-                    </div>
-                {% endif %}
-
-                <!-- Content Body -->
-                <div class="article-content-body py-2">
-                    {{ article.content|safe }}
-                </div>
-
-                <!-- Author & Quality Guarantee -->
-                <div class="p-3 p-md-4 rounded-4 mt-5 d-flex align-items-center gap-3" style="background: #fffbeb; border: 1px solid #fde68a;">
-                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px; font-size: 1.5rem;">
-                        <i class="bi bi-award"></i>
-                    </div>
-                    <div>
-                        <div class="fw-bold text-dark">Экспертиза завода «Сибсыр»</div>
-                        <div class="text-muted small">
-                            Материал подготовлен технологами и специалистами контроля качества сыродельного завода. Соблюдаем ГОСТ и вековые традиции сыроварения.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Share bar -->
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-4 mt-4 border-top">
-                    <div class="fw-bold text-dark small d-flex align-items-center gap-2">
-                        <i class="bi bi-share text-warning"></i>
-                        <span>Поделиться статьей:</span>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="button" 
-                                class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" 
-                                onclick="copyArticleLink()" 
-                                title="Скопировать ссылку на статью">
-                            <i class="bi bi-link-45deg me-1"></i><span id="copyBtnText">Копировать ссылку</span>
-                        </button>
-                        <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text={{ article.title|urlencode }}" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           class="btn btn-sm btn-light rounded-circle text-primary" 
-                           style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" 
-                           title="Поделиться в Telegram">
-                            <i class="bi bi-telegram fs-6"></i>
-                        </a>
-                        <a href="https://api.whatsapp.com/send?text={{ article.title|urlencode }}%20{{ request.build_absolute_uri }}" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           class="btn btn-sm btn-light rounded-circle text-success" 
-                           style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" 
-                           title="Поделиться в WhatsApp">
-                            <i class="bi bi-whatsapp fs-6"></i>
-                        </a>
-                        <a href="https://vk.com/share.php?url={{ request.build_absolute_uri }}" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           class="btn btn-sm btn-light rounded-circle text-info" 
-                           style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" 
-                           title="Поделиться во ВКонтакте">
-                            <i class="bi bi-share-fill fs-6"></i>
-                        </a>
-                    </div>
-                </div>
-
-            </article>
-
-            <!-- CTA BANNER IN ARTICLE -->
-            <div class="p-4 p-md-5 rounded-4 shadow-sm text-white mb-5" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); border-left: 6px solid #f59e0b;">
-                <div class="row align-items-center g-3">
-                    <div class="col-md-8">
-                        <h4 class="fw-bold text-white mb-2">Понравилась статья? Попробуйте наш сыр!</h4>
-                        <p class="text-white-50 mb-0 small">
-                            Вся продукция «Сибсыр» изготавливается из цельного отборного молока высшего сорта без ГМО и растительных жиров. Заказывайте с доставкой напрямую с завода.
-                        </p>
-                    </div>
-                    <div class="col-md-4 text-md-end">
-                        <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-2 w-100 w-md-auto">
-                            <i class="bi bi-grid-3x3-gap-fill me-1"></i>В каталог сыров
-                        </a>
-                    </div>
                 </div>
             </div>
+        {% endif %}
 
-            <!-- RELATED ARTICLES -->
-            {% if related_articles %}
-                <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h3 class="h4 fw-bold text-dark mb-0">
-                            <i class="bi bi-journal-richtext text-warning me-2"></i>Читайте также
-                        </h3>
-                        <a href="{% url 'main:articles' %}" class="btn btn-sm btn-link text-warning text-decoration-none fw-semibold">
-                            Все статьи <i class="bi bi-arrow-right"></i>
-                        </a>
-                    </div>
-                    <div class="row g-3">
-                        {% for rel in related_articles %}
-                            <div class="col-md-4">
-                                <div class="article-card shadow-sm h-100 d-flex flex-column border bg-white rounded-4 overflow-hidden">
-                                    <a href="{% url 'main:article_detail' rel.slug %}" class="article-img-wrap d-block text-decoration-none">
-                                        <img src="{{ rel.image_url }}" alt="{{ rel.title }}" loading="lazy" style="height: 150px; width: 100%; object-fit: cover;">
-                                    </a>
-                                    <div class="article-body d-flex flex-column flex-grow-1 p-3">
-                                        <div class="text-muted small mb-1" style="font-size: 0.75rem;">
-                                            <i class="bi bi-calendar3 me-1"></i>{{ rel.date_str }}
-                                        </div>
-                                        <h5 class="article-title fs-6 mb-2">
-                                            <a href="{% url 'main:article_detail' rel.slug %}" class="text-dark text-decoration-none article-title-link">
-                                                {{ rel.title|truncatechars:65 }}
-                                            </a>
-                                        </h5>
-                                        <p class="article-snippet text-muted small flex-grow-1 mb-2" style="font-size: 0.8rem; line-height: 1.5;">
-                                            {{ rel.snippet|truncatechars:90 }}
-                                        </p>
-                                        <a href="{% url 'main:article_detail' rel.slug %}" class="btn-read-article small mt-auto">
-                                            <span>Читать</span>
-                                            <i class="bi bi-arrow-right"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
+        <!-- Dynamic Table of Contents Container (Populated by JS) -->
+        <div id="articleDynamicToc" class="article-toc-box p-3 p-md-4 rounded-4 mb-4 shadow-sm border bg-white d-none">
+            <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-warning text-dark p-2 rounded-3"><i class="bi bi-list-nested fs-6"></i></span>
+                    <h4 class="h6 fw-bold text-dark mb-0">Содержание статьи</h4>
                 </div>
-            {% endif %}
+                <span id="articleTocCount" class="badge bg-light text-muted border">разделы</span>
+            </div>
+            <div id="articleTocList" class="row g-2"></div>
+        </div>
 
+        <!-- Content Body -->
+        <div class="article-content-body py-2" id="articleBody">
+            {{ article.content|safe }}
+        </div>
+
+        <!-- Author & Quality Guarantee -->
+        <div class="p-3 p-md-4 rounded-4 mt-5 d-flex flex-column flex-md-row align-items-center gap-3" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 1px solid #fde68a;">
+            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 56px; height: 56px; font-size: 1.6rem;">
+                <i class="bi bi-award"></i>
+            </div>
+            <div class="text-center text-md-start">
+                <div class="fw-bold text-dark mb-1">Экспертиза завода «Сибсыр»</div>
+                <div class="text-secondary small" style="line-height: 1.6;">
+                    Материал подготовлен технологами и специалистами контроля качества сыродельного завода. Соблюдаем ГОСТ и сибирские традиции сыроварения.
+                </div>
+            </div>
+        </div>
+
+        <!-- Symmetrical Share Bar -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-4 mt-4 border-top">
+            <div class="fw-bold text-dark small d-flex align-items-center gap-2">
+                <i class="bi bi-share text-warning fs-6"></i>
+                <span>Поделиться статьей:</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" 
+                        class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1 shadow-sm hover-lift" 
+                        onclick="copyArticleLink()" 
+                        title="Скопировать ссылку на статью">
+                    <i class="bi bi-link-45deg me-1"></i><span id="copyBtnText">Копировать ссылку</span>
+                </button>
+                <a href="https://t.me/share/url?url={{ request.build_absolute_uri }}&text={{ article.title|urlencode }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="btn btn-sm btn-light rounded-circle text-primary border shadow-sm hover-lift" 
+                   style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" 
+                   title="Поделиться в Telegram">
+                    <i class="bi bi-telegram fs-6"></i>
+                </a>
+                <a href="https://api.whatsapp.com/send?text={{ article.title|urlencode }}%20{{ request.build_absolute_uri }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="btn btn-sm btn-light rounded-circle text-success border shadow-sm hover-lift" 
+                   style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" 
+                   title="Поделиться в WhatsApp">
+                    <i class="bi bi-whatsapp fs-6"></i>
+                </a>
+                <a href="https://vk.com/share.php?url={{ request.build_absolute_uri }}" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="btn btn-sm btn-light rounded-circle text-info border shadow-sm hover-lift" 
+                   style="width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center;" 
+                   title="Поделиться во ВКонтакте">
+                    <i class="bi bi-share-fill fs-6"></i>
+                </a>
+            </div>
+        </div>
+
+    </article>
+
+    <!-- 3. FULL-WIDTH CTA BANNER -->
+    <div class="p-4 p-md-5 rounded-4 shadow-sm text-white mb-5" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);">
+        <div class="row align-items-center g-4 text-center text-md-start">
+            <div class="col-md-8">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill mb-2" style="background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 0.8rem; font-weight: 600;">
+                    <i class="bi bi-star-fill"></i> Продукция завода «Сибсыр»
+                </div>
+                <h4 class="fw-bold text-white mb-2">Понравилась статья? Попробуйте наш сыр!</h4>
+                <p class="text-white-50 mb-0 small" style="line-height: 1.6;">
+                    Вся продукция «Сибсыр» изготавливается из цельного отборного молока высшего сорта без ГМО и растительных жиров. Заказывайте с доставкой напрямую с завода в Омске.
+                </p>
+            </div>
+            <div class="col-md-4 text-center text-md-end">
+                <a href="{% url 'main:catalog' %}" class="btn btn-sib-orange rounded-pill px-4 py-3 fw-semibold shadow w-100 w-md-auto hover-lift">
+                    <i class="bi bi-grid-3x3-gap-fill me-1"></i>В каталог сыров
+                </a>
+            </div>
         </div>
     </div>
 
+    <!-- 4. RELATED ARTICLES (3-COLUMN FULL-WIDTH GRID) -->
+    {% if related_articles %}
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="h5 fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-journal-richtext text-warning"></i>Читайте также
+                </h3>
+                <a href="{% url 'main:articles' %}" class="btn btn-sm btn-link text-warning text-decoration-none fw-semibold">
+                    Все статьи <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="row g-3">
+                {% for rel in related_articles %}
+                    <div class="col-md-4">
+                        <div class="article-card shadow-sm h-100 d-flex flex-column border bg-white rounded-4 overflow-hidden hover-lift">
+                            <a href="{% url 'main:article_detail' rel.slug %}" class="article-img-wrap d-block text-decoration-none">
+                                <img src="{{ rel.image_url }}" alt="{{ rel.title }}" loading="lazy" style="height: 180px; width: 100%; object-fit: cover;">
+                            </a>
+                            <div class="article-body d-flex flex-column flex-grow-1 p-3 p-md-4">
+                                <div class="text-muted small mb-1" style="font-size: 0.78rem;">
+                                    <i class="bi bi-calendar3 me-1"></i>{{ rel.date_str }}
+                                </div>
+                                <h5 class="article-title fs-6 mb-2">
+                                    <a href="{% url 'main:article_detail' rel.slug %}" class="text-dark text-decoration-none article-title-link">
+                                        {{ rel.title|truncatechars:70 }}
+                                    </a>
+                                </h5>
+                                <p class="article-snippet text-muted small flex-grow-1 mb-3" style="font-size: 0.85rem; line-height: 1.5;">
+                                    {{ rel.snippet|truncatechars:95 }}
+                                </p>
+                                <a href="{% url 'main:article_detail' rel.slug %}" class="btn-read-article small mt-auto text-decoration-none">
+                                    <span>Читать</span>
+                                    <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
 </div>
 
-<!-- COPY LINK SCRIPT -->
+<!-- SCRIPTS -->
 <script>
     function copyArticleLink() {
         const url = window.location.href;
@@ -288,9 +297,72 @@
             console.error('Не удалось скопировать ссылку', err);
         });
     }
+
+    // Auto-generate Symmetrical Table of Contents if not already present
+    document.addEventListener("DOMContentLoaded", function() {
+        const body = document.getElementById("articleBody");
+        if (!body) return;
+
+        // If body starts with a plain <ul> table of contents that matches headers, remove the raw list
+        const firstUl = body.querySelector("ul:first-child");
+        const headings = body.querySelectorAll("h2");
+
+        if (firstUl && headings.length > 2) {
+            const firstUlText = firstUl.textContent.toLowerCase();
+            let matches = 0;
+            headings.forEach(h => {
+                if (firstUlText.includes(h.textContent.trim().toLowerCase().slice(0, 15))) {
+                    matches++;
+                }
+            });
+            if (matches >= 2) {
+                firstUl.remove();
+            }
+        }
+
+        // Build elegant 4-column / 2-column Table of Contents
+        if (headings.length >= 3) {
+            const tocBox = document.getElementById("articleDynamicToc");
+            const tocList = document.getElementById("articleTocList");
+            const tocCount = document.getElementById("articleTocCount");
+
+            if (tocBox && tocList) {
+                tocList.innerHTML = "";
+                tocCount.textContent = headings.length + " разделов";
+
+                headings.forEach((h, index) => {
+                    if (!h.id) {
+                        h.id = "section-" + (index + 1);
+                    }
+                    const num = (index + 1).toString().padStart(2, '0');
+                    const cleanTitle = h.textContent.trim();
+
+                    const col = document.createElement("div");
+                    col.className = "col-sm-6 col-lg-3";
+                    col.innerHTML = `
+                        <a href="#${h.id}" class="d-flex align-items-center gap-2 p-2 rounded-3 text-decoration-none text-dark bg-light-subtle border border-light-subtle h-100 toc-link hover-lift">
+                            <span class="badge bg-warning-subtle text-dark font-monospace fw-bold px-2 py-1">${num}</span>
+                            <span class="small fw-semibold text-truncate">${cleanTitle}</span>
+                        </a>
+                    `;
+                    tocList.appendChild(col);
+                });
+
+                tocBox.classList.remove("d-none");
+            }
+        }
+    });
 </script>
 
 <style>
+    .hover-lift {
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hover-lift:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08) !important;
+    }
+
     .article-detail-title {
         font-family: inherit;
         letter-spacing: -0.02em;
@@ -301,26 +373,20 @@
         color: #334155;
     }
     .article-content-body p {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.4rem;
     }
     .article-content-body h2 {
-        font-size: 1.5rem;
+        font-size: 1.45rem;
         font-weight: 700;
         color: #0f172a;
-        margin-top: 2.2rem;
-        margin-bottom: 1rem;
+        margin-top: 2.5rem;
+        margin-bottom: 1.2rem;
         padding-bottom: 0.5rem;
         border-bottom: 2px solid #f1f5f9;
-        position: relative;
-    }
-    .article-content-body h2::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 0;
-        width: 50px;
-        height: 2px;
-        background: #f59e0b;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        scroll-margin-top: 90px;
     }
     .article-content-body h3 {
         font-size: 1.25rem;
@@ -328,13 +394,15 @@
         color: #1e293b;
         margin-top: 1.8rem;
         margin-bottom: 0.8rem;
+        scroll-margin-top: 90px;
     }
-    .article-content-body ul, .article-content-body ol {
+    .article-content-body ul:not(.breadcrumb):not(.dropdown-menu), 
+    .article-content-body ol {
         margin-bottom: 1.5rem;
-        padding-left: 1.5rem;
+        padding-left: 1.3rem;
     }
     .article-content-body li {
-        margin-bottom: 0.6rem;
+        margin-bottom: 0.5rem;
     }
     .article-content-body blockquote {
         background: #f8fafc;
@@ -351,11 +419,27 @@
         margin: 1.5rem 0;
         box-shadow: 0 4px 15px rgba(0,0,0,0.06);
     }
+    .toc-link:hover {
+        background-color: #fff9eb !important;
+        border-color: #fde68a !important;
+        color: #b45309 !important;
+    }
     .article-title-link {
         transition: color 0.2s ease;
     }
     .article-title-link:hover {
         color: #f59e0b !important;
+    }
+    .btn-read-article {
+        color: #f59e0b;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        transition: transform 0.2s ease;
+    }
+    .btn-read-article:hover {
+        color: #d97706;
+        transform: translateX(4px);
     }
 </style>
 {% endblock %}
