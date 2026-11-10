@@ -11,7 +11,8 @@ from shop.models import Product, Category, Order, OrderItem, Review, Promotion, 
 from main.models import (
     SiteSettings, CallbackRequest, ProductionFeature, CompanyTimeline,
     QualityCertificate, DeliveryMethod, PaymentMethod, DeliveryFaq,
-    ContactDepartment, FaqCategory, FaqItem, SocialLink, WholesalePriceRequest
+    ContactDepartment, FaqCategory, FaqItem, SocialLink, WholesalePriceRequest,
+    FooterStatBanner
 )
 from articles.models import Article
 
@@ -170,6 +171,7 @@ def get_dashboard_statistics():
             'total_departments': ContactDepartment.objects.count(),
             'total_faqs': FaqItem.objects.count(),
             'total_socials': SocialLink.objects.count(),
+            'total_stat_banners': FooterStatBanner.objects.count(),
         },
         'categories_list': categories_qs[:8],
         'recent_orders': recent_orders,

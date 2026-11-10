@@ -2038,6 +2038,50 @@ body {
     border-radius: 4px;
 }
 
+/* Статистические баннеры и счетчики в подвале */
+.footer-stat-banners-row {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 1.25rem;
+    margin-top: 1.25rem;
+    font-size: 0.82rem;
+}
+
+.footer-stat-banners-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.footer-stat-banner {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.footer-stat-banner-img:hover {
+    transform: translateY(-2px);
+    opacity: 0.95;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.footer-stat-banner .stat-banner-pic,
+.footer-stat-banner img {
+    max-height: 31px;
+    width: auto;
+    object-fit: contain;
+    border-radius: 3px;
+    display: block;
+}
+
+.footer-stat-banner-code {
+    vertical-align: middle;
+}
+
 
 
 /* ----------------- MODAL CUSTOM ----------------- */

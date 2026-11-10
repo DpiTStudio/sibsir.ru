@@ -137,6 +137,36 @@
                     Официальный сайт: <a href="https://sibsir.ru/" class="text-white text-decoration-none fw-semibold">sibsir.ru</a>
                 </div>
             </div>
+
+            {% if footer_stat_banners %}
+            <div class="footer-stat-banners-row d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="small text-secondary d-flex align-items-center gap-2">
+                    <i class="bi bi-bar-chart-fill text-warning"></i>
+                    <span>Статистика и аналитика</span>
+                </div>
+                <div class="footer-stat-banners-list d-flex flex-wrap align-items-center gap-2">
+                    {% for banner in footer_stat_banners %}
+                        {% if banner.banner_type == 'HTML' %}
+                            <div class="footer-stat-banner footer-stat-banner-code" title="{{ banner.name }}">
+                                {{ banner.html_code|safe }}
+                            </div>
+                        {% else %}
+                            <a href="{{ banner.url|default:'#' }}"
+                               {% if banner.open_in_new_tab and banner.url %}target="_blank" rel="noopener noreferrer"{% endif %}
+                               class="footer-stat-banner footer-stat-banner-img"
+                               title="{{ banner.alt_text|default:banner.name }}"
+                               aria-label="{{ banner.alt_text|default:banner.name }}">
+                                {% if banner.image %}
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.alt_text|default:banner.name }}" class="stat-banner-pic">
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-light border border-secondary">{{ banner.name }}</span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
     </footer>
 

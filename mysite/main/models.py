@@ -1670,4 +1670,104 @@ class Page(models.Model):
         }
 
 
+class FooterStatBanner(models.Model):
+    """
+    Статистические баннеры и счетчики в подвале сайта:
+    LiveInternet, Яндекс.Метрика (информер), Рамблер ТОП-100, Рейтинг Mail.ru,
+    произвольные графические баннеры и HTML/JS информеры.
+    """
+    BANNER_TYPE_IMAGE = "IMAGE"
+    BANNER_TYPE_HTML = "HTML"
+
+    BANNER_TYPE_CHOICES = [
+        (BANNER_TYPE_IMAGE, "Графический баннер (картинка со ссылкой)"),
+        (BANNER_TYPE_HTML, "HTML / JavaScript код (информер / счетчик)"),
+    ]
+
+    name = models.CharField(
+        max_length=150,
+        verbose_name="Название баннера / счётчика",
+        help_text="Например: Яндекс.Метрика (информер), LiveInternet, Рамблер ТОП-100, Рейтинг Mail.ru"
+    )
+    banner_type = models.CharField(
+        max_length=10,
+        choices=BANNER_TYPE_CHOICES,
+        default=BANNER_TYPE_IMAGE,
+        verbose_name="Тип баннера",
+        help_text="Выберите: загрузить файл картинки со ссылкой или вставить готовый HTML-код счётчика/информера"
+    )
+    # Поля для графического баннера
+    image = models.ImageField(
+        upload_to="stat_banners/",
+        blank=True,
+        null=True,
+        verbose_name="Изображение баннера",
+        help_text="Рекомендуемый стандартный размер: 88x31 px (или PNG, SVG, GIF, WebP)"
+    )
+    url = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        verbose_name="Ссылка для перехода",
+        help_text="URL адрес перехода при клике на баннер (например: https://metrika.yandex.ru/dashboard?id=...)"
+    )
+    alt_text = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        verbose_name="Подсказка / Alt-текст",
+        help_text="Текст всплывающей подсказки при наведении на баннер (если не указан, используется название)"
+    )
+    open_in_new_tab = models.BooleanField(
+        default=True,
+        verbose_name="Открывать в новой вкладке (target='_blank')",
+        help_text="Открывать внешнюю ссылку в новом окне браузера"
+    )
+    # Поле для вставки произвольного HTML / JS кода
+    html_code = models.TextField(
+        blank=True,
+        default="",
+        verbose_name="HTML / JS код счетчика или информера",
+        help_text="Вставьте предоставленный сервисом код (например, код информера Яндекс.Метрики, LiveInternet или Rambler)"
+    )
+    # Порядок и активность
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Порядок сортировки",
+        help_text="Чем меньше число, тем левее отображается баннер в подвале сайта"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Отображать в подвале",
+        help_text="Снимите флажок, чтобы временно скрыть баннер без удаления"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        verbose_name = "Статистический баннер"
+        verbose_name_plural = "Статистические баннеры в подвале"
+        ordering = ["order", "id"]
+
+    def __str__(self):
+        return self.name
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ValidationError
+        if self.banner_type == self.BANNER_TYPE_HTML and not self.html_code.strip():
+            raise ValidationError({
+                "html_code": "Для типа «HTML / JS код» необходимо указать код информера или счетчика."
+            })
+
+    def get_image_url(self):
+        if self.image:
+            try:
+                return self.image.url
+            except Exception:
+                return None
+        return None
+
+
+
 

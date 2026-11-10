@@ -265,8 +265,8 @@
         </div>
 
         <!-- 5. Контент и Обратная связь (Dropdown) -->
-        <div class="admin-nav-dropdown {% if '/articles/' in request.path or '/callbackrequest/' in request.path or '/faq' in request.path or '/productionfeature/' in request.path or '/companytimeline/' in request.path or '/qualitycertificate/' in request.path or '/deliverymethod/' in request.path or '/paymentmethod/' in request.path or '/contactdepartment/' in request.path or '/sociallink/' in request.path %}active-parent{% endif %}" data-dropdown>
-            <button type="button" class="admin-nav-dropdown-btn {% if '/articles/' in request.path or '/callbackrequest/' in request.path or '/faq' in request.path or '/productionfeature/' in request.path or '/companytimeline/' in request.path or '/qualitycertificate/' in request.path or '/deliverymethod/' in request.path or '/paymentmethod/' in request.path or '/contactdepartment/' in request.path or '/sociallink/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
+        <div class="admin-nav-dropdown {% if '/articles/' in request.path or '/callbackrequest/' in request.path or '/faq' in request.path or '/productionfeature/' in request.path or '/companytimeline/' in request.path or '/qualitycertificate/' in request.path or '/deliverymethod/' in request.path or '/paymentmethod/' in request.path or '/contactdepartment/' in request.path or '/sociallink/' in request.path or '/footerstatbanner/' in request.path %}active-parent{% endif %}" data-dropdown>
+            <button type="button" class="admin-nav-dropdown-btn {% if '/articles/' in request.path or '/callbackrequest/' in request.path or '/faq' in request.path or '/productionfeature/' in request.path or '/companytimeline/' in request.path or '/qualitycertificate/' in request.path or '/deliverymethod/' in request.path or '/paymentmethod/' in request.path or '/contactdepartment/' in request.path or '/sociallink/' in request.path or '/footerstatbanner/' in request.path %}active{% endif %}" aria-expanded="false" aria-haspopup="true">
                 <i class="bi bi-layout-text-window-reverse"></i>
                 <span>Контент</span>
                 {% if admin_nav_counts.pending_callbacks > 0 %}
@@ -351,6 +351,13 @@
                         <div class="admin-dd-info">
                             <span class="admin-dd-title">Социальные сети</span>
                             <span class="admin-dd-desc">Telegram, VK, WhatsApp</span>
+                        </div>
+                    </a>
+                    <a href="/admin/main/footerstatbanner/" class="admin-dropdown-item {% if '/main/footerstatbanner/' in request.path %}active{% endif %}" role="menuitem">
+                        <div class="admin-dd-icon purple"><i class="bi bi-bar-chart-steps"></i></div>
+                        <div class="admin-dd-info">
+                            <span class="admin-dd-title">Статистические баннеры</span>
+                            <span class="admin-dd-desc">Счетчики и информеры в подвале</span>
                         </div>
                     </a>
                 </div>
@@ -504,6 +511,7 @@
                 <a href="/admin/main/paymentmethod/" class="{% if '/main/paymentmethod/' in request.path %}active{% endif %}">Способы оплаты</a>
                 <a href="/admin/main/contactdepartment/" class="{% if '/main/contactdepartment/' in request.path %}active{% endif %}">Контакты отделов</a>
                 <a href="/admin/main/sociallink/" class="{% if '/main/sociallink/' in request.path %}active{% endif %}">Социальные сети</a>
+                <a href="/admin/main/footerstatbanner/" class="{% if '/main/footerstatbanner/' in request.path %}active{% endif %}">Статистические баннеры</a>
             </div>
         </div>
 

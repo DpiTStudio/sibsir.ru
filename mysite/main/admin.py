@@ -10,7 +10,7 @@ from .models import (
     CompanyTimeline, QualityCertificate, DeliveryMethod,
     PaymentMethod, DeliveryFaq, ContactDepartment,
     FaqCategory, FaqItem, SocialLink, WholesalePriceRequest,
-    Page
+    Page, FooterStatBanner
 )
 from shop.price_list_generator import (
     generate_wholesale_price_list_xlsx,
@@ -1462,6 +1462,118 @@ class PageAdmin(RichTextAdminMixin, DragDropReorderMixin, admin.ModelAdmin):
     def exclude_sitemap_selected(self, request, queryset):
         updated = queryset.update(sitemap_include=False)
         self.message_user(request, f"Исключено из карты сайта: {updated} страниц.", level=messages.WARNING)
+
+
+@admin.register(FooterStatBanner)
+class FooterStatBannerAdmin(DragDropReorderMixin, admin.ModelAdmin):
+    reorder_field = "order"
+    list_display = (
+        "order",
+        "preview_badge",
+        "name",
+        "banner_type_badge",
+        "is_active",
+        "open_in_new_tab",
+        "click_url_display",
+        "updated_at",
+    )
+    list_display_links = ("preview_badge", "name")
+    list_editable = ("order", "is_active")
+    list_filter = ("is_active", "banner_type", "open_in_new_tab")
+    search_fields = ("name", "url", "alt_text", "html_code")
+    readonly_fields = ("preview_detail", "created_at", "updated_at")
+    fieldsets = (
+        ("Основные параметры баннера", {
+            "fields": (
+                ("name", "is_active"),
+                ("banner_type", "order"),
+            ),
+            "description": "Укажите наименование счетчика/информера, статус активности и выберите способ подключения (картинка со ссылкой или готовый код)."
+        }),
+        ("Настройки графического баннера (тип «Картинка со ссылкой»)", {
+            "fields": (
+                ("image", "preview_detail"),
+                "url",
+                ("alt_text", "open_in_new_tab"),
+            ),
+            "description": "Загрузите файл изображения баннера (стандартный размер 88x31 px, либо SVG/PNG/GIF) и укажите URL-ссылку для перехода при клике."
+        }),
+        ("Код информера / виджета (тип «HTML / JS код»)", {
+            "fields": (
+                "html_code",
+            ),
+            "description": "Вставьте готовый фрагмент HTML/JavaScript кода (например, код информера от Яндекс.Метрики, LiveInternet, Rambler Top100, Mail.ru)."
+        }),
+        ("Системные сведения", {
+            "classes": ("collapse",),
+            "fields": (
+                ("created_at", "updated_at"),
+            ),
+        }),
+    )
+
+    def preview_badge(self, obj):
+        if obj.banner_type == FooterStatBanner.BANNER_TYPE_IMAGE and obj.image:
+            return format_html(
+                '<div style="min-width: 88px; height: 31px; display: inline-flex; align-items: center; justify-content: center; background: #0f172a; border-radius: 4px; padding: 2px 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">'
+                '<img src="{}" alt="{}" style="max-height: 27px; max-width: 120px; object-fit: contain;" />'
+                '</div>',
+                obj.image.url, obj.name
+            )
+        elif obj.banner_type == FooterStatBanner.BANNER_TYPE_HTML and obj.html_code:
+            return format_html(
+                '<div style="display: inline-flex; align-items: center; gap: 4px; background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">'
+                '<i class="bi bi-code-slash"></i> HTML-код'
+                '</div>'
+            )
+        return format_html(
+            '<div style="min-width: 88px; height: 31px; display: inline-flex; align-items: center; justify-content: center; background: #f1f5f9; color: #94a3b8; border-radius: 4px; font-size: 11px; border: 1px dashed #cbd5e1;">'
+            'Без баннера'
+            '</div>'
+        )
+    preview_badge.short_description = "Превью"
+
+    def banner_type_badge(self, obj):
+        if obj.banner_type == FooterStatBanner.BANNER_TYPE_IMAGE:
+            return format_html('<span style="background: #ecfdf5; color: #047857; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">🖼 Картинка</span>')
+        return format_html('<span style="background: #eff6ff; color: #1d4ed8; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 600;">💻 Код информера</span>')
+    banner_type_badge.short_description = "Тип баннера"
+
+    def click_url_display(self, obj):
+        if obj.url:
+            short_url = (obj.url[:36] + '...') if len(obj.url) > 36 else obj.url
+            return format_html(
+                '<a href="{}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">'
+                '<span>{}</span> <i class="bi bi-box-arrow-up-right" style="font-size: 10px;"></i>'
+                '</a>',
+                obj.url, short_url
+            )
+        return format_html('<span style="color: #94a3b8;">—</span>')
+    click_url_display.short_description = "Ссылка перехода"
+
+    def preview_detail(self, obj):
+        if obj.image:
+            return format_html(
+                '<div style="padding: 10px; background: #0f172a; border-radius: 8px; display: inline-block;">'
+                '<img src="{}" alt="{}" style="max-height: 50px; max-width: 250px; display: block;" />'
+                '</div>',
+                obj.image.url, obj.name
+            )
+        return "Изображение еще не загружено"
+    preview_detail.short_description = "Текущее изображение баннера"
+
+    @admin.action(description="✅ Включить отображение выбранных баннеров")
+    def activate_selected(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f"Включено баннеров: {updated}.", level=messages.SUCCESS)
+
+    @admin.action(description="⏸ Отключить отображение выбранных баннеров")
+    def deactivate_selected(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f"Отключено баннеров: {updated}.", level=messages.WARNING)
+
+    actions = [activate_selected, deactivate_selected]
+
 
 
 

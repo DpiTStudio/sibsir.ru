@@ -43,12 +43,14 @@ def site_settings(request):
         social_links = []
 
     try:
-        from .models import Page
+        from .models import Page, FooterStatBanner
         header_pages = list(Page.objects.filter(is_published=True, show_in_header=True).order_by('order', 'id'))
         footer_pages = list(Page.objects.filter(is_published=True, show_in_footer=True).order_by('order', 'id'))
+        footer_stat_banners = list(FooterStatBanner.objects.filter(is_active=True).order_by('order', 'id'))
     except Exception:
         header_pages = []
         footer_pages = []
+        footer_stat_banners = []
 
     return {
         "site_settings": settings_obj,
@@ -61,4 +63,5 @@ def site_settings(request):
         "social_links": social_links,
         "header_pages": header_pages,
         "footer_pages": footer_pages,
+        "footer_stat_banners": footer_stat_banners,
     }

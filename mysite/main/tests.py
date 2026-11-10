@@ -1,7 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from shop.models import Category, Product
-from main.models import SiteSettings
+from main.models import SiteSettings, FooterStatBanner
 
 
 class CatalogPaginationTest(TestCase):
@@ -75,3 +75,56 @@ class CoreSiteEndpointsTest(TestCase):
         res = self.client.get("/sitemap.xml", HTTP_HOST="127.0.0.1")
         self.assertEqual(res.status_code, 200)
         self.assertIn("urlset", res.content.decode("utf-8"))
+
+
+class FooterStatBannerTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+
+    def test_stat_banner_rendering_in_footer(self):
+        # 1. Создаем активный баннер-информер с HTML кодом
+        banner_code = FooterStatBanner.objects.create(
+            name="Яндекс Метрика Информер",
+            banner_type=FooterStatBanner.BANNER_TYPE_HTML,
+            html_code='<a id="ym-informer" href="https://metrika.yandex.ru"><img src="https://informer.yandex.ru/informer" alt="Яндекс.Метрика" /></a>',
+            order=1,
+            is_active=True
+        )
+
+        # 2. Создаем активный графический баннер со ссылкой
+        banner_img = FooterStatBanner.objects.create(
+            name="LiveInternet",
+            banner_type=FooterStatBanner.BANNER_TYPE_IMAGE,
+            url="https://www.liveinternet.ru/click",
+            alt_text="LiveInternet: число просмотров за 24 часа",
+            order=2,
+            is_active=True
+        )
+
+        # 3. Создаем неактивный баннер (не должен отображаться)
+        banner_hidden = FooterStatBanner.objects.create(
+            name="Скрытый баннер",
+            banner_type=FooterStatBanner.BANNER_TYPE_HTML,
+            html_code='<span id="hidden-counter">Hidden</span>',
+            order=3,
+            is_active=False
+        )
+
+        # Запрашиваем страницу сайта
+        res = self.client.get(reverse("main:index"), HTTP_HOST="127.0.0.1")
+        self.assertEqual(res.status_code, 200)
+        
+        # Проверяем, что контекст-процессор передал список баннеров
+        banners_in_context = res.context["footer_stat_banners"]
+        self.assertEqual(len(banners_in_context), 2)
+        self.assertIn(banner_code, banners_in_context)
+        self.assertIn(banner_img, banners_in_context)
+        self.assertNotIn(banner_hidden, banners_in_context)
+
+        # Проверяем HTML-вывод в подвале
+        content = res.content.decode("utf-8")
+        self.assertIn('ym-informer', content)
+        self.assertIn('https://www.liveinternet.ru/click', content)
+        self.assertIn('LiveInternet: число просмотров за 24 часа', content)
+        self.assertNotIn('hidden-counter', content)
+
