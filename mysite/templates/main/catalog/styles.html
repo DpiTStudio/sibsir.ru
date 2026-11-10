@@ -843,41 +843,204 @@
 }
 
 /* ==========================================================================
-   QUICK VIEW MODAL STYLING
+   QUICK VIEW MODAL STYLING (PREMIUM SIBIRSKY SYR)
    ========================================================================== */
 .quick-view-modal-content {
     border-radius: 24px;
     border: none;
-    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.25);
+    box-shadow: 0 25px 70px rgba(15, 23, 42, 0.28);
     overflow: hidden;
+    background: #ffffff;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.quick-view-modal-content.qv-animating {
+    opacity: 0.4;
+    transform: scale(0.985);
+}
+
+.qv-sku-pill {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.qv-sku-pill:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+}
+
+.qv-nav-cluster {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.qv-nav-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s ease;
+    border: none;
+    background: transparent;
+    color: #475569;
+}
+
+.qv-nav-btn:hover:not(:disabled) {
+    background: #ff8400;
+    color: #ffffff;
+}
+
+.qv-nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.qv-nav-counter {
+    font-size: 0.76rem;
+    min-width: 52px;
+    text-align: center;
+    user-select: none;
+}
+
+.qv-head-action-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.qv-head-action-btn:hover {
+    transform: scale(1.1);
+}
+
+.qv-head-action-btn.active {
+    background-color: #ef4444 !important;
+    border-color: #ef4444 !important;
+    color: #ffffff !important;
 }
 
 .quick-view-img-box {
-    background: #faf8f5;
+    background: linear-gradient(145deg, #fcfbf9 0%, #f6f3ee 100%);
     border-radius: 20px;
-    padding: 2rem;
-    height: 100%;
-    min-height: 320px;
+    padding: 1.5rem;
+    min-height: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
-    border: 1px solid #f1f5f9;
+    border: 1px solid #ede8e1;
+    overflow: hidden;
 }
 
-.quick-view-img-box img {
-    max-height: 280px;
+.qv-main-img {
+    max-height: 270px;
     max-width: 100%;
     object-fit: contain;
+    cursor: zoom-in;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quick-view-img-box:hover .qv-main-img {
+    transform: scale(1.06);
+}
+
+.qv-img-zoom-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #334155;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 2;
+}
+
+.qv-img-zoom-btn:hover {
+    background: #ff8400;
+    color: #ffffff;
+    transform: scale(1.1);
+}
+
+.qv-trust-block {
+    background: #fafaf9;
+    border: 1px solid #f1f0ee;
+}
+
+.qv-trust-item {
+    transition: all 0.25s ease;
+}
+
+.qv-trust-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: #fbd38d !important;
+}
+
+.qv-pills {
+    background: #f1f5f9;
+}
+
+.qv-pills .nav-link {
+    color: #475569;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.qv-pills .nav-link.active {
+    background: #ffffff;
+    color: #ea580c;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .quick-view-specs-table td {
     padding: 0.45rem 0.5rem;
-    font-size: 0.85rem;
+    font-size: 0.84rem;
 }
 
 .quick-view-specs-table tr:nth-child(even) {
     background: #f8fafc;
+}
+
+.qv-kbju-card {
+    transition: all 0.2s ease;
+}
+
+.qv-kbju-card:hover {
+    border-color: #fbd38d !important;
+    background: #fffdfa !important;
+}
+
+.qv-add-to-cart-btn {
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.qv-add-to-cart-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(255, 132, 0, 0.35);
+}
+
+.qv-oneclick-btn {
+    border-color: #fbd38d;
+    transition: all 0.2s ease;
+}
+
+.qv-oneclick-btn:hover {
+    background: #fff7ed;
+    border-color: #ff8400;
+    color: #c2410c !important;
 }
 
 /* Mobile Product Cards */

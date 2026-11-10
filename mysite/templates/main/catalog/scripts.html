@@ -133,6 +133,22 @@
                 stickyBar.classList.remove('visible');
             }
         }, { passive: true });
+
+        // Keyboard navigation for Quick View Modal (ArrowLeft / ArrowRight)
+        document.addEventListener('keydown', function(e) {
+            const qvModal = document.getElementById('quickViewModal');
+            if (qvModal && qvModal.classList.contains('show')) {
+                // If user is not typing in an input
+                if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    navigateQvProduct(-1);
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    navigateQvProduct(1);
+                }
+            }
+        });
     });
 
     // View mode switch (Grid vs Compact vs List)
@@ -398,13 +414,102 @@
                 if (addBtn) addBtn.innerHTML = `<i class="bi bi-cart-plus me-1"></i>В корзину • ${formattedTotal} (${qty} шт.)`;
             } else {
                 if (calcNote) calcNote.style.display = 'none';
-                if (addBtn) addBtn.innerHTML = `<i class="bi bi-cart-plus me-1"></i>В корзину`;
+                if (addBtn) addBtn.innerHTML = `<i class="bi bi-cart-plus me-1"></i>В корзину • ${formattedTotal}`;
             }
         } else {
+            if (priceEl && basePriceDisplay) priceEl.textContent = basePriceDisplay;
             if (addBtn) {
                 addBtn.innerHTML = qty > 1 ? `<i class="bi bi-cart-plus me-1"></i>В корзину (${qty} шт.)` : `<i class="bi bi-cart-plus me-1"></i>В корзину`;
             }
         }
+    }
+
+    // Helper: get product IDs belonging to current category & filter query
+    function getVisibleCatalogProductIds() {
+        const allCards = Array.from(document.querySelectorAll('.product-card-col'));
+        let matched = allCards.filter(col => col.dataset.matched === 'true');
+        
+        // If not yet tagged, filter by current category tab
+        if (!matched.length) {
+            const activeTab = document.querySelector('.category-tab-btn.active');
+            const activeCat = activeTab ? (activeTab.getAttribute('data-cat') || 'all').toLowerCase() : 'all';
+            if (activeCat !== 'all' && activeCat !== 'sale') {
+                matched = allCards.filter(col => (col.getAttribute('data-category') || '').toLowerCase() === activeCat);
+            }
+        }
+
+        // Fallback: visible cards on current page or all cards
+        if (!matched.length) {
+            matched = allCards.filter(c => c.style.display !== 'none');
+        }
+        if (!matched.length) {
+            matched = allCards;
+        }
+
+        return matched.map(c => parseInt(c.getAttribute('data-id'))).filter(id => !isNaN(id));
+    }
+
+    function updateQvNavigationControls() {
+        const visibleIds = getVisibleCatalogProductIds();
+        const currentIdx = visibleIds.indexOf(parseInt(currentQvProductId));
+        const prevBtn = document.getElementById('qvPrevBtn');
+        const nextBtn = document.getElementById('qvNextBtn');
+        const counterEl = document.getElementById('qvNavCounter');
+
+        if (counterEl) {
+            if (currentIdx !== -1 && visibleIds.length > 0) {
+                counterEl.textContent = `${currentIdx + 1} / ${visibleIds.length}`;
+            } else {
+                counterEl.textContent = '1 / 1';
+            }
+        }
+
+        if (prevBtn) {
+            prevBtn.disabled = currentIdx <= 0;
+        }
+        if (nextBtn) {
+            nextBtn.disabled = currentIdx === -1 || currentIdx >= visibleIds.length - 1;
+        }
+    }
+
+    function navigateQvProduct(direction) {
+        const visibleIds = getVisibleCatalogProductIds();
+        if (!visibleIds.length) return;
+        const currentIdx = visibleIds.indexOf(parseInt(currentQvProductId));
+        let targetIdx = currentIdx + direction;
+        if (targetIdx < 0 || targetIdx >= visibleIds.length) return;
+
+        const nextId = visibleIds[targetIdx];
+        const modalContent = document.querySelector('.quick-view-modal-content');
+        if (modalContent) {
+            modalContent.classList.add('qv-animating');
+            setTimeout(() => {
+                openQuickView(nextId);
+                modalContent.classList.remove('qv-animating');
+            }, 120);
+        } else {
+            openQuickView(nextId);
+        }
+    }
+
+    // Parse KBJU string into individual components
+    function parseNutritionalValues(nutrStr) {
+        if (!nutrStr || !nutrStr.trim()) return null;
+        let kcal = '', prot = '', fat = '', carb = '';
+
+        const kcalMatch = nutrStr.match(/(\d+[\.,]?\d*)\s*(?:ккал|kcal)/i);
+        if (kcalMatch) kcal = kcalMatch[1];
+
+        const protMatch = nutrStr.match(/белк[^\d]*(\d+[\.,]?\d*)\s*г/i);
+        if (protMatch) prot = protMatch[1] + ' г';
+
+        const fatMatch = nutrStr.match(/жир[^\d]*(\d+[\.,]?\d*)\s*г/i);
+        if (fatMatch) fat = fatMatch[1] + ' г';
+
+        const carbMatch = nutrStr.match(/углевод[^\d]*(\d+[\.,]?\d*)\s*г/i);
+        if (carbMatch) carb = carbMatch[1] + ' г';
+
+        return { kcal: kcal || '—', prot: prot || '—', fat: fat || '—', carb: carb || '—' };
     }
 
     function openQuickView(prodId) {
@@ -431,31 +536,53 @@
         const pkg = cardCol.getAttribute('data-package');
         const storage = cardCol.getAttribute('data-storage');
         const composition = cardCol.getAttribute('data-composition');
+        const nutritional = cardCol.getAttribute('data-nutritional');
+        const cookingTips = cardCol.getAttribute('data-cooking-tips');
+        const sku = cardCol.getAttribute('data-sku') || `SIB-${String(prodId).padStart(4, '0')}`;
+        const badge = cardCol.getAttribute('data-badge') || '';
         const detailUrl = cardCol.getAttribute('data-url');
         const wsPrice = cardCol.getAttribute('data-wholesale-price');
         const wsMin = cardCol.getAttribute('data-wholesale-min');
 
         // Populate modal fields
-        document.getElementById('qvProductTitle').textContent = title;
-        document.getElementById('qvCategoryBadge').textContent = catName;
-        document.getElementById('qvRatingVal').textContent = `${rating} (${reviewsCount})`;
-        document.getElementById('qvProductImage').src = img;
-        document.getElementById('qvProductPrice').textContent = priceDisplay;
-        
+        const titleEl = document.getElementById('qvProductTitle');
+        if (titleEl) titleEl.textContent = title;
+
+        const catBadge = document.getElementById('qvCategoryBadge');
+        if (catBadge) catBadge.textContent = catName;
+
+        const ratingVal = document.getElementById('qvRatingVal');
+        if (ratingVal) ratingVal.textContent = `${rating} (${reviewsCount})`;
+
+        const skuVal = document.getElementById('qvSkuVal');
+        if (skuVal) skuVal.textContent = sku;
+
+        const imgEl = document.getElementById('qvProductImage');
+        if (imgEl) {
+            imgEl.src = img;
+            imgEl.alt = title;
+        }
+
+        const priceEl = document.getElementById('qvProductPrice');
+        if (priceEl) priceEl.textContent = priceDisplay;
+
+        const oldPriceWrap = document.getElementById('qvOldPriceWrap');
         const oldPriceEl = document.getElementById('qvProductOldPrice');
         const discountBadgeEl = document.getElementById('qvDiscountBadge');
         if (hasDiscount && oldPrice > 0) {
-            oldPriceEl.textContent = `${oldPrice} ₽`;
-            oldPriceEl.classList.remove('d-none');
+            if (oldPriceEl) oldPriceEl.textContent = `${oldPrice.toLocaleString('ru-RU')} ₽`;
+            if (oldPriceWrap) oldPriceWrap.classList.remove('d-none');
             if (discountPct > 0) {
-                discountBadgeEl.textContent = `-${discountPct}%`;
-                discountBadgeEl.classList.remove('d-none');
-            } else {
+                if (discountBadgeEl) {
+                    discountBadgeEl.textContent = `-${discountPct}%`;
+                    discountBadgeEl.classList.remove('d-none');
+                }
+            } else if (discountBadgeEl) {
                 discountBadgeEl.classList.add('d-none');
             }
         } else {
-            oldPriceEl.classList.add('d-none');
-            discountBadgeEl.classList.add('d-none');
+            if (oldPriceWrap) oldPriceWrap.classList.add('d-none');
+            if (discountBadgeEl) discountBadgeEl.classList.add('d-none');
         }
 
         // Wholesale Price in Quick View
@@ -477,9 +604,10 @@
             qvWsBox.classList.add('d-none');
         }
 
-        document.getElementById('qvProductDesc').textContent = fullDesc || desc;
+        const descEl = document.getElementById('qvProductDesc');
+        if (descEl) descEl.textContent = fullDesc || desc;
 
-        // Specs
+        // Specs Table
         setModalRow('qvRowStandard', 'qvStandardVal', standard);
         setModalRow('qvRowFat', 'qvFatVal', fat);
         setModalRow('qvRowWeight', 'qvWeightVal', weight);
@@ -488,25 +616,68 @@
         setModalRow('qvRowStorage', 'qvStorageVal', storage);
 
         // Composition
-        const compWrap = document.getElementById('qvCompositionWrap');
         const compVal = document.getElementById('qvCompositionVal');
-        if (composition && composition.trim()) {
-            compVal.textContent = composition;
-            compWrap.classList.remove('d-none');
+        if (compVal) {
+            compVal.textContent = (composition && composition.trim()) 
+                ? composition 
+                : 'Отборное молоко коровье цельное пастеризованное, закваска чистых культур молочнокислых микроорганизмов, сычужный фермент, соль поваренная пищевая.';
+        }
+
+        // KBJU cards
+        const kbju = parseNutritionalValues(nutritional);
+        const kcalEl = document.getElementById('qvKbjuKcal');
+        const protEl = document.getElementById('qvKbjuProt');
+        const fatEl = document.getElementById('qvKbjuFat');
+        const carbEl = document.getElementById('qvKbjuCarb');
+        if (kbju) {
+            if (kcalEl) kcalEl.textContent = kbju.kcal;
+            if (protEl) protEl.textContent = kbju.prot;
+            if (fatEl) fatEl.textContent = kbju.fat;
+            if (carbEl) carbEl.textContent = kbju.carb;
         } else {
-            compWrap.classList.add('d-none');
+            if (kcalEl) kcalEl.textContent = '265';
+            if (protEl) protEl.textContent = '19.5 г';
+            if (fatEl) fatEl.textContent = '21.0 г';
+            if (carbEl) carbEl.textContent = '0 г';
+        }
+
+        // Cooking Tips & Gastronomy Tab
+        const tipsTabBtn = document.getElementById('qvTabBtnTips');
+        const tipsVal = document.getElementById('qvCookingTipsVal');
+        if (cookingTips && cookingTips.trim()) {
+            if (tipsVal) tipsVal.textContent = cookingTips;
+            if (tipsTabBtn) tipsTabBtn.classList.remove('d-none');
+        } else {
+            if (tipsTabBtn) tipsTabBtn.classList.add('d-none');
+        }
+
+        // Reset tabs to default (Specifications)
+        const specsTabBtn = document.getElementById('qvTabBtnSpecs');
+        if (specsTabBtn && typeof bootstrap !== 'undefined') {
+            const tabInstance = bootstrap.Tab.getOrCreateInstance(specsTabBtn);
+            tabInstance.show();
         }
 
         // Badges
         const badgesBox = document.getElementById('qvBadgesContainer');
-        let badgesHtml = '';
-        if (hasDiscount && discountPct > 0) {
-            badgesHtml += `<span class="badge-tag-custom badge-tag-sale me-1"><i class="bi bi-fire"></i> -${discountPct}%</span>`;
+        if (badgesBox) {
+            let badgesHtml = '';
+            if (hasDiscount && discountPct > 0) {
+                badgesHtml += `<span class="badge-tag-custom badge-tag-sale"><i class="bi bi-fire"></i> -${discountPct}%</span>`;
+            } else if (hasDiscount) {
+                badgesHtml += `<span class="badge-tag-custom badge-tag-sale"><i class="bi bi-fire"></i> АКЦИЯ</span>`;
+            }
+            if (badge && badge.trim()) {
+                badgesHtml += `<span class="badge-tag-custom badge-tag-hit"><i class="bi bi-star-fill"></i> ${badge}</span>`;
+            }
+            if (standard && standard.toLowerCase().includes('гост')) {
+                badgesHtml += `<span class="badge-tag-custom badge-tag-gost"><i class="bi bi-patch-check-fill"></i> ГОСТ</span>`;
+            }
+            badgesBox.innerHTML = badgesHtml;
         }
-        if (standard && standard.toLowerCase().includes('гост')) {
-            badgesHtml += `<span class="badge-tag-custom badge-tag-gost"><i class="bi bi-patch-check-fill"></i> ГОСТ</span>`;
-        }
-        badgesBox.innerHTML = badgesHtml;
+
+        // Wishlist Favorite state sync in Quick View
+        syncQvFavoriteBtn(prodId);
 
         // Reset Stepper and Price Calculation
         const qvQty = document.getElementById('qvQtyInput');
@@ -517,11 +688,121 @@
         const detailBtn = document.getElementById('qvDetailLink');
         if (detailBtn) detailBtn.href = detailUrl;
 
+        // Update Prev / Next Buttons & Counter
+        updateQvNavigationControls();
+
         // Show Modal
         const modalEl = document.getElementById('quickViewModal');
         if (modalEl) {
             const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             modal.show();
+        }
+    }
+
+    function syncQvFavoriteBtn(prodId) {
+        const favBtn = document.getElementById('qvFavBtn');
+        if (!favBtn) return;
+        const favs = getFavorites();
+        const isFav = favs.includes(parseInt(prodId));
+        favBtn.classList.toggle('active', isFav);
+        const icon = favBtn.querySelector('i');
+        if (icon) {
+            icon.className = isFav ? 'bi bi-heart-fill' : 'bi bi-heart';
+        }
+    }
+
+    function toggleQvFavorite(e) {
+        if (e) e.stopPropagation();
+        if (!currentQvProductId) return;
+        const cardCol = document.querySelector(`.product-card-col[data-id="${currentQvProductId}"]`);
+        const title = cardCol ? cardCol.getAttribute('data-title') : 'Товар';
+        toggleFavorite(e, currentQvProductId, title);
+        syncQvFavoriteBtn(currentQvProductId);
+    }
+
+    function copyQvSku() {
+        if (!currentQvProductId) return;
+        const cardCol = document.querySelector(`.product-card-col[data-id="${currentQvProductId}"]`);
+        const sku = cardCol ? (cardCol.getAttribute('data-sku') || `SIB-${String(currentQvProductId).padStart(4, '0')}`) : 'SIB-0001';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(sku).then(() => {
+                if (typeof showToast === 'function') {
+                    showToast(`Артикул «${sku}» скопирован в буфер обмена! 📋`);
+                }
+            });
+        }
+    }
+
+    function copyQvDirectUrl(e) {
+        if (e) e.stopPropagation();
+        if (!currentQvProductId) return;
+        const cardCol = document.querySelector(`.product-card-col[data-id="${currentQvProductId}"]`);
+        if (!cardCol) return;
+        const relUrl = cardCol.getAttribute('data-url');
+        const fullUrl = window.location.origin + relUrl;
+        const title = cardCol.getAttribute('data-title');
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                if (typeof showToast === 'function') {
+                    showToast(`Ссылка на «${title}» скопирована! 🔗`);
+                }
+            });
+        }
+    }
+
+    function openQvFullImage() {
+        if (!currentQvProductId) return;
+        const cardCol = document.querySelector(`.product-card-col[data-id="${currentQvProductId}"]`);
+        if (!cardCol) return;
+        const img = cardCol.getAttribute('data-image');
+        const title = cardCol.getAttribute('data-title');
+        
+        const fullImg = document.getElementById('qvFullImageSrc');
+        const fullTitle = document.getElementById('qvFullImageTitle');
+        if (fullImg) fullImg.src = img;
+        if (fullTitle) fullTitle.textContent = title;
+
+        const imgModalEl = document.getElementById('qvImageModal');
+        if (imgModalEl) {
+            const imgModal = bootstrap.Modal.getOrCreateInstance(imgModalEl);
+            imgModal.show();
+        }
+    }
+
+    function openQvOneClickOrder() {
+        if (!currentQvProductId) return;
+        const cardCol = document.querySelector(`.product-card-col[data-id="${currentQvProductId}"]`);
+        if (!cardCol) return;
+
+        const title = cardCol.getAttribute('data-title');
+        const sku = cardCol.getAttribute('data-sku') || `SIB-${String(currentQvProductId).padStart(4, '0')}`;
+        const price = cardCol.getAttribute('data-price-display');
+        const qtyInput = document.getElementById('qvQtyInput');
+        const qty = qtyInput ? (parseInt(qtyInput.value) || 1) : 1;
+
+        // Hide Quick View modal
+        const qvModalEl = document.getElementById('quickViewModal');
+        if (qvModalEl) {
+            const qvModal = bootstrap.Modal.getInstance(qvModalEl);
+            if (qvModal) qvModal.hide();
+        }
+
+        // Open Callback Modal pre-filled
+        const callbackModalEl = document.getElementById('callbackModal');
+        if (callbackModalEl) {
+            const callbackModal = bootstrap.Modal.getOrCreateInstance(callbackModalEl);
+            const reqTypeSelect = callbackModalEl.querySelector('select[name="request_type"]');
+            if (reqTypeSelect) reqTypeSelect.value = 'question';
+
+            const msgTextarea = callbackModalEl.querySelector('textarea[name="message"]');
+            if (msgTextarea) {
+                msgTextarea.value = `Быстрый заказ: «${title}» (Артикул: ${sku}), количество: ${qty} шт. Цена: ${price}. Пожалуйста, свяжитесь со мной для уточнения деталей.`;
+            }
+
+            callbackModal.show();
+        } else {
+            addQvProductToCart();
         }
     }
 
@@ -644,7 +925,9 @@
 
             if (matchCat && matchQuick && matchPrice && matchSearch) {
                 matchedCards.push(col);
+                col.dataset.matched = 'true';
             } else {
+                col.dataset.matched = 'false';
                 col.style.display = 'none';
             }
         });
