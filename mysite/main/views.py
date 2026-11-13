@@ -58,9 +58,9 @@ def index(request):
     popular_products = pop_candidates[:6]
     popular_ids = {p.id for p in popular_products}
 
-    # --- 2. ТОВАРЫ ПО АКЦИИ (всего 4 товара, если есть акции) ---
+    # --- 2. ТОВАРЫ ПО АКЦИИ (до 6 товаров, по 3 товара на строчку) ---
     sale_candidates = [p for p in all_products if p.has_discount]
-    sale_products = sale_candidates[:4]
+    sale_products = sale_candidates[:6]
     sale_products_count = len(sale_candidates)
 
     # --- 3. ВЫБОР ПОКУПАТЕЛЕЙ / РЕКОМЕНДУЕМ (6 товаров для карусели) ---

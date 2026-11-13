@@ -1,4 +1,4 @@
-    <!-- 3.5 SALE PRODUCTS SECTION (ТОЛЬКО ЕСЛИ ЕСТЬ АКЦИИ - ВСЕГО 4 ТОВАРА) -->
+    <!-- 3.5 SALE PRODUCTS SECTION (ТОЛЬКО ЕСЛИ ЕСТЬ АКЦИИ - ПО 3 ТОВАРА НА СТРОЧКУ) -->
     {% if sale_products %}
     <section class="mb-5" id="sale-products">
         <div class="p-4 p-md-5 rounded-4 shadow-sm" style="background: linear-gradient(135deg, #fff5f5 0%, #fff1f2 100%); border: 1.5px solid #fecdd3;">
@@ -18,7 +18,7 @@
 
             <div class="row g-2 g-md-4">
                 {% for prod in sale_products %}
-                    <div class="col-6 col-md-6 col-lg-3">
+                    <div class="col-6 col-md-4 col-lg-4">
                         <div class="product-card">
                             {% if prod.effective_badge %}
                                 <div class="product-badge-float product-badge-sale">
